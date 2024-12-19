@@ -1,0 +1,40 @@
+
+{
+    "film_team": {
+        "Starring and written by": "Serati Maseko",
+        "Directed by": "Jens Sage",
+        "Edited by": "Helge Neidhardt",
+        "Director of Photography": "Sebastian Sellner",
+        "Movement Director": "Phoenix Chase-MeaRes",
+        "Music and Sound Design": "Ethan Houser",
+        "Executive Production": "Shelter Production",
+        "Stills Photographer": "Steve Marais",
+        "Warderobe Stylist": "Dihantus Engelbrecht",
+        "Make Up Artist": "Kid Redsky",
+        "Hair Styling Artist": "Kelly Taylor",
+        "Props Master": "Byron Kensley",
+        "Executive Producer": "Jens Sage",
+        "Service Production": "Juice Films",
+        "Producer": "Lukasz Kus",
+        "Local Executive Producer": "Carmen Amos",
+        "Local Head of Production": "Marisa Bracher",
+        "Line Producer": "Karin Tanchel",
+        "Music": "Ethan Houser",
+        "Unit/Location Manager": "Kendall Smithdorf",
+        "Sound Specialist": "Gary Rundle",
+        "Graphic Design": "Christian Pietrzok",
+        "1st AC": "Kevin Schnider",
+        "Loader": "Marcel Maasen",
+        "Gaffer": "JP du preez",
+        "Best Boy Lights": "Itumeleng Mdodana",
+        "Spark": "Mohamed Zaid Lagadien",
+        "Catering": "Kitchen Republic",
+        "Camera Rental": "Panavision Cape Town"
+    },
+    "podcast_team": {
+        "Host": "Serati Maseko",
+        "Starring": "Alfie, Lenna",
+        "Music Composer": "Ethan Houser",
+        "Produced by": "Jens Sage"
+    }
+}
