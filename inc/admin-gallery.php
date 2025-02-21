@@ -1,51 +1,206 @@
 <?php
-function afct_gallery_images_meta_box_callback($post) {
-    wp_nonce_field('afct_save_gallery_images_meta_box_data', 'afct_gallery_images_meta_box_nonce');
-    $gallery_images = get_post_meta($post->ID, '_afct_gallery_images', true);
+function afct_add_gallery_meta_box() {
+    $screen = get_current_screen();
+    if ($screen->post_type === 'page') {
+        $post = get_post();
+        if ($post && (stripos($post->post_title, 'stills') !== false || 
+            stripos($post->post_name, 'stills') !== false)) {
+            add_meta_box(
+                'afct_gallery_meta_box',
+                'Gallery Layout',
+                'afct_gallery_meta_box_html',
+                'page',
+                'normal',
+                'high'
+            );
+        }
+    }
+}
+add_action('add_meta_boxes', 'afct_add_gallery_meta_box');
+
+function afct_gallery_meta_box_html($post) {
+    wp_nonce_field('afct_gallery_meta_box', 'afct_gallery_meta_box_nonce');
+    $gallery_data = get_post_meta($post->ID, '_afct_gallery_layout', true) ?: ['rows' => []];
     ?>
-    <div id="gallery-images-wrapper">
-        <?php if (!empty($gallery_images)) : ?>
-            <?php foreach ($gallery_images as $image) : ?>
-                <div class="gallery-image">
-                    <label for="image_url">Image:</label>
-                    <input type="hidden" name="image_url[]" value="<?php echo esc_attr($image['url']); ?>" />
-                    <button type="button" class="upload_image_button button">Upload Image</button>
-                    <?php if ($image['url']) : ?>
-                        <img src="<?php echo esc_url($image['url']); ?>" alt="<?php echo esc_attr($image['alt']); ?>" style="max-width: 100px; display: block;" />
-                    <?php endif; ?>
-                    <label for="image_alt">Image Alt Text:</label>
-                    <input type="text" name="image_alt[]" value="<?php echo esc_attr($image['alt']); ?>" />
-                    <button type="button" class="remove-image">Remove</button>
+    <div id="gallery_container">
+        <div id="gallery_rows">
+            <?php foreach ($gallery_data['rows'] as $row_index => $row): ?>
+            <div class="gallery-row" style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+                <h4>Row <?php echo $row_index + 1; ?> 
+                    <button type="button" class="button remove-row" style="float:right">Remove Row</button>
+                </h4>
+                <div class="row-columns" style="display: flex; gap: 10px;">
+                    <?php foreach ($row['columns'] as $col_index => $column): ?>
+                    <div class="gallery-column" style="flex: <?php echo $column['width']; ?>">
+                        <input type="hidden" name="gallery_layout[<?php echo $row_index; ?>][columns][<?php echo $col_index; ?>][width]" 
+                               value="<?php echo $column['width']; ?>">
+                        <input type="hidden" name="gallery_layout[<?php echo $row_index; ?>][columns][<?php echo $col_index; ?>][image_id]" 
+                               value="<?php echo $column['image_id'] ?? ''; ?>" class="image-id">
+                        <div style="border: 1px dashed #999; padding: 10px; text-align: center;">
+                            <div class="image-preview" style="margin-bottom: 10px">
+                                <?php if (!empty($column['image_id'])): ?>
+                                    <?php echo wp_get_attachment_image($column['image_id'], 'thumbnail'); ?>
+                                <?php endif; ?>
+                            </div>
+                            <button type="button" class="button select-image">Select Image</button>
+                            <button type="button" class="button remove-image" <?php echo empty($column['image_id']) ? 'style="display:none"' : ''; ?>>Remove</button>
+                            <div style="margin-top: 10px">
+                                <label>Width: 
+                                    <select class="column-width" onchange="updateColumnWidth(this)">
+                                        <option value="1" <?php selected($column['width'], 1); ?>>10%</option>
+                                        <option value="2" <?php selected($column['width'], 2); ?>>20%</option>
+                                        <option value="3" <?php selected($column['width'], 3); ?>>30%</option>
+                                        <option value="4" <?php selected($column['width'], 4); ?>>40%</option>
+                                        <option value="5" <?php selected($column['width'], 5); ?>>50%</option>
+                                        <option value="6" <?php selected($column['width'], 6); ?>>60%</option>
+                                        <option value="7" <?php selected($column['width'], 7); ?>>70%</option>
+                                        <option value="8" <?php selected($column['width'], 8); ?>>80%</option>
+                                        <option value="9" <?php selected($column['width'], 9); ?>>90%</option>
+                                        <option value="10" <?php selected($column['width'], 10); ?>>100%</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                    <button type="button" class="button add-column">+ Add Column</button>
                 </div>
+            </div>
             <?php endforeach; ?>
-        <?php endif; ?>
+        </div>
+        <button type="button" class="button add-row">+ Add Row</button>
     </div>
-    <button type="button" id="add-image">Add Image</button>
+
     <script>
-        jQuery(document).ready(function($) {
-            $('#add-image').on('click', function() {
-                $('#gallery-images-wrapper').append('<div class="gallery-image"><label for="image_url">Image:</label><input type="hidden" name="image_url[]" /><button type="button" class="upload_image_button button">Upload Image</button><label for="image_alt">Image Alt Text:</label><input type="text" name="image_alt[]" value="" /><button type="button" class="remove-image">Remove</button></div>');
-            });
-            $(document).on('click', '.remove-image', function() {
-                $(this).closest('.gallery-image').remove();
-            });
-            $(document).on('click', '.upload_image_button', function(e) {
-                e.preventDefault();
-                var button = $(this);
-                var custom_uploader = wp.media({
-                    title: 'Select Image',
-                    button: {
-                        text: 'Use this image'
-                    },
-                    multiple: false
-                }).on('select', function() {
-                    var attachment = custom_uploader.state().get('selection').first().toJSON();
-                    button.prev('input').val(attachment.url);
-                    button.next('img').remove();
-                    button.after('<img src="' + attachment.url + '" style="max-width: 100px; display: block;" />');
-                }).open();
-            });
+    jQuery(document).ready(function($) {
+        // Template for new column
+        function getColumnTemplate(rowIndex, colIndex) {
+            return `
+                <div class="gallery-column" style="flex: 1">
+                    <input type="hidden" name="gallery_layout[${rowIndex}][columns][${colIndex}][width]" value="1">
+                    <input type="hidden" name="gallery_layout[${rowIndex}][columns][${colIndex}][image_id]" class="image-id">
+                    <div style="border: 1px dashed #999; padding: 10px; text-align: center;">
+                        <div class="image-preview" style="margin-bottom: 10px"></div>
+                        <button type="button" class="button select-image">Select Image</button>
+                        <button type="button" class="button remove-image" style="display:none">Remove</button>
+                        <div style="margin-top: 10px">
+                            <label>Width: 
+                                <select class="column-width" onchange="updateColumnWidth(this)">
+                                    <option value="1">10%</option>
+                                    <option value="2">20%</option>
+                                    <option value="3">30%</option>
+                                    <option value="4">40%</option>
+                                    <option value="5">50%</option>
+                                    <option value="6">60%</option>
+                                    <option value="7">70%</option>
+                                    <option value="8">80%</option>
+                                    <option value="9">90%</option>
+                                    <option value="10">100%</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        // Template for new row
+        function getRowTemplate(rowIndex) {
+            return `
+                <div class="gallery-row" style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+                    <h4>Row ${rowIndex + 1} <button type="button" class="button remove-row" style="float:right">Remove Row</button></h4>
+                    <div class="row-columns" style="display: flex; gap: 10px;">
+                        ${getColumnTemplate(rowIndex, 0)}
+                        <button type="button" class="button add-column">+ Add Column</button>
+                    </div>
+                </div>`;
+        }
+
+        // Add Row
+        $('.add-row').click(function() {
+            const rowIndex = $('.gallery-row').length;
+            $('#gallery_rows').append(getRowTemplate(rowIndex));
         });
+
+        // Add Column
+        $(document).on('click', '.add-column', function() {
+            const $row = $(this).closest('.gallery-row');
+            const rowIndex = $('.gallery-row').index($row);
+            const colIndex = $row.find('.gallery-column').length;
+            $(this).before(getColumnTemplate(rowIndex, colIndex));
+        });
+
+        // Remove Row
+        $(document).on('click', '.remove-row', function() {
+            $(this).closest('.gallery-row').remove();
+            updateRowIndices();
+        });
+
+        // Select Image
+        $(document).on('click', '.select-image', function() {
+            const $button = $(this);
+            const frame = wp.media({
+                title: 'Select Image',
+                multiple: false,
+                library: { type: 'image' }
+            });
+
+            frame.on('select', function() {
+                const attachment = frame.state().get('selection').first().toJSON();
+                const $column = $button.closest('.gallery-column');
+                $column.find('.image-id').val(attachment.id);
+                $column.find('.image-preview').html(`<img src="${attachment.sizes.thumbnail.url}" style="max-width:100%">`);
+                $column.find('.remove-image').show();
+            });
+
+            frame.open();
+        });
+
+        // Remove Image
+        $(document).on('click', '.remove-image', function() {
+            const $column = $(this).closest('.gallery-column');
+            $column.find('.image-id').val('');
+            $column.find('.image-preview').empty();
+            $(this).hide();
+        });
+
+        function updateRowIndices() {
+            $('.gallery-row').each(function(rowIndex) {
+                $(this).find('h4').first().text('Row ' + (rowIndex + 1));
+                $(this).find('input[name^="gallery_layout"]').each(function() {
+                    const name = $(this).attr('name');
+                    $(this).attr('name', name.replace(/gallery_layout\[\d+\]/, `gallery_layout[${rowIndex}]`));
+                });
+            });
+        }
+
+        window.updateColumnWidth = function(select) {
+            $(select).closest('.gallery-column').css('flex', $(select).val());
+            $(select).closest('.gallery-column').find('input[name*="[width]"]').val($(select).val());
+        };
+    });
     </script>
     <?php
 }
+
+function afct_save_gallery_meta_box($post_id) {
+    if (!isset($_POST['afct_gallery_meta_box_nonce']) ||
+        !wp_verify_nonce($_POST['afct_gallery_meta_box_nonce'], 'afct_gallery_meta_box')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    if (isset($_POST['gallery_layout'])) {
+        $gallery_data = ['rows' => $_POST['gallery_layout']];
+        update_post_meta($post_id, '_afct_gallery_layout', $gallery_data);
+    } else {
+        delete_post_meta($post_id, '_afct_gallery_layout');
+    }
+}
+add_action('save_post', 'afct_save_gallery_meta_box');

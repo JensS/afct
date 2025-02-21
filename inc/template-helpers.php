@@ -9,5 +9,3 @@ function afct_get_team_credits() {
     }
     return array();
 }
-
-?>

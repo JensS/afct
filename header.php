@@ -39,6 +39,7 @@
 					array(
 						'theme_location' => 'menu-1',
 						'menu_id'        => 'primary-menu',
+						'walker'         => new AFCT_Menu_Walker(),
 					)
 				);
 			?>
@@ -49,18 +50,5 @@
 				</button>
 			</div>
 		</nav>
-	</header><!-- #masthead -->
-
-	<div class="menu">
-		<?php 
-		wp_nav_menu(array(
-			'theme_location' => 'primary',
-			'container' => false,
-			'items_wrap' => '%3$s',
-			'walker' => new AFCT_Menu_Walker()
-		));
-		?>
-	</div>
+	</header>
 </div>
-</body>
-</html>

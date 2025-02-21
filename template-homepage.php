@@ -5,45 +5,29 @@
  */
 get_header();
 
-// Get the list of page IDs to display, in the desired order
-$page_ids = get_post_meta(get_the_ID(), '_afct_homepage_sections', true);
+define("IN_ONEPAGER", true);
 
-if ($page_ids) {
-    $pages = get_pages(array(
-        'include' => $page_ids,
-        'orderby' => 'post__in', // Preserve the order of IDs
-    ));
+$menu_items = wp_get_nav_menu_items(get_nav_menu_locations()['menu-1']); // Get primary menu items by location
 
-    foreach ($pages as $page) {
-        setup_postdata($page);
-
-        // Load the template part for the page's template
-        $template_file = get_page_template_slug($page->ID);
-
+if (count($menu_items)) {
+    foreach ($menu_items as $post) {
+        global $post;
+        $post = get_post($post->object_id);
+        echo '<div id="section-' . $post->object_id . '">';
+        $template_file = get_page_template_slug($post);
+        
         if ($template_file) {
-            include(locate_template($template_file));
+            setup_postdata($post);
+            locate_template($template_file, true, true);
         } else {
-            // Fallback to default page content
-            ?>
-            <section id="section-<?php echo $page->ID; ?>" class="section">
-                <?php echo apply_filters('the_content', $page->post_content); ?>
-            </section>
-            <?php
+            if (is_object($post)) {
+                echo apply_filters('the_content', $post->post_content);
+            }
         }
+        echo '</div>';
+        
         wp_reset_postdata();
     }
-} else {
-    // No sections selected, display default content
-    ?>
-    <main id="primary" class="site-main">
-        <?php
-        while (have_posts()) : the_post();
-            the_content();
-        endwhile;
-        ?>
-    </main>
-    <?php
 }
 
-get_sidebar();
 get_footer();

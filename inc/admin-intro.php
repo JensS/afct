@@ -69,3 +69,46 @@ function afct_video_cover_image_meta_box_callback($post) {
     </script>
     <?php
 }
+
+
+function afct_about_intro_meta_box_callback($post) {
+    afct_textarea_meta_box_callback($post, 'about_intro_part1', 'About Intro Part 1');
+    afct_textarea_meta_box_callback($post, 'about_intro_part2', 'About Intro Part 2');
+}
+
+
+/**
+ * Save intro page meta box data
+ */
+function afct_save_intro_meta_boxes($post_id) {
+    // Skip if doing autosave
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    // Verify user permissions
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    // Save background video
+    if (isset($_POST['afct_background_video_meta_box_nonce']) && 
+        wp_verify_nonce($_POST['afct_background_video_meta_box_nonce'], 'afct_save_background_video_meta_box_data')) {
+        if (isset($_POST['background_video'])) {
+            update_post_meta($post_id, '_afct_background_video', esc_url_raw($_POST['background_video']));
+        } else {
+            delete_post_meta($post_id, '_afct_background_video');
+        }
+    }
+
+    // Save video cover image
+    if (isset($_POST['afct_video_cover_image_meta_box_nonce']) && 
+        wp_verify_nonce($_POST['afct_video_cover_image_meta_box_nonce'], 'afct_save_video_cover_image_meta_box_data')) {
+        if (isset($_POST['video_cover_image'])) {
+            update_post_meta($post_id, '_afct_video_cover_image', esc_url_raw($_POST['video_cover_image']));
+        } else {
+            delete_post_meta($post_id, '_afct_video_cover_image');
+        }
+    }
+}
+add_action('save_post', 'afct_save_intro_meta_boxes');

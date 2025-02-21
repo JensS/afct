@@ -10,51 +10,21 @@
 get_header();
 ?>
 
-	<main id="primary" class="global-container">
+<section class="error-404 not-found">
+		<div class="text-upper-left">
+			<h1>Oops! That page</h1>
+		</div>
+		<div class="text-lower-right">
+			<h1>can&rsquo;t be found.</h1>
+		</div>
+    <div class="global-container">
+      <div class="content-frame align-center">
+		<p><?php esc_html_e( 'It looks like nothing was found at this location. ', 'afct' ); ?></p>
 
-		<section class="error-404 not-found">
-			<header class="page-header">
-				<h1 class="page-title"><?php esc_html_e( 'Oops! That page can&rsquo;t be found.', 'afct' ); ?></h1>
-			</header><!-- .page-header -->
+		</div><!-- .page-content -->
+		</div>
+</section><!-- .error-404 -->
 
-			<div class="page-content">
-				<p><?php esc_html_e( 'It looks like nothing was found at this location. Maybe try one of the links below or a search?', 'afct' ); ?></p>
-
-					<?php
-					get_search_form();
-
-					the_widget( 'WP_Widget_Recent_Posts' );
-					?>
-
-					<div class="widget widget_categories">
-						<h2 class="widget-title"><?php esc_html_e( 'Most Used Categories', 'afct' ); ?></h2>
-						<ul>
-							<?php
-							wp_list_categories(
-								array(
-									'orderby'    => 'count',
-									'order'      => 'DESC',
-									'show_count' => 1,
-									'title_li'   => '',
-									'number'     => 10,
-								)
-							);
-							?>
-						</ul>
-					</div><!-- .widget -->
-
-					<?php
-					/* translators: %1$s: smiley */
-					$afct_archive_content = '<p>' . sprintf( esc_html__( 'Try looking in the monthly archives. %1$s', 'afct' ), convert_smilies( ':)' ) ) . '</p>';
-					the_widget( 'WP_Widget_Archives', 'dropdown=1', "after_title=</h2>$afct_archive_content" );
-
-					the_widget( 'WP_Widget_Tag_Cloud' );
-					?>
-
-			</div><!-- .page-content -->
-		</section><!-- .error-404 -->
-
-	</main><!-- #main -->
 
 <?php
 get_footer();
