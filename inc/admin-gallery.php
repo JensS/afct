@@ -36,15 +36,38 @@ function afct_gallery_meta_box_html($post) {
                                value="<?php echo $column['width']; ?>">
                         <input type="hidden" name="gallery_layout[<?php echo $row_index; ?>][columns][<?php echo $col_index; ?>][image_id]" 
                                value="<?php echo $column['image_id'] ?? ''; ?>" class="image-id">
-                        <div style="border: 1px dashed #999; padding: 10px; text-align: center;">
-                            <div class="image-preview" style="margin-bottom: 10px">
-                                <?php if (!empty($column['image_id'])): ?>
-                                    <?php echo wp_get_attachment_image($column['image_id'], 'thumbnail'); ?>
-                                <?php endif; ?>
-                            </div>
-                            <button type="button" class="button select-image">Select Image</button>
-                            <button type="button" class="button remove-image" <?php echo empty($column['image_id']) ? 'style="display:none"' : ''; ?>>Remove</button>
-                            <div style="margin-top: 10px">
+                <div style="border: 1px dashed #999; padding: 10px; text-align: center;">
+                    <div class="column-type-selector" style="margin-bottom: 10px">
+                        <label>
+                            <input type="radio" name="column_type_<?php echo $row_index; ?>_<?php echo $col_index; ?>" 
+                                   value="image" <?php echo !isset($column['type']) || $column['type'] === 'image' ? 'checked' : ''; ?> 
+                                   class="column-type-radio" data-type="image">
+                            Image
+                        </label>
+                        <label style="margin-left: 10px">
+                            <input type="radio" name="column_type_<?php echo $row_index; ?>_<?php echo $col_index; ?>" 
+                                   value="space" <?php echo isset($column['type']) && $column['type'] === 'space' ? 'checked' : ''; ?> 
+                                   class="column-type-radio" data-type="space">
+                            Space
+                        </label>
+                    </div>
+                    <input type="hidden" name="gallery_layout[<?php echo $row_index; ?>][columns][<?php echo $col_index; ?>][type]" 
+                           value="<?php echo isset($column['type']) ? $column['type'] : 'image'; ?>" class="column-type">
+                    <div class="image-controls" <?php echo isset($column['type']) && $column['type'] === 'space' ? 'style="display:none"' : ''; ?>>
+                        <div class="image-preview" style="margin-bottom: 10px">
+                            <?php if (!empty($column['image_id'])): ?>
+                                <?php echo wp_get_attachment_image($column['image_id'], 'thumbnail'); ?>
+                            <?php endif; ?>
+                        </div>
+                        <button type="button" class="button select-image">Select Image</button>
+                        <button type="button" class="button remove-image" <?php echo empty($column['image_id']) ? 'style="display:none"' : ''; ?>>Remove</button>
+                    </div>
+                    <div class="space-controls" <?php echo !isset($column['type']) || $column['type'] === 'image' ? 'style="display:none"' : ''; ?>>
+                        <div style="background: #f0f0f0; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px">
+                            <span>Empty Space</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px">
                                 <label>Width: 
                                     <select class="column-width" onchange="updateColumnWidth(this)">
                                         <option value="1" <?php selected($column['width'], 1); ?>>10%</option>
@@ -79,10 +102,30 @@ function afct_gallery_meta_box_html($post) {
                 <div class="gallery-column" style="flex: 1">
                     <input type="hidden" name="gallery_layout[${rowIndex}][columns][${colIndex}][width]" value="1">
                     <input type="hidden" name="gallery_layout[${rowIndex}][columns][${colIndex}][image_id]" class="image-id">
+                    <input type="hidden" name="gallery_layout[${rowIndex}][columns][${colIndex}][type]" value="image" class="column-type">
                     <div style="border: 1px dashed #999; padding: 10px; text-align: center;">
-                        <div class="image-preview" style="margin-bottom: 10px"></div>
-                        <button type="button" class="button select-image">Select Image</button>
-                        <button type="button" class="button remove-image" style="display:none">Remove</button>
+                        <div class="column-type-selector" style="margin-bottom: 10px">
+                            <label>
+                                <input type="radio" name="column_type_${rowIndex}_${colIndex}" 
+                                       value="image" checked class="column-type-radio" data-type="image">
+                                Image
+                            </label>
+                            <label style="margin-left: 10px">
+                                <input type="radio" name="column_type_${rowIndex}_${colIndex}" 
+                                       value="space" class="column-type-radio" data-type="space">
+                                Space
+                            </label>
+                        </div>
+                        <div class="image-controls">
+                            <div class="image-preview" style="margin-bottom: 10px"></div>
+                            <button type="button" class="button select-image">Select Image</button>
+                            <button type="button" class="button remove-image" style="display:none">Remove</button>
+                        </div>
+                        <div class="space-controls" style="display:none">
+                            <div style="background: #f0f0f0; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px">
+                                <span>Empty Space</span>
+                            </div>
+                        </div>
                         <div style="margin-top: 10px">
                             <label>Width: 
                                 <select class="column-width" onchange="updateColumnWidth(this)">
@@ -133,6 +176,26 @@ function afct_gallery_meta_box_html($post) {
         $(document).on('click', '.remove-row', function() {
             $(this).closest('.gallery-row').remove();
             updateRowIndices();
+        });
+
+        // Handle column type change
+        $(document).on('change', '.column-type-radio', function() {
+            const $column = $(this).closest('.gallery-column');
+            const type = $(this).data('type');
+            
+            $column.find('.column-type').val(type);
+            
+            if (type === 'image') {
+                $column.find('.image-controls').show();
+                $column.find('.space-controls').hide();
+            } else {
+                $column.find('.image-controls').hide();
+                $column.find('.space-controls').show();
+                // Clear image when switching to space
+                $column.find('.image-id').val('');
+                $column.find('.image-preview').empty();
+                $column.find('.remove-image').hide();
+            }
         });
 
         // Select Image

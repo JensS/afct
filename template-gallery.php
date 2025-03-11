@@ -30,14 +30,16 @@ if(!defined("IN_ONEPAGER"))
                         <div class="gallery-row">
                             <?php foreach ($row['columns'] as $column) :
                                 $width_percentage = ($column['width'] * 10) . '%';
-                                if (!empty($column['image_id'])) : ?>
-                                    <div class="gallery-column" style="width: <?php echo esc_attr($width_percentage); ?>">
+                                $column_type = isset($column['type']) ? $column['type'] : 'image';
+                                ?>
+                                <div class="gallery-column <?php echo esc_attr($column_type); ?>" style="width: <?php echo esc_attr($width_percentage); ?>">
+                                    <?php if ($column_type === 'image' && !empty($column['image_id'])) : ?>
                                         <img src="<?php echo esc_url(wp_get_attachment_image_url($column['image_id'], 'full')); ?>"
                                              alt="<?php echo esc_attr(get_post_meta($column['image_id'], '_wp_attachment_image_alt', true)); ?>"
                                              loading="lazy">
-                                    </div>
-                                <?php endif;
-                            endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
                     <?php endforeach;
                 endif; ?>

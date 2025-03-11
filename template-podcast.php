@@ -89,11 +89,10 @@ $credits = afct_get_team_credits();
                         <tbody>
                             <?php foreach ($podcast_chapters as $chapter): ?>
                             <tr><td><?php echo esc_attr($chapter['time']); ?></td><td><a href="#" data-time="<?php echo esc_attr($chapter['time']); ?>"><?php echo esc_html($chapter['title']); ?></a></td></tr>
-                        <?php endforeach; ?>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 <?php endif; ?>
-                </div>
             </div>
         </div>
     </div>

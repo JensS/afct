@@ -26,41 +26,34 @@ $credits = get_credits_data();
     <div class="text-lower-right">
         <h1>Team</h1>
     </div>
-    <div class="sticky-wrap">
-        <div class="sticky-element">
-            <div class="content">
-                <div class="credits-grid">
-                                <?php if (isset($credits['film_team'])): ?>
-                                <div class="film-team">
-                                    <h2 class="align-center">Film Team</h2>
-                                    <?php foreach ($credits['film_team'] as $role => $name): ?>
-                                    <div class="credit-div">
-                                        <p class="credit-description"><?php echo esc_html($role); ?></p>
-                                        <p class="meta-description"><?php echo esc_html($name); ?></p>
-                                    </div>
-                                    <?php endforeach; ?>
-                                </div>
-                                <?php endif; ?>
-
-                                <?php if (isset($credits['podcast_team'])): ?>
-                                <div class="podcast-team">
-                                    <h2 class="align-center padding-bottom_24px">Podcast Team</h2>
-                                    <?php foreach ($credits['podcast_team'] as $role => $name): ?>
-                                    <div class="credit-div">
-                                        <p class="credit-description"><?php echo esc_html($role); ?></p>
-                                        <p class="meta-description"><?php echo esc_html($name); ?></p>
-                                    </div>
-                                    <?php endforeach; ?>
-                                </div>
-                                <?php endif; ?>
+    <div class="global-container">
+        <div class="content">
+            <?php if (isset($credits['film_team'])): ?>
+            <div class="film-team">
+                <h2 class="align-center">Film Team</h2>
+                <?php foreach ($credits['film_team'] as $role => $name): ?>
+                <div class="credit-div">
+                    <p class="credit-description"><?php echo esc_html($role); ?></p>
+                    <p class="meta-description"><?php echo esc_html($name); ?></p>
                 </div>
+                <?php endforeach; ?>
             </div>
+            <?php endif; ?>
+
+            <?php if (isset($credits['podcast_team'])): ?>
+            <div class="podcast-team">
+                <h2 class="align-center padding-bottom_24px">Podcast Team</h2>
+                <?php foreach ($credits['podcast_team'] as $role => $name): ?>
+                <div class="credit-div">
+                    <p class="credit-description"><?php echo esc_html($role); ?></p>
+                    <p class="meta-description"><?php echo esc_html($name); ?></p>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
-                                    </div>
-
-
-
+</div>
 
 <?php
 if(!defined("IN_ONEPAGER")) 

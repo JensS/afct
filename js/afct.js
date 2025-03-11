@@ -79,11 +79,10 @@ jQuery(document).ready(function($) {
 
 });
 
-window.addEventListener('scroll', () => {
+jQuery(window).on( 'scroll', function(){
     document.documentElement.style.setProperty('--scroll', window.scrollY + 'px');
-    console.log(window.scrollY);
-  });
-  
+ });
+ 
 document.addEventListener('DOMContentLoaded', function() {
    
     // Cookie consent functionality
@@ -104,19 +103,24 @@ document.addEventListener('DOMContentLoaded', function() {
     audioPlayers.forEach(player => {
         const audio = player.querySelector('audio');
         const playPauseBtn = player.querySelector('.play-pause');
+        const playIcon = player.querySelector('.play-icon');
+        const pauseIcon = player.querySelector('.pause-icon');
         const progress = player.querySelector('.progress');
-        const currentTime = player.querySelector('.current-time');
-        const duration = player.querySelector('.duration');
+        const currentTime = player.querySelector('.time.current');
+        const duration = player.querySelector('.time.duration');
         const progressBar = player.querySelector('.progress-bar');
+        const chapterLinks = document.querySelectorAll('.podcast-chapters a[data-time]');
 
         if (audio && playPauseBtn && progress && currentTime && duration && progressBar) {
             playPauseBtn.addEventListener('click', () => {
                 if (audio.paused) {
                     audio.play();
-                    playPauseBtn.textContent = '⏸';
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'inline';
                 } else {
                     audio.pause();
-                    playPauseBtn.textContent = '▶';
+                    playIcon.style.display = 'inline';
+                    pauseIcon.style.display = 'none';
                 }
             });
 
@@ -134,6 +138,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 const rect = progressBar.getBoundingClientRect();
                 const percent = (e.clientX - rect.left) / rect.width;
                 audio.currentTime = percent * audio.duration;
+            });
+            
+            // Chapter navigation
+            chapterLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const timeStr = link.getAttribute('data-time');
+                    if (timeStr) {
+                        const parts = timeStr.split(':');
+                        const seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                        audio.currentTime = seconds;
+                        if (audio.paused) {
+                            audio.play();
+                            playIcon.style.display = 'none';
+                            pauseIcon.style.display = 'inline';
+                        }
+                    }
+                });
             });
         }
     });
