@@ -28,12 +28,7 @@
 	<header id="masthead" class="site-header">
 		<div class="site-branding"></div>
 
-		<div class="sidebar_toggler">
-			<span></span>
-			<span></span>
-			<span></span>
-		</div>
-		<nav id="site-navigation" class="sidebar">
+		<nav id="site-navigation" class="menu">
 			<?php
 				wp_nav_menu(
 					array(
@@ -43,12 +38,6 @@
 					)
 				);
 			?>
-			<div class="theme-toggle">
-				<button id="theme-toggle-btn" class="theme-toggle-btn">
-					<span class="theme-toggle-text">Dark Mode</span>
-					<span class="theme-toggle-icon"></span>
-				</button>
-			</div>
 		</nav>
 	</header>
 </div>

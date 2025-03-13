@@ -68,12 +68,19 @@ add_action( 'widgets_init', 'afct_widgets_init' );
 
 /**
  * Get version string for asset files
- * Adds random number in debug mode to prevent caching
+ * Uses file modification time to bypass browser caching
  */
-function afct_get_version_string() {
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-        return wp_get_theme()->get('Version') . '.' . mt_rand();
+function afct_get_version_string($file_path) {
+    // Get the absolute path to the file
+    $absolute_path = get_template_directory() . $file_path;
+    
+    // Check if file exists and get its modification time
+    if (file_exists($absolute_path)) {
+        // Use file modification time as version
+        return filemtime($absolute_path);
     }
+    
+    // Fallback to theme version if file doesn't exist
     return wp_get_theme()->get('Version');
 }
 
@@ -81,10 +88,16 @@ function afct_get_version_string() {
  * Enqueue scripts and styles.
  */
 function afct_scripts() {
-    wp_enqueue_style('afct', get_stylesheet_uri(), array(), afct_get_version_string());
+    // Enqueue modular CSS files
+    wp_enqueue_style('afct-components', get_template_directory_uri() . '/css/components.css', array(), afct_get_version_string('/css/components.css'));
+    wp_enqueue_style('afct-responsive', get_template_directory_uri() . '/css/responsive.css', array(), afct_get_version_string('/css/responsive.css'));
+    
+    // Main stylesheet
+    wp_enqueue_style('afct', get_stylesheet_uri(), array(), afct_get_version_string('/style.css'));
 
-
-    wp_enqueue_script('afct', get_template_directory_uri() . '/js/afct.js', array('jquery'), afct_get_version_string(), true);
+    wp_enqueue_script('afct', get_template_directory_uri() . '/js/afct.js', array('jquery'), afct_get_version_string('/js/afct.js'), true);
+    wp_enqueue_script('headline-positioning', get_template_directory_uri() . '/js/headline-positioning.js', array(), afct_get_version_string('/js/headline-positioning.js'), true);
+    wp_enqueue_script('youtube-consent', get_template_directory_uri() . '/js/youtube-consent.js', array(), afct_get_version_string('/js/youtube-consent.js'), true);
 }
 add_action('wp_enqueue_scripts', 'afct_scripts');
 

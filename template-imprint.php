@@ -4,7 +4,9 @@
  * Template Post Type: page
  */
 
-get_header();
+ if(!defined("IN_ONEPAGER")) 
+ get_header();
+
 ?>
 
 <div id="imprint" class="slide">
@@ -53,4 +55,5 @@ get_header();
 </div>
 
 <?php
+ if(!defined("IN_ONEPAGER")) 
 get_footer();

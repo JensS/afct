@@ -39,28 +39,45 @@ jQuery(document).ready(function($) {
         }
     });
     
-    // Update sidebar toggle functionality
-    $('.sidebar_toggler').on('click', function(e) {
-        e.preventDefault();
-        $('.sidebar').toggleClass('shown');
-        $(this).toggleClass('active');
+    // Menu hover effects - enhanced for smooth transitions
+    const menuContainer = $('.menu');
+    const menuItems = $('.menu-item');
+    
+    menuContainer.on('mouseenter', function() {
+        // Show all menu items with reduced opacity and animate the transition
+        menuItems.find('.nav-link').stop().animate({
+            opacity: 0.5,
+            transform: 'translateY(0)'
+        }, 300);
+        menuItems.find('.embed-menu-line').css('color', 'rgba(255, 0, 0, 0.7)');
+    }).on('mouseleave', function() {
+        // Hide all menu items and reset position
+        menuItems.find('.nav-link').stop().animate({
+            opacity: 0,
+            transform: 'translateY(-5px)'
+        }, 300);
+        menuItems.find('.embed-menu-line').css('color', 'rgba(255, 0, 0, 0.5)');
     });
-
-    // Close sidebar when clicking outside
-    $(document).on('click', function(e) {
-        if (!$(e.target).closest('.sidebar_toggler').length && 
-            !$(e.target).closest('.sidebar').length) {
-            $('.sidebar').removeClass('shown');
-            $('.sidebar_toggler').removeClass('active');
+    
+    // Individual menu item hover
+    menuItems.on('mouseenter', function() {
+        // Make the hovered item fully opaque with a slight bounce effect
+        $(this).find('.nav-link').stop().animate({
+            opacity: 1,
+            transform: 'translateY(0)'
+        }, 200);
+        $(this).find('.embed-menu-line').css('color', 'var(--red)');
+    }).on('mouseleave', function() {
+        // Return to reduced opacity if still hovering the menu
+        if (menuContainer.is(':hover')) {
+            $(this).find('.nav-link').stop().animate({
+                opacity: 0.5,
+                transform: 'translateY(0)'
+            }, 200);
+            $(this).find('.embed-menu-line').css('color', 'rgba(255, 0, 0, 0.7)');
         }
     });
-
-    $('.menu-item').on('mouseenter', function() {
-        $(this).find('.nav-link').animate({opacity: 1}, 300);
-    }).on('mouseleave', function() {
-        $(this).find('.nav-link').animate({opacity: 0.8}, 200);
-    });
-
+    
     // Smooth scroll for anchor links
     $('.scroll-link').click(function(e) {
         e.preventDefault();
@@ -76,7 +93,6 @@ jQuery(document).ready(function($) {
             $('.sidebar_toggler').removeClass('active');
         }
     });
-
 });
 
 jQuery(window).on( 'scroll', function(){

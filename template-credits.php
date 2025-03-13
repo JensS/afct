@@ -29,7 +29,7 @@ $credits = get_credits_data();
     <div class="global-container">
         <div class="content">
             <?php if (isset($credits['film_team'])): ?>
-            <div class="film-team">
+            <div class="team">
                 <h2 class="align-center">Film Team</h2>
                 <?php foreach ($credits['film_team'] as $role => $name): ?>
                 <div class="credit-div">
@@ -41,7 +41,7 @@ $credits = get_credits_data();
             <?php endif; ?>
 
             <?php if (isset($credits['podcast_team'])): ?>
-            <div class="podcast-team">
+            <div class="team">
                 <h2 class="align-center padding-bottom_24px">Podcast Team</h2>
                 <?php foreach ($credits['podcast_team'] as $role => $name): ?>
                 <div class="credit-div">
