@@ -10,10 +10,10 @@ if(!defined("IN_ONEPAGER"))
 
 <div id="the-stills" class="slide">
     <div class="text-upper-left">
-        <h1>The</h1>
+        <h1>Stills</h1>
     </div>
     <div class="text-lower-right">
-        <h1>Stills</h1>
+        <h1>Photography</h1>
     </div>
     
     <div class="img-sections-wrap">

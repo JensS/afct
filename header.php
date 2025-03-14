@@ -40,4 +40,11 @@
 			?>
 		</nav>
 	</header>
+
+	<!-- Theme Toggle Button -->
+	<div id="theme-toggle-btn" class="theme-toggle">
+		<div class="theme-toggle-inner">
+			<span class="theme-toggle-text">Toggle dark/light</span>
+		</div>
+	</div>
 </div>

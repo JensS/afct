@@ -29,7 +29,7 @@ if(!defined("IN_ONEPAGER"))
         <h1>Serati</h1>
     </div>
     <div class="global-container">
-      <div class="content-frame" style="  background-image: url('<?php echo $medium[0]; ?>');">
+      <div class="content-frame">
         <div class="sticky-track">
           <div class="sticky-element">
             <div class="text-div">
