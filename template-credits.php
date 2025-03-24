@@ -20,14 +20,17 @@ $credits = get_credits_data();
 ?>
 
 <div id="the-team" class="slide">
+    <?php
+    $headline_parts = afct_split_headline(get_the_title());
+    ?>
     <div class="text-upper-left">
-        <h1>The</h1>
+        <h1><?php echo esc_html($headline_parts['upper']); ?></h1>
     </div>
     <div class="text-lower-right">
-        <h1>Team</h1>
+        <h1><?php echo esc_html($headline_parts['lower']); ?></h1>
     </div>
     <div class="global-container">
-        <div class="content">
+        <div class="content text">
             <?php if (isset($credits['film_team'])): ?>
             <div class="team">
                 <h2 class="align-center">Film Team</h2>

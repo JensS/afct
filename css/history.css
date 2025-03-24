@@ -11,7 +11,7 @@
     height: 100vh;
     margin: 2rem 0;
     overflow: hidden;
-    z-index: 10;
+    z-index: 1; /* Lower z-index so it doesn't overlap with content */
 }
 
 #map-container {
@@ -21,17 +21,19 @@
     top: 0;
     left: 0;
     z-index: 1;
+    pointer-events: none; /* Allow clicks to pass through to elements below */
 }
 
 #timeline-info {
-    position: absolute;
-    top: 2rem;
+    position: fixed;
+    bottom: 120px;
     left: 2rem;
-    z-index: 10;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 1rem;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 20; /* Higher z-index to appear above map */
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    pointer-events: auto; /* Ensure it's clickable */
 }
 
 #year-display {
@@ -49,10 +51,12 @@
     position: absolute;
     bottom: 2rem;
     right: 2rem;
+    z-index: 20; /* Higher z-index to appear above map */
     background: rgba(255, 255, 255, 0.9);
     padding: 1rem;
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    pointer-events: auto; /* Ensure it's clickable */
 }
 
 .legend h3 {
@@ -86,29 +90,85 @@
 }
 
 .timeline-markers {
-    position: absolute;
-    right: 2rem;
-    top: 0;
-    height: 100%;
-    width: 2px;
-    background: rgba(0, 0, 0, 0.1);
+    margin: 0 5vw;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 0;
+    width: 90%;
+    background: transparent;
+    z-index: 15; 
+    pointer-events: auto; /* Ensure it's clickable */
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    padding-top: 10px;
+    overflow: hidden; /* Remove scrollbar */
+    white-space: nowrap;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
 }
 
 .timeline-marker {
-    position: absolute;
-    right: 0;
-    transform: translateX(50%);
+    position: relative;
+    bottom: 0;
+    height: 60px;
     display: flex;
+    flex-direction: column;
     align-items: center;
+    z-index: 15; /* Higher z-index to appear above map */
+    pointer-events: auto; /* Ensure it's clickable */
+    transform-origin: bottom center;
+    cursor: pointer;
+    flex: 1;
+    margin: 0 2px;
+}
+
+.timeline-marker.active {
+    font-weight: bold;
+}
+
+.timeline-marker.active {
+    width: 2px;
+    background-color: var(--red);
+}
+
+.chapter-marker {
+    position: relative;
+}
+
+.chapter-marker::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--red);
 }
 
 .marker-year {
-    margin-right: 0.5rem;
     font-weight: bold;
+    color: var(--red);
+    margin-bottom: 5px;
+    transform-origin: left center;
+    position: absolute;
+    bottom: 20px;
+    font-size: 12px;
+    transform: rotate(-45deg);
+    white-space: nowrap;
 }
 
 .marker-label {
     white-space: nowrap;
+    position: absolute;
+    bottom: 40px;
+    font-size: 11px;
+    color: var(--red);
+    max-width: 150px;
+    transform: rotate(-45deg);
+    transform-origin: left bottom;
 }
 
 .language-bubble.transitioning {
@@ -120,36 +180,106 @@
 }
 
 /* Timeline Content Styles */
+#timeline-content {
+    position: fixed;
+    top: 66%; /* Position in the lower third of the screen */
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 30; /* Higher z-index to appear above map */
+    pointer-events: none;
+    display: none; /* Hidden by default, shown when in history section */
+}
+
 .timeline-item {
-    max-width: 800px;
-    margin: 2rem auto;
+    max-width: 600px;
+    margin: 0 auto;
     padding: 1.5rem;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: transparent;
+    position: relative;
+    z-index: 30; /* Higher z-index to appear above map */
+    pointer-events: auto;
+    border: none;
+    box-shadow: none;
+}
+
+.timeline-item .content-wrapper {
+    width: 100%;
+}
+
+.nav-arrow {
+    font-size: 36px;
+    cursor: pointer;
+    padding: 15px;
+    color: var(--red);
+    font-weight: bold;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    position: fixed;
+    top: 66%; /* Position in the lower third of the screen to match timeline-item */
+    transform: translateY(-50%);
+    background: transparent;
+    border-radius: 4px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 35;
+    pointer-events: auto;
+}
+
+.nav-arrow.disabled {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+}
+
+.prev-arrow {
+    left: 20%;
+    position: fixed;
+    top: 50%;
+    font-size: 80px;
+    transform: translateY(-50%);
+}
+
+.next-arrow {
+    right: 20%;
+    position: fixed;
+    top: 50%;
+    font-size: 80px;
+    transform: translateY(-50%);
+}
+
+.nav-arrow:hover {
+    transform: scale(1.2);
 }
 
 .timeline-item .year {
     font-weight: bold;
-    color: #666;
+    color: var(--red);
     margin-bottom: 0.5rem;
+    font-size: 1.2rem;
 }
 
 .timeline-item h3 {
     margin: 0 0 1rem 0;
-    color: #333;
+    color: var(--red);
+    font-size: 2rem;
 }
 
 .timeline-item p {
     margin: 0 0 1rem 0;
     line-height: 1.6;
+    color: var(--red);
+    font-size: 1.1rem;
 }
 
 .timeline-item .impact {
     font-style: italic;
-    color: #666;
-    border-left: 3px solid #999;
+    color: var(--red);
+    border-left: 3px solid var(--red);
     padding-left: 1rem;
+    font-size: 1rem;
 }
 
 .content-section {

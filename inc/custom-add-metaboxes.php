@@ -46,8 +46,18 @@ function afct_add_custom_boxes() {
             break;
         case "template-intro.php":
             add_meta_box(
+                "aboutproject_meta_box",
+                "Intro About Project",
+                "afct_about_intro_meta_box_callback",
+                "page",
+                "normal",
+                "high"
+            );
+            break;
+        case "template-herovideo.php":
+            add_meta_box(
                 "cover_cover",
-                "Intro Video Cover image",
+                "Hero Video Cover Image",
                 "afct_video_cover_image_meta_box_callback",
                 "page",
                 "normal",
@@ -55,22 +65,12 @@ function afct_add_custom_boxes() {
             );
             add_meta_box(
                 "video_meta_box",
-                "Intro Video ",
+                "Hero Video",
                 "afct_background_video_meta_box_callback",
                 "page",
                 "normal",
                 "high"
             );
-
-            add_meta_box(
-                "aboutproject_meta_box",
-                "Intro About Project ",
-                "afct_about_intro_meta_box_callback",
-                "page",
-                "normal",
-                "high"
-            );
-            
             break;
         case "template-film.php":
             add_meta_box(
@@ -109,9 +109,19 @@ function afct_add_custom_boxes() {
                 'normal',                // context
                 'high'                   // priority
             );
+            break;
+        case "template-history.php":
+            add_meta_box(
+                'afct_history_meta_box',
+                'History Timeline Entries',
+                'afct_history_meta_box_callback',
+                'page',
+                'normal',
+                'high'
+            );
+            break;
         default:
             
     }
 }
 add_action('add_meta_boxes', 'afct_add_custom_boxes');
-

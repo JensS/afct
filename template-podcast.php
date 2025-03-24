@@ -16,11 +16,14 @@ $podcast_chapters = get_post_meta(get_the_ID(), '_afct_podcast_chapters', true);
 $credits = afct_get_team_credits();
 ?>
     <div id="podcast" class="slide">
+        <?php
+        $headline_parts = afct_split_headline(get_the_title());
+        ?>
         <div class="text-upper-left">
-            <h1>The</h1>
+            <h1><?php echo esc_html($headline_parts['upper']); ?></h1>
         </div>
         <div class="text-lower-right">
-            <h1>Podcast</h1>
+            <h1><?php echo esc_html($headline_parts['lower']); ?></h1>
         </div>
 
         <div class="content-frame">

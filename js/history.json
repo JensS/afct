@@ -1,0 +1,260 @@
+[
+  {
+    "visualisation": "paragraph",
+    "year_start": 1500,
+    "year_end": 1800,
+    "map_zoom": "south_africa",
+    "history_paragraph": {
+      "title": "Decline of Indigenous Languages",
+      "paragraph": "From the 16th to 19th centuries, the Khoi and San languages faced significant decline as European colonization expanded across South Africa. These indigenous languages, which had thrived for thousands of years, began to lose speakers as communities were displaced, assimilated, or decimated by conflict and disease brought by colonizers.",
+      "impact": "This period marked the beginning of linguistic marginalization that would continue through apartheid, with many Khoi and San languages becoming endangered or extinct, representing an irreplaceable loss of cultural knowledge and heritage."
+    }
+  },
+  {
+    "visualisation": "map",
+    "year_start": 1500,
+    "year_end": 1800,
+    "map_zoom": "south_africa",
+    "animation": {
+      "type": "language_suppression",
+      "label": "Decline of Khoi and San languages",
+      "center": [20, -32],
+      "size": 30,
+      "color": "#8B4513",
+      "suppressed_languages": ["khoi", "san", "nama"]
+    }
+  },
+  {
+    "visualisation": "map",
+    "year_start": 1652,
+    "year_end": 1820,
+    "map_zoom": "europe_and_africa",
+    "animation": {
+      "type": "migration",
+      "label": "Dutch colonization",
+      "originPoint": [5, 52],
+      "destinationPoint": [19, -29]
+    }
+  },
+  {
+    "visualisation": "paragraph",
+    "year_start": 1652,
+    "year_end": 1750,
+    "map_zoom": "south_africa",
+    "history_paragraph": {
+      "title": "Dutch Settlement and Slave Languages",
+      "paragraph": "In 1652, the Dutch East India Company introduced Dutch as the administrative language at the Cape. Alongside, slaves from East Africa (e.g., Mozambique), Madagascar, and Asia (e.g., Indonesia, Malaysia) brought diverse languages, including Malay, which influenced early Cape society. These languages coexisted with indigenous Khoi and San tongues, though the latter began to decline under colonial pressure.",
+      "impact": "The linguistic melting pot laid the groundwork for Afrikaans and the Cape Malay community, shaping South Africa's multilingual identity."
+    }
+  },
+  {
+    "visualisation": "paragraph",
+    "year_start": 1652,
+    "year_end": 1820,
+    "map_zoom": "europe_and_africa",
+    "history_paragraph": {
+      "title": "Colonial Foundation of South Africa",
+      "paragraph": "Dutch East India Company establishes a settlement at the Cape of Good Hope in 1652, leading to the first European colonization. British forces seize the Cape Colony in 1806, beginning a period of British colonial rule and conflict with Dutch settlers (Boers). The discovery of diamonds (1867) and gold (1886) intensifies European colonization and exploitation.",
+      "impact": "The colonial period established patterns of racial hierarchy and land dispossession that would later be formalized under apartheid and continue to influence modern land reform debates."
+    }
+  },
+  {
+    "visualisation": "paragraph",
+    "year_start": 1700,
+    "year_end": 1900,
+    "map_zoom": "africa",
+    "history_paragraph": {
+      "title": "Bantu Languages Expansion",
+      "paragraph": "Between the 18th and 20th centuries, Bantu languages spread throughout southern Africa, establishing linguistic communities that would later form the majority of South Africa's indigenous language speakers. Languages like Zulu, Xhosa, and Sotho became firmly established across different regions of what would become South Africa.",
+      "impact": "This linguistic distribution laid the foundation for South Africa's modern language map, with Bantu languages becoming the mother tongues of most Black South Africans and eventually gaining official recognition in the post-apartheid era."
+    }
+  },
+  {
+    "visualisation": "map",
+    "year_start": 1700,
+    "year_end": 1900,
+    "map_zoom": "africa",
+    "animation": {
+      "type": "migration",
+      "label": "Bantu languages spread",
+      "originPoints": [
+        [33, -10],
+        [25, -10],
+        [25, -5],
+        [32, -15],
+        [30, -15],
+        [29, -15],
+        [31, -15]
+      ],
+      "destinationPoints": [
+        [31, -28],
+        [27, -32],
+        [27, -29],
+        [24, -26],
+        [31, -24],
+        [30, -23],
+        [29, -25],
+        [31, -26]
+      ]
+    }
+  },
+  {
+    "visualisation": "paragraph",
+    "year_start": 1750,
+    "year_end": 1925,
+    "map_zoom": "africa",
+    "history_paragraph": {
+      "title": "Development of Afrikaans",
+      "paragraph": "Between 1750 and 1925, Afrikaans gradually evolved from Dutch, influenced by the diverse linguistic landscape of the Cape Colony. Initially considered a 'kitchen language' or 'corrupted Dutch,' it developed unique grammatical features and vocabulary drawn from Malay, Portuguese, Khoi, and other indigenous languages. By the early 20th century, it had been standardized and recognized as a distinct language.",
+      "impact": "The development of Afrikaans represents South Africa's first major linguistic hybridization, reflecting the complex cultural interactions of colonial society and eventually becoming a symbol of Afrikaner identity and nationalism."
+    }
+  },
+  {
+    "visualisation": "map",
+    "year_start": 1750,
+    "year_end": 1925,
+    "map_zoom": "africa",
+    "animation": {
+      "type": "language_development",
+      "label": "Afrikaans develops from Dutch",
+      "center": [20, -30],
+      "size": 20,
+      "color": "#1f77b4"
+    }
+  },
+  {
+    "visualisation": "paragraph",
+    "year_start": 1750,
+    "year_end": 1900,
+    "map_zoom": "africa",
+    "history_paragraph": {
+      "title": "Malay Linguistic Influence",
+      "paragraph": "From the mid-18th to late 19th century, Malay language and culture significantly influenced the Cape Colony through enslaved and free Malay populations. This influence is particularly evident in Cape Dutch (proto-Afrikaans) vocabulary, cuisine, and religious practices, as Islam spread among some enslaved populations and the Cape Malay community formed.",
+      "impact": "The Malay influence remains visible in modern Afrikaans vocabulary and Cape cuisine, representing one of South Africa's earliest cross-cultural linguistic exchanges."
+    }
+  },
+  {
+    "visualisation": "map",
+    "year_start": 1750,
+    "year_end": 1900,
+    "map_zoom": "africa",
+    "animation": {
+      "type": "migration",
+      "label": "Malay influence",
+      "originPoint": [100, 0],
+      "destinationPoint": [18, -34]
+    }
+  },
+  {
+    "visualisation": "paragraph",
+    "year_start": 1795,
+    "year_end": 1910,
+    "map_zoom": "europe_and_africa",
+    "history_paragraph": {
+      "title": "British Colonial Influence",
+      "paragraph": "Beginning with the first British occupation in 1795 and solidified after 1806, British colonial rule brought English language and culture to South Africa. English was imposed as the official administrative and educational language, creating tension with Dutch-speaking settlers and later becoming a key factor in the Anglo-Boer conflicts.",
+      "impact": "The introduction of English established the foundation for South Africa's bilingual colonial administration and education system, creating linguistic divisions that would later be exploited during apartheid."
+    }
+  },
+  {
+    "visualisation": "map",
+    "year_start": 1795,
+    "year_end": 1910,
+    "map_zoom": "europe_and_africa",
+    "animation": {
+      "type": "migration",
+      "label": "British occupation",
+      "originPoint": [0, 52],
+      "destinationPoint": [28, -26]
+    }
+  },
+  {
+    "visualisation": "map",
+    "year_start": 1795,
+    "year_end": 1822,
+    "map_zoom": "europe_and_africa",
+    "animation": {
+      "type": "language_development",
+      "label": "English imposed by British",
+      "center": [18, -34],
+      "size": 25,
+      "color": "#FF4500",
+      "official_languages": ["english"]
+    }
+  },
+  {
+    "visualisation": "paragraph",
+    "year_start": 1820,
+    "year_end": 1910,
+    "map_zoom": "africa",
+    "history_paragraph": {
+      "title": "Formation of the Union of South Africa",
+      "paragraph": "The Union of South Africa is established as a dominion of the British Empire, unifying four colonies. Early segregation policies are implemented, including the 1913 Native Land Act, which restricted Black land ownership to designated reserves comprising just 7% of the country's land.",
+      "impact": "The geographic and economic disparities established during this period continue to shape settlement patterns and economic opportunities in contemporary South Africa."
+    }
+  },
+  {
+    "visualisation": "paragraph",
+    "year_start": 1910,
+    "year_end": 1948,
+    "map_zoom": "africa",
+    "history_paragraph": {
+      "title": "Early Segregation",
+      "paragraph": "The Union of South Africa is established as a dominion of the British Empire, unifying four colonies. Early segregation policies are implemented, including the 1913 Native Land Act, which restricted Black land ownership to designated reserves comprising just 7% of the country's land.",
+      "impact": "The geographic and economic disparities established during this period continue to shape settlement patterns and economic opportunities in contemporary South Africa."
+    }
+  },
+  {
+    "visualisation": "map",
+    "year_start": 1948,
+    "year_end": 1994,
+    "map_zoom": "south_africa",
+    "animation": {
+      "type": "language_suppression",
+      "label": "Apartheid language policies",
+      "official_languages": ["afrikaans", "english"],
+      "suppressed_languages": ["zulu", "xhosa", "sotho", "tswana", "tsonga", "venda", "ndebele", "swati", "khoi", "san", "nama"]
+    }
+  },
+  {
+    "visualisation": "paragraph",
+    "year_start": 1948,
+    "year_end": 1960,
+    "map_zoom": "south_africa",
+    "history_paragraph": {
+      "title": "Apartheid Officially Begins",
+      "paragraph": "The National Party gains power and institutionalizes racial segregation under the apartheid system. The Population Registration Act of 1950 classifies all South Africans by race, affecting every aspect of daily life including marriage, education, and freedom of movement.",
+      "impact": "Modern South African identity documents still reflect racial classifications, though now voluntary, highlighting the persistent impact of historical categorization on contemporary society."
+    }
+  },
+  {
+    "visualisation": "paragraph",
+    "year_start": 1953,
+    "year_end": 1980,
+    "map_zoom": "south_africa",
+    "history_paragraph": {
+      "title": "Bantu Education Act and Language Policy",
+      "paragraph": "Implemented in 1953, the Bantu Education Act enforced mother-tongue instruction in Bantu languages (e.g., Zulu, Xhosa) for black students up to grade six, followed by a 50-50 split of English and Afrikaans in secondary schools. This policy aimed to limit black access to broader communication and reinforce apartheid's divide-and-conquer strategy, sparking resistance due to Afrikaans' association with oppression.",
+      "impact": "Educational disparities and language-based resistance, notably the Soweto Uprising, highlighted the role of language in apartheid's oppressive framework."
+    }
+  },
+  {
+    "visualisation": "paragraph",
+    "year_start": 1960,
+    "year_end": 1963,
+    "map_zoom": "south_africa",
+    "history_paragraph": {
+      "title": "Sharpeville Massacre",
+      "paragraph": "Police open fire on peaceful protesters in Sharpeville, killing 69 people. The event marks a turning point in South African history, leading to increased international condemnation and the banning of the ANC and PAC, forcing these organizations underground.",
+      "impact": "The date is now commemorated as Human Rights Day, serving as a reminder of the cost of resistance and the importance of protecting civil rights."
+    }
+  },
+  {
+    "visualisation": "paragraph",
+    "year_start": 1960,
+    "year_end": 1990,
+    "map_zoom": "south_africa",
+    "history_paragraph": {
+      "title": "Homeland Language Policies",
+      "paragraph": "Between 1960 and 1990, the apartheid government implemented 'separate development' through Bantustans or homelands, each associated with a specific ethnic and linguistic group. These artificial territories were designed to segregate Black South Africans by language and ethnicity, with Zulu speakers assigned to KwaZulu, Xhosa speakers to Transkei and Ciskei, and so on.",
+      "impact": "This policy of linguistic

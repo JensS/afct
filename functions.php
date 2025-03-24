@@ -91,19 +91,24 @@ function afct_scripts() {
     // Enqueue modular CSS files
     wp_enqueue_style('afct-components', get_template_directory_uri() . '/css/components.css', array(), afct_get_version_string('/css/components.css'));
     wp_enqueue_style('afct-responsive', get_template_directory_uri() . '/css/responsive.css', array(), afct_get_version_string('/css/responsive.css'));
+	wp_enqueue_style('afct-history', get_template_directory_uri() . '/css/history.css', array(), afct_get_version_string('/css/history.css'));
     
     // Main stylesheet
     wp_enqueue_style('afct', get_stylesheet_uri(), array(), afct_get_version_string('/style.css'));
-
-    wp_enqueue_script('afct', get_template_directory_uri() . '/js/afct.js', array('jquery'), afct_get_version_string('/js/afct.js'), true);
     wp_enqueue_script('headline-positioning', get_template_directory_uri() . '/js/headline-positioning.js', array(), afct_get_version_string('/js/headline-positioning.js'), true);
     wp_enqueue_script('youtube-consent', get_template_directory_uri() . '/js/youtube-consent.js', array(), afct_get_version_string('/js/youtube-consent.js'), true);
-	wp_enqueue_script('d3', get_template_directory_uri() . 'd3.min.js', array(), '7.9', true);
+	wp_enqueue_script('d3', get_template_directory_uri() . '/js/d3.min.js', array(), '7.9', true);
 	wp_enqueue_script('topojson',  get_template_directory_uri() . '/js/topojson.min.js', array('d3'), '3.0', true);
 	
+
+
+    wp_enqueue_script('afct', get_template_directory_uri() . '/js/afct.js', array('jquery',"d3","topojson"), afct_get_version_string('/js/afct.js'), false);
 	wp_localize_script('afct', 'afctSettings', array(
-		'templateUrl' => get_template_directory_uri()
+		'templateUrl' => get_template_directory_uri(),
+		"historyDataUrl" => rest_url('afct/v1/history'),
+		"historyNonce" => wp_create_nonce('wp_rest')
 	));
+
 }
 add_action('wp_enqueue_scripts', 'afct_scripts');
 
@@ -187,6 +192,9 @@ function afct_remove_editor_for_templates() {
 }
 add_action('admin_init', 'afct_remove_editor_for_templates');
 
+// Include admin files
+require_once get_template_directory() . '/inc/admin-homepage.php';
+
 
 function afct_enqueue_admin_scripts() {
     global $typenow;
@@ -207,4 +215,51 @@ require_once get_template_directory() . '/inc/custom-add-metaboxes.php';
 require_once get_template_directory() . '/inc/template-helpers.php';
 require_once get_template_directory() . '/inc/admin-gallery.php';
 require_once get_template_directory() . '/inc/admin-intro.php';
+require_once get_template_directory() . '/inc/admin-herovideo.php';
 require_once get_template_directory() . '/inc/admin-podcasts.php';
+require_once get_template_directory() . '/inc/admin-history.php';
+require_once get_template_directory() . '/inc/rest-api-history.php';
+
+/**
+ * Split page title into two parts for the two-part headline display
+ * 
+ * @param string $title The page title to split
+ * @return array Array with 'upper' and 'lower' parts of the headline
+ */
+function afct_split_headline($title) {
+    // Remove any HTML and decode entities
+    $clean_title = wp_strip_all_tags(html_entity_decode($title));
+    
+    // Check for forward slash delimiter
+    if (strpos($clean_title, ',') !== false) {
+        $parts = array_map('trim', explode(',', $clean_title));
+        return array(
+            'upper' => $parts[0],
+            'lower' => $parts[1] ?? ''
+        );
+    }
+    
+    // Split into words
+    $words = array_filter(explode(' ', $clean_title));
+    $word_count = count($words);
+    
+    // Handle single word
+    if ($word_count === 1) {
+        return array(
+            'upper' => 'The',
+            'lower' => $clean_title
+        );
+    }
+    
+    // Handle multiple words
+    // For two words, split them
+    // For more than two words, split at midpoint
+    $midpoint = ceil($word_count / 2);
+    $upper_words = array_slice($words, 0, $midpoint);
+    $lower_words = array_slice($words, $midpoint);
+    
+    return array(
+        'upper' => implode(' ', $upper_words),
+        'lower' => implode(' ', $lower_words)
+    );
+}

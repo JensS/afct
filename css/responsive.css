@@ -10,11 +10,6 @@
 	h2{
 		font-size: 24px;
 	}
-    .cookie-content {
-        flex-direction: column;
-        text-align: center;
-        gap: 1rem;
-    }
 }
 
 /* Desktop base (more than 1024px) */
@@ -66,8 +61,9 @@
 		padding: 1rem;
 	}
 
-	.container-2 {
-		max-width: 728px;
+
+	.text {
+		width: 90vw;
 	}
 
 	.hero-wrapper {

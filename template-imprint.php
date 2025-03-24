@@ -10,11 +10,14 @@
 ?>
 
 <div id="imprint" class="slide">
+    <?php
+    $headline_parts = afct_split_headline(get_the_title());
+    ?>
     <div class="text-upper-left">
-        <h1>Imprint</h1>
+        <h1><?php echo esc_html($headline_parts['upper']); ?></h1>
     </div>
     <div class="text-lower-right">
-        <h1>& Legal</h1>
+        <h1><?php echo esc_html($headline_parts['lower']); ?></h1>
     </div>
     <div class="global-container">
         <div class="content imprint-content">

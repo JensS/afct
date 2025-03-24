@@ -24,14 +24,14 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 	--parallax-speed: 1.5;
 	--scroll: 1px;
 	--red: #ff0000;
-	--white: #f0eee6;
-	--black: #000000;
+	--white: rgb(240,238,230);
+	--black: rgb(0,0,0);
 	--serif-font: 'Gambetta Variable', serif;
 	--sans-serif-font: 'Gill Sans', sans-serif;
-	--bg-light: #f0eee6;
-	--text-light: #000000;
-	--bg-dark: #000000;
-	--text-dark: #f0eee6;
+	--bg-light: var(--white);
+	--text-light: var(--black);
+	--bg-dark: var(--black);
+	--text-dark: var(--white);
 }
 
 @font-face {
@@ -63,6 +63,12 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 	font-display: swap;
 }
 
+/* Set default theme to dark */
+body {
+	--background: var(--bg-dark);
+	--text-color: var(--text-dark);
+}
+
 /* Light theme class */
 body.light-theme {
 	--background: var(--bg-light);
@@ -79,6 +85,7 @@ html {
 	line-height: 1.15;
 	-webkit-text-size-adjust: 100%;
 }
+
 html, body { height: auto }
 body {
 	margin: 0;
@@ -112,8 +119,10 @@ pre {
 }
 
 a {
+    color: var(--red);
 	background-color: transparent;
 }
+
 abbr[title] {
 	border-bottom: none;
 	text-decoration: underline;
@@ -585,16 +594,6 @@ textarea {
 	flex: 1 0 50%;
 }
 
-/* Posts and pages
---------------------------------------------- */
-.sticky {
-	display: block;
-}
-
-.post,
-.page {
-	margin: 0 0 1.5em;
-}
 
 .updated:not(.published) {
 	display: none;
@@ -797,14 +796,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* Set default theme to dark */
-body {
-	--background: var(--bg-dark);
-	--text-color: var(--text-dark);
-}
-
-
-
 
 /* Sidebar specific styling to override theme variables */
 nav.sidebar {
@@ -950,26 +941,6 @@ blockquote {
 	margin-bottom: 24px;
 }
 
-.button-primary {
-	color: #fff;
-	letter-spacing: 2px;
-	text-transform: uppercase;
-	background-color: #1a1b1f;
-	padding: 12px 25px;
-	font-size: 12px;
-	line-height: 20px;
-	transition: all .2s;
-}
-
-.button-primary:hover {
-	color: #fff;
-	background-color: #32343a;
-}
-
-.button-primary:active {
-	background-color: #43464d;
-}
-
 body {
 	background-color: var(--background);
 }
@@ -1019,25 +990,7 @@ body {
 	display: flex;
 }
 
-.button-primary-2 {
-	color: #fff;
-	letter-spacing: 2px;
-	text-transform: uppercase;
-	background-color: #1a1b1f;
-	padding: 12px 25px;
-	font-size: 12px;
-	line-height: 20px;
-	transition: all .2s;
-}
 
-.button-primary-2:hover {
-	color: #fff;
-	background-color: #32343a;
-}
-
-.button-primary-2:active {
-	background-color: #43464d;
-}
 
 .shadow-two {
 	box-shadow: 0 4px 24px #96a3b514;
@@ -1111,6 +1064,35 @@ body {
 }
 
 
+.content-frame {
+	height: 100vh;
+}
+
+.blending-difference {
+	mix-blend-mode: difference;
+}
+.sticky-container {
+	position: relative;
+    width: 100%;
+    min-height: 100vh; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+}
+.sticky {
+	position: absolute;
+    transform-origin: center;
+    will-change: transform;
+	transform: translateY(0px);
+
+}
+
+.text {
+	width: 55vw;
+}
+
 .credit-description {
 	text-align: right;
 	mix-blend-mode: difference;
@@ -1124,7 +1106,7 @@ body {
 	text-transform: uppercase;
 	mix-blend-mode: difference;
 	font-size: 1rem;
-	line-height: 165%;
+	line-height: 145%;
 }
 
 .credit-div {
@@ -1157,9 +1139,6 @@ body {
 	display: flex;
 }
 
-.sticky-title {
-	padding-bottom: 2.625rem;
-}
 
 .title-div {
 	justify-content: center;
@@ -1198,6 +1177,10 @@ body {
 	position: relative;
 }
 
+#the-team h2 {
+	margin-top: 30px;
+}
+
 .inside-container {
 	grid-column-gap: 16px;
 	grid-row-gap: 16px;
@@ -1232,6 +1215,26 @@ body {
 	font-size: 1rem;
 	line-height: 110%;
 	text-decoration: none;
+}
+
+.button-primary {
+	color: #fff;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	background-color: #1a1b1f;
+	padding: 12px 25px;
+	font-size: 12px;
+	line-height: 20px;
+	transition: all .2s;
+}
+
+.button-primary:hover {
+	color: #fff;
+	background-color: #32343a;
+}
+
+.button-primary:active {
+	background-color: #43464d;
 }
 
 .button-primary {
@@ -1313,12 +1316,12 @@ nav.menu {
 .menu-item:hover a.nav-link {
 	opacity: 1;
 	color: var(--red);
-	transform: translateY(0); /* Move to normal position on hover */
+	transform: translateY(0); 
 }
 
 .menu ul {
 	display: grid;
-	gap: 0.4rem; /* Reduced from 0.8rem to make menu more compact */
+	gap: 0.4rem; 
 	padding: 0;
 	list-style: none;
 	transition: gap 0.3s ease;
@@ -1326,10 +1329,10 @@ nav.menu {
 
 .menu-item {
 	height: 16px;
-	width: 162.609px;
-	margin-bottom: 5px; /* Reduced from 10px to make menu more compact */
+	width: 160px;
+	margin-bottom: 5px; 
 	position: relative;
-	transition: margin-bottom 0.3s ease; /* Add transition for smooth animation */
+	transition: margin-bottom 0.3s ease;
 }
 
 .menu-item a.nav-link {
@@ -1341,14 +1344,14 @@ nav.menu {
 	line-height: 120%;
 	opacity: 0;
 	transition: opacity 0.3s ease, color 0.3s ease, transform 0.3s ease;
-	transform: translateY(-5px); /* Start slightly above for animation */
+	transform: translateY(-1px); 
 	display: block;
 }
 
 nav.menu:hover .menu-item .embed-menu-line a.nav-link {
 	opacity: 1;
 	color: var(--red);
-	transform: translateY(0); /* Move to normal position on hover */
+	transform: translateY(0); 
 }
 
 .menu-item .embed-menu-line {
@@ -1366,23 +1369,21 @@ nav.menu:hover .menu-item .embed-menu-line {
 
 .menu ul {
 	display: grid;
-	gap: 0.4rem; /* Reduced from 0.8rem to make menu more compact */
+	gap: 0; 
 	padding: 0;
 	list-style: none;
 	transition: gap 0.3s ease;
 }
 
-/* Theme toggle styling */
 .theme-toggle {
 	position: fixed;
+	left: 0;
 	bottom: 2rem;
 	right: 2rem;
-	width: 40px;
+	width: 200px;
 	height: 40px;
-	background-color: var(--red);
 	cursor: pointer;
 	z-index: 1000;
-	transition: width 0.3s ease;
 	overflow: hidden;
 	display: flex;
 	align-items: center;
@@ -1391,35 +1392,15 @@ nav.menu:hover .menu-item .embed-menu-line {
 	box-sizing: border-box;
 }
 
-.theme-toggle:hover {
-	width: 180px;
-}
-
-.theme-toggle-inner {
-	display: flex;
-	align-items: center;
-	justify-content: flex-start;
-	width: 100%;
-	height: 100%;
-}
-
-.theme-toggle-text {
-	color: white;
-	font-family: var(--sans-serif-font);
-	font-size: 0.875rem;
-	white-space: nowrap;
+.theme-toggle .theme-toggle-text {
 	opacity: 0;
-	transition: opacity 0.3s ease;
-	margin-left: 10px;
+	margin-top: 9px;
+    margin-left: 10px;
 }
 
 .theme-toggle:hover .theme-toggle-text {
+	transition: opacity 0.3s ease, color 0.3s ease, transform 0.3s ease;
 	opacity: 1;
-}
-
-/* Ensure the theme toggle is above other elements */
-.theme-toggle {
-	z-index: 9999;
 }
 
 .sidebar_toggler.active span {
@@ -1440,63 +1421,17 @@ nav.menu:hover .menu-item .embed-menu-line {
     transform: rotate(-45deg);
 }
 
-/* Theme toggle styling */
-.theme-toggle {
-	position: absolute;
-	bottom: 2rem;
-	left: 0;
-	right: 0;
-	text-align: center;
-}
-
-.theme-toggle-btn {
-	background: var(--background);
-	border: 1px solid var(--text-color);
-	color: var(--text-color);
-	padding: 0.5rem 1rem;
-	border-radius: 9999px;
-	cursor: pointer;
-	font-family: var(--sans-serif-font);
-	font-size: 0.875rem;
-	transition: all 0.3s ease;
-}
-
-.theme-toggle-btn:hover {
-	background: var(--text-color);
-	color: var(--background);
-}
-
-.theme-toggle-btn.is-dark {
-	background: var(--text-color);
-	color: var(--background);
-}
-
-/* Ensure the theme toggle button is visible */
-.theme-toggle-btn {
-	display: inline-block;
-	margin: 1rem auto;
-}
-
-/* Light theme class */
-body.light-theme {
-	--background: #F0EEE6;
-	--text-color: #ff0000;
-}
-
-/* Dark theme class */
-body.dark-theme {
-	--background: #000000;
-	--text-color: #ffffff;
-}
 
 div.slide {
 	position: relative;
-	width: 100%;
 
 	z-index: 10;
 	min-height: 100vh;
-	scroll-snap-align: start;
 	justify-content: center;
+}
+section {
+	position: relative;
+	scroll-snap-align: start;
 }
 
 
@@ -1770,58 +1705,29 @@ p {
     text-align: right;
 }
 
-/* Cookie Consent */
 .cookie-consent {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--background);
+	--intermediate: rgba(var(--background), 0.6);
+    background-color: var(--intermediate);
     border-top: 1px solid var(--text-color);
     padding: 1rem;
     z-index: 9999;
-    display: none; 
+    margin: 0 auto;
 }
 
 .cookie-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 2rem;
+	display: table;
+	width:100%;
 }
-
-.cookie-content p {
-    margin: 0;
-    font-size: 0.875rem;
+.cookie-content > * {
+	display: table-cell; 
 }
-
-.cookie-content a {
-    color: var(--red);
-    text-decoration: none;
+.cookie-content:last-child {
+	text-align: right;
 }
-
-.cookie-content a:hover {
-    text-decoration: underline;
-}
-
-.cookie-consent .button-primary {
-    background: var(--red);
-    color: var(--background);
-    border: 1px solid var(--red);
-    padding: 0.5rem 1.5rem;
-    cursor: pointer;
-    font-size: 0.875rem;
-    min-width: 120px;
-    transition: all 0.3s ease;
-}
-
-.cookie-consent .button-primary:hover {
-    background: transparent;
-    color: var(--red);
-}
-
 .timeline-item {
 	margin-bottom: 30px;
 	padding: 20px;
