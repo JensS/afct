@@ -24,17 +24,6 @@
     pointer-events: none; /* Allow clicks to pass through to elements below */
 }
 
-#timeline-info {
-    position: fixed;
-    bottom: 120px;
-    left: 2rem;
-    z-index: 20; /* Higher z-index to appear above map */
-    background: transparent;
-    padding: 0;
-    border-radius: 0;
-    box-shadow: none;
-    pointer-events: auto; /* Ensure it's clickable */
-}
 
 #year-display {
     font-size: 2rem;
@@ -91,11 +80,13 @@
 
 .timeline-markers {
     margin: 0 5vw;
-    position: fixed;
-    left: 50%;
+    position: absolute;
+    height: 5vh;
+    left: 0;
+    right: 0;
     transform: translateX(-50%);
     bottom: 0;
-    width: 90%;
+    width: 100%;
     background: transparent;
     z-index: 15; 
     pointer-events: auto; /* Ensure it's clickable */
@@ -179,9 +170,8 @@
     transition: opacity 0.5s ease-in-out;
 }
 
-/* Timeline Content Styles */
 #timeline-content {
-    position: fixed;
+    position: absolute;
     top: 66%; /* Position in the lower third of the screen */
     left: 0;
     right: 0;
@@ -203,8 +193,16 @@
     box-shadow: none;
 }
 
-.timeline-item .content-wrapper {
-    width: 100%;
+#timeline-info {
+    position: absolute;
+    bottom: 120px;
+    left: 2rem;
+    z-index: 20; /* Higher z-index to appear above map */
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    pointer-events: auto; /* Ensure it's clickable */
 }
 
 .nav-arrow {

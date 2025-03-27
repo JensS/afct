@@ -25,7 +25,7 @@ jQuery(document).ready(function($) {
     });
     
     function updateToggleButton(isDark) {
-        themeToggleBtn.find('.theme-toggle-text').text('Toggle dark/light');
+        themeToggleBtn.find('.theme-toggle-text').text(isDark ? 'Switch to light theme' : 'Switch to dark theme' );
     }
     
     // System theme change handler
@@ -48,14 +48,16 @@ jQuery(document).ready(function($) {
             opacity: 0.5,
             transform: 'translateY(0)'
         }, 300);
-        menuItems.find('.embed-menu-line').css('color', 'rgba(255, 0, 0, 0.7)');
+        menuItems.find('.embed-menu-line').css('color', 'var(--red)');
+        menuItems.find('.embed-menu-line').css('opacity', '1');
     }).on('mouseleave', function() {
         // Hide all menu items and reset position
         menuItems.find('.nav-link').stop().animate({
             opacity: 0,
             transform: 'translateY(-5px)'
         }, 300);
-        menuItems.find('.embed-menu-line').css('color', 'rgba(255, 0, 0, 0.5)');
+        menuItems.find('.embed-menu-line').css('color', 'var(--red)');
+        menuItems.find('.embed-menu-line').css('opacity', '0.7');
     });
     
     // Individual menu item hover
@@ -73,7 +75,7 @@ jQuery(document).ready(function($) {
                 opacity: 0.5,
                 transform: 'translateY(0)'
             }, 200);
-            $(this).find('.embed-menu-line').css('color', 'rgba(255, 0, 0, 0.7)');
+            menuItems.find('.embed-menu-line').css('opacity', '0.7');
         }
     });
     
@@ -94,60 +96,105 @@ jQuery(document).ready(function($) {
     });
 });
 
+/**
+ * Parallax Scrolling System
+ * 
+ * This implementation uses Intersection Observer to efficiently track elements in viewport
+ * and applies parallax scrolling effects based on CSS custom properties.
+ * 
+ * Required CSS:
+ * - Elements must have class 'sticky' or 'sticky-in-view'
+ * - Elements must be inside a container with class 'sticky-container'
+ * - Elements must have --speed CSS variable defined (e.g. --speed: 0.5)
+ */
 document.addEventListener('scroll', () => {
+    /**
+     * Updates the transform of an element based on scroll position
+     * @param {HTMLElement} el - The element to transform
+     * @returns {void}
+     */
     const updateTransform = (el) => {
         const scrollDistance = window.scrollY;
-        let speed = parseFloat(getComputedStyle(el).getPropertyValue('--speed'));
-        if (isNaN(speed)) {
-            console.error('Invalid --speed value:', getComputedStyle(el).getPropertyValue('--speed'), 'for element:', el);
-            return; // Exit the function if invalid
-        }
+        const speedValue = getComputedStyle(el).getPropertyValue('--speed').trim();
+        
+        // Default to 0.5 if speed is not set or invalid
+        let speed = parseFloat(speedValue) || 0.5;
+        
+        // Calculate the translation based on scroll distance and speed
         let translateY = scrollDistance * speed;
-    
-        const containerRect = el.closest('.sticky-container').getBoundingClientRect();
-        const maxTranslateY = Math.min(containerRect.height - el.offsetHeight, 0);
-
-        if (translateY > maxTranslateY) {
-            translateY = maxTranslateY;
-        } else if (translateY < 0) {
-            translateY = 0;
+        
+        // Get the container boundaries
+        const container = el.closest('.sticky-container');
+        if (!container) {
+            console.warn('Sticky element must be inside a .sticky-container:', el);
+            return;
         }
-        console.log(`maxTranslateY: ${maxTranslateY}, translateY: ${translateY}`);
-        console.log('Container rect:', containerRect);
-     
+        
+        const containerRect = container.getBoundingClientRect();
+        const maxTranslateY = containerRect.height - el.offsetHeight;
+
+        // Constrain the translation within container bounds
+        translateY = Math.max(0, Math.min(translateY, maxTranslateY));
+        
+        // Apply the transform
         el.style.transform = `translateY(${translateY}px)`;
     };
     
+    // Intersection Observer configuration
     const observerOptions = {
-        root: null,
-        threshold: 0.1,
-        rootMargin: "0px"
+        root: null, // Use viewport as root
+        threshold: 0.1, // Trigger when at least 10% is visible
+        rootMargin: "50px 0px" // Add 50px margin top/bottom for earlier detection
     };
     
+    /**
+     * Callback for Intersection Observer
+     * Handles visibility changes and optimizes performance with willChange
+     */
     const parallaxCallback = (entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 updateTransform(entry.target);
                 entry.target.style.willChange = 'transform';
             } else {
-                entry.target.style.willChange = '';
+                entry.target.style.willChange = 'auto';
             }
         });
     };
     
+    // Create and setup the observer
     const observer = new IntersectionObserver(parallaxCallback, observerOptions);
     
+    // Observe all sticky elements
     document.querySelectorAll('.sticky').forEach(el => {
         observer.observe(el);
     });
     
-    window.addEventListener('scroll', () => {
-        document.querySelectorAll('.sticky-in-view').forEach(el => {
-            updateTransform(el);
-        });
-    }, { passive: true });
+    // Handle elements that should update while in view
+    const debouncedScroll = debounce(() => {
+        document.querySelectorAll('.sticky-in-view').forEach(updateTransform);
+    }, 5); // 5ms debounce for better performance
     
+    window.addEventListener('scroll', debouncedScroll, { passive: true });
 });
+
+/**
+ * Debounce function to limit the rate at which a function is called
+ * @param {Function} func - The function to debounce
+ * @param {number} wait - The debounce delay in milliseconds
+ * @returns {Function} - Debounced function
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 
 document.addEventListener('DOMContentLoaded', function() {
    

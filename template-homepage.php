@@ -7,7 +7,7 @@ get_header();
 
 define("IN_ONEPAGER", true);
 
-$menu_items = wp_get_nav_menu_items(get_nav_menu_locations()['menu-1']); // Get primary menu items by location
+$menu_items = wp_get_nav_menu_items(get_nav_menu_locations()['menu-1']);
 
 if (count($menu_items)) {
     foreach ($menu_items as $post) {

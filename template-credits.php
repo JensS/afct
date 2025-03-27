@@ -29,32 +29,30 @@ $credits = get_credits_data();
     <div class="text-lower-right">
         <h1><?php echo esc_html($headline_parts['lower']); ?></h1>
     </div>
-    <div class="global-container">
-        <div class="content text">
-            <?php if (isset($credits['film_team'])): ?>
-            <div class="team">
-                <h2 class="align-center">Film Team</h2>
-                <?php foreach ($credits['film_team'] as $role => $name): ?>
-                <div class="credit-div">
-                    <p class="credit-description"><?php echo esc_html($role); ?></p>
-                    <p class="meta-description"><?php echo esc_html($name); ?></p>
-                </div>
-                <?php endforeach; ?>
+    <div class="content text">
+        <?php if (isset($credits['film_team'])): ?>
+        <div class="team">
+            <h2 class="align-center">Film Team</h2>
+            <?php foreach ($credits['film_team'] as $role => $name): ?>
+            <div class="credit-div">
+                <p class="credit-description"><?php echo esc_html($role); ?></p>
+                <p class="meta-description"><?php echo esc_html($name); ?></p>
             </div>
-            <?php endif; ?>
-
-            <?php if (isset($credits['podcast_team'])): ?>
-            <div class="team">
-                <h2 class="align-center padding-bottom_24px">Podcast Team</h2>
-                <?php foreach ($credits['podcast_team'] as $role => $name): ?>
-                <div class="credit-div">
-                    <p class="credit-description"><?php echo esc_html($role); ?></p>
-                    <p class="meta-description"><?php echo esc_html($name); ?></p>
-                </div>
-                <?php endforeach; ?>
-            </div>
-            <?php endif; ?>
+            <?php endforeach; ?>
         </div>
+        <?php endif; ?>
+
+        <?php if (isset($credits['podcast_team'])): ?>
+        <div class="team">
+            <h2 class="align-center padding-bottom_24px">Podcast Team</h2>
+            <?php foreach ($credits['podcast_team'] as $role => $name): ?>
+            <div class="credit-div">
+                <p class="credit-description"><?php echo esc_html($role); ?></p>
+                <p class="meta-description"><?php echo esc_html($name); ?></p>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
     </div>
 </div>
 

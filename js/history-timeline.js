@@ -63,7 +63,32 @@
                     }
                 },
                 success: function(data) {
-                    historyData = data;
+                    if (!Array.isArray(data)) {
+                        console.error("History data is not an array:", data);
+                        return;
+                    }
+                    
+                    // Validate and filter out invalid items
+                    historyData = data.filter(item => {
+                        if (!item || typeof item !== 'object') {
+                            console.error("Invalid history item:", item);
+                            return false;
+                        }
+                        if (!item.year_start) {
+                            console.error("History item missing year_start:", item);
+                            return false;
+                        }
+                        if (item.visualisation === "paragraph" && (!item.history_paragraph || !item.history_paragraph.title)) {
+                            console.error("Paragraph item missing required fields:", item);
+                            return false;
+                        }
+                        return true;
+                    });
+                    
+                    if (historyData.length === 0) {
+                        console.error("No valid history items found in data");
+                        return;
+                    }
                     
                     // Clear cache when data is loaded
                     cachedParagraphItems = null;
@@ -197,26 +222,44 @@
 
         // Create timeline items
         function createTimelineItems(timelineContent, paragraphItems) {
+            if (!Array.isArray(paragraphItems)) {
+                console.error('Invalid paragraphItems:', paragraphItems);
+                return;
+            }
+            
             timelineContent.find('.timeline-item').remove();
             
             paragraphItems.forEach(item => {
+                // Validate item has all required fields
+                if (!item || !item.id || !item.year_start || !item.history_paragraph) {
+                    console.error('Invalid timeline item:', item);
+                    return;
+                }
+                
                 const paragraph = item.history_paragraph;
-                const yearRange = item.year_start;
+                if (!paragraph.title || !paragraph.paragraph) {
+                    console.error('Timeline item missing title or paragraph:', item);
+                    return;
+                }
                 
-                const timelineItem = $(`
-                    <div class="timeline-item" 
-                         data-id="${item.id}" 
-                         data-year-start="${item.year_start}">
-                        <div class="content-wrapper">
-                            <div class="year">${yearRange}</div>
-                            <h3>${paragraph.title}</h3>
-                            <p>${paragraph.paragraph}</p>
-                            <!-- Impact field removed -->
+                try {
+                    const timelineItem = $(`
+                        <div class="timeline-item" 
+                             data-id="${item.id}" 
+                             data-year-start="${item.year_start}">
+                            <div class="content-wrapper">
+                                <div class="year">${item.year_start}</div>
+                                <h3>${paragraph.title}</h3>
+                                <p>${paragraph.paragraph}</p>
+                                <!-- Impact field removed -->
+                            </div>
                         </div>
-                    </div>
-                `);
-                
-                timelineContent.append(timelineItem);
+                    `);
+                    
+                    timelineContent.append(timelineItem);
+                } catch (error) {
+                    console.error('Error creating timeline item:', error, item);
+                }
             });
         }
 
@@ -276,7 +319,13 @@
 
         // Function to handle item transitions
         function transitionToItem(item, currentIndex, totalItems) {
-            if (isAnimating) return;
+            if (isAnimating || !item) return;
+            
+            // Validate the item has required properties
+            if (!item.year_start || !item.id) {
+                console.error('Invalid timeline item:', item);
+                return;
+            }
             
             isAnimating = true;
             
@@ -286,10 +335,16 @@
             updateVisualization(item.year_start);
             updateTimelineMarker(item.year_start);
             
-            $(`.timeline-item[data-id="${item.id}"]`)
-                .fadeIn(config.animationDuration, function() {
-                    isAnimating = false;
-                });
+            const timelineItem = $(`.timeline-item[data-id="${item.id}"]`);
+            if (timelineItem.length === 0) {
+                console.error('Timeline item element not found for id:', item.id);
+                isAnimating = false;
+                return;
+            }
+            
+            timelineItem.fadeIn(config.animationDuration, function() {
+                isAnimating = false;
+            });
             
             updateArrowStates(currentIndex, totalItems);
         }
@@ -418,7 +473,23 @@
                 targetIndex = closestItem ? closestItem.index : 0; // Default to first item if no match found
             }
             
+            // Validate paragraphItems and targetIndex
+            if (!paragraphItems || paragraphItems.length === 0) {
+                console.error('No paragraph items available');
+                return;
+            }
+            
+            if (typeof targetIndex !== 'number' || targetIndex < 0 || targetIndex >= paragraphItems.length) {
+                console.error('Invalid target index:', targetIndex);
+                return;
+            }
+            
             const targetItem = paragraphItems[targetIndex];
+            if (!targetItem) {
+                console.error('Target item not found at index:', targetIndex);
+                return;
+            }
+            
             const currentVisibleId = visibleItem.length ? parseInt(visibleItem.attr('data-id')) : null;
             
             if (!visibleItem.length || targetItem.id !== currentVisibleId) {

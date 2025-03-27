@@ -23,15 +23,21 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 :root {
 	--parallax-speed: 1.5;
 	--scroll: 1px;
-	--red: #ff0000;
+	--red: rgb(255,0,0);
 	--white: rgb(240,238,230);
+	--white-opaque: rgba(240,238,230,0.8);
 	--black: rgb(0,0,0);
+	--black-opaque: rgba(0,0,0,0.8);
 	--serif-font: 'Gambetta Variable', serif;
 	--sans-serif-font: 'Gill Sans', sans-serif;
 	--bg-light: var(--white);
 	--text-light: var(--black);
+	--text-light-opaque: rgba(0,0,0,0.5);
 	--bg-dark: var(--black);
 	--text-dark: var(--white);
+	--text-dark-opaque: rgb(240,238,230,0.5);
+	--red-opaque: rgba(255,0,0,0.5);
+
 }
 
 @font-face {
@@ -66,19 +72,25 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 /* Set default theme to dark */
 body {
 	--background: var(--bg-dark);
+	--background-opaque: var(--black-opaque);
 	--text-color: var(--text-dark);
+	--text-color-opaque: var(--text-dark-opaque);
 }
 
 /* Light theme class */
 body.light-theme {
 	--background: var(--bg-light);
+	--background-opaque: var(--white-opaque);
 	--text-color: var(--text-light);
+	--text-color-opaque: var(--text-light-opaque);
 }
 
 /* Dark theme class */
 body.dark-theme {
 	--background: var(--bg-dark);
+	--background-opaque: var(--black-opaque);
 	--text-color: var(--text-dark);
+	--text-color-opaque: var(--text-dark-opaque);
 }
 
 html {
@@ -96,6 +108,7 @@ body {
 	overflow-x: hidden;
 	overflow-y: auto;
 	scroll-snap-type: y proximity;
+	scroll-padding-block: 0;
 }
 
 main {
@@ -906,75 +919,6 @@ blockquote {
 	line-height: 140%;
 }
 
-.hero-without-image {
-	border-bottom: 1px solid #e4ebf3;
-	padding: 80px 30px;
-	position: relative;
-}
-
-.global-container {
-	width: 100%;
-	max-width: 1856px;
-	height: 100%;
-	margin-left: auto;
-	margin-right: auto;
-	padding: 1.5rem;
-	transform-style: preserve-3d;
-}
-
-.global-container.hero-container {
-	inset: 0%;
-}
-
-.hero-wrapper-two {
-	text-align: center;
-	flex-direction: column;
-	justify-content: flex-start;
-	align-items: center;
-	max-width: 750px;
-	margin-left: auto;
-	margin-right: auto;
-	display: flex;
-}
-
-.margin-bottom-24px {
-	margin-bottom: 24px;
-}
-
-body {
-	background-color: var(--background);
-}
-
-.heading {
-	font-size: 4rem;
-}
-
-.heading-2 {
-	font-size: 1.5rem;
-}
-
-.hero-heading-center {
-	background-color: #f5f7fa;
-	border-bottom: 1px solid #e4ebf3;
-	padding: 80px 30px;
-	position: relative;
-}
-
-.container-2 {
-	width: 100%;
-	max-width: 940px;
-	margin-left: auto;
-	margin-right: auto;
-}
-
-.centered-heading {
-	text-align: center;
-	margin-bottom: 16px;
-}
-
-.centered-heading.margin-bottom-32px {
-	margin-bottom: 32px;
-}
 
 .hero-wrapper {
 	justify-content: space-between;
@@ -988,12 +932,6 @@ body {
 	align-items: flex-start;
 	max-width: 46%;
 	display: flex;
-}
-
-
-
-.shadow-two {
-	box-shadow: 0 4px 24px #96a3b514;
 }
 
 #intro {
@@ -1012,23 +950,6 @@ body {
 	left: 50%;
 	transform: translate(-50%, -50%);
 	object-fit: cover;
-}
-
-.hero {
-	position: relative;
-	height: 100vh;
-	width: 100%;
-	overflow: hidden;
-}
-
-
-
-.footer {
-	flex-flow: column;
-	justify-content: flex-end;
-	align-items: center;
-	height: 100vh;
-	display: block;
 }
 
 .utility-links {
@@ -1065,28 +986,29 @@ body {
 
 
 .content-frame {
-	height: 100vh;
+	justify-content: center;
 }
+
+.content-frame,.content {
+	margin: auto;
+} 
 
 .blending-difference {
 	mix-blend-mode: difference;
 }
+
 .sticky-container {
 	position: relative;
-    width: 100%;
     min-height: 100vh; 
-    display: flex;
     justify-content: center;
     align-items: center;
-    text-align: center;
-
 }
+
 .sticky {
-	position: absolute;
     transform-origin: center;
     will-change: transform;
 	transform: translateY(0px);
-
+	margin: auto;
 }
 
 .text {
@@ -1095,7 +1017,7 @@ body {
 
 .credit-description {
 	text-align: right;
-	mix-blend-mode: difference;
+	/*mix-blend-mode: difference;*/
 	margin-bottom: 0;
 	padding-bottom: 0;
 	font-family: var(--serif-font);
@@ -1104,7 +1026,7 @@ body {
 
 .meta-description {
 	text-transform: uppercase;
-	mix-blend-mode: difference;
+	/*mix-blend-mode: difference;*/
 	font-size: 1rem;
 	line-height: 145%;
 }
@@ -1281,7 +1203,9 @@ body {
 	margin-right: -26px;
 }
 
-/* New navigation menu styling */
+/* 
+Menu 
+ */
 nav.menu {
 	position: fixed;
 	top: 4vh;
@@ -1291,13 +1215,12 @@ nav.menu {
 	pointer-events: all;
 }
 
-/* Menu styling adjustments */
 .menu-item {
 	height: 16px;
-	width: 162.609px;
-	margin-bottom: 5px; /* Reduced from 10px to make menu more compact */
+	width: 240px;
+	margin-bottom: 5px; 
 	position: relative;
-	transition: margin-bottom 0.3s ease; /* Add transition for smooth animation */
+	transition: margin-bottom 0.3s ease; 
 }
 
 .menu-item a.nav-link {
@@ -1307,9 +1230,9 @@ nav.menu {
 	font-size: 1rem;
 	font-weight: 400;
 	line-height: 120%;
-	opacity: 0.7; /* Reduced opacity for non-hovered items */
+	opacity: 0.7; 
 	transition: opacity 0.3s ease, color 0.3s ease, transform 0.3s ease;
-	transform: translateY(-5px); /* Start slightly above for animation */
+	transform: translateY(-5px);
 	display: block;
 }
 
@@ -1348,19 +1271,19 @@ nav.menu {
 	display: block;
 }
 
-nav.menu:hover .menu-item .embed-menu-line a.nav-link {
-	opacity: 1;
-	color: var(--red);
-	transform: translateY(0); 
-}
-
-.menu-item .embed-menu-line {
+ .embed-menu-line {
 	position: absolute;
 	right: 0;
 	top: 50%;
 	transform: translateY(-50%);
-	color: rgba(255, 0, 0, 0.5);
+	color: var(--red);
+	opacity:0.7;
 	transition: color 0.3s ease;
+}
+
+nav.menu:hover .menu-item .embed-menu-line a.nav-link {
+	opacity: 1;
+	transform: translateY(0); 
 }
 
 nav.menu:hover .menu-item .embed-menu-line {
@@ -1378,7 +1301,7 @@ nav.menu:hover .menu-item .embed-menu-line {
 .theme-toggle {
 	position: fixed;
 	left: 0;
-	bottom: 2rem;
+	bottom: 12vh;
 	right: 2rem;
 	width: 200px;
 	height: 40px;
@@ -1422,16 +1345,13 @@ nav.menu:hover .menu-item .embed-menu-line {
 }
 
 
-div.slide {
-	position: relative;
 
-	z-index: 10;
-	min-height: 100vh;
-	justify-content: center;
-}
 section {
 	position: relative;
-	scroll-snap-align: start;
+	scroll-margin: 20px;
+	min-height: 100vh;
+	scroll-snap-stop: always;
+	scroll-snap-align: center;
 }
 
 
@@ -1664,7 +1584,7 @@ p {
 .progress-bar {
     flex: 1;
     height: 2px;
-    background: rgba(var(--text-color-rgb), 0.3);
+    background: var(--text-color-opaque);
     position: relative;
     cursor: pointer;
 }
@@ -1710,8 +1630,7 @@ p {
     bottom: 0;
     left: 0;
     right: 0;
-	--intermediate: rgba(var(--background), 0.6);
-    background-color: var(--intermediate);
+    background-color: var(--background-opaque);
     border-top: 1px solid var(--text-color);
     padding: 1rem;
     z-index: 9999;
@@ -1728,14 +1647,7 @@ p {
 .cookie-content:last-child {
 	text-align: right;
 }
-.timeline-item {
-	margin-bottom: 30px;
-	padding: 20px;
-}
-.year {
-	font-weight: bold;
-	margin-bottom: 10px;
-}
+
 .gallery-grid {
     width: 100%;
     margin: 0 auto;
