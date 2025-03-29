@@ -223,12 +223,28 @@ function remove_footer_admin ()
 }
  
 add_filter('admin_footer_text', 'remove_footer_admin');
+
+add_action('check_ajax_referer', 'prevent_meta_box_order');
+function prevent_meta_box_order($action)
+{
+    if ('meta-box-order' == $action /* && $wp_user == 'santa claus' */) {
+        die('-1');
+    }
+}
+
+function fb_remove_postbox() {
+    wp_deregister_script('postbox');
+}
+add_action( 'admin_init', 'fb_remove_postbox' );
+
+
 // Include admin files
 require_once get_template_directory() . '/inc/admin-homepage.php';
 
 
 function afct_enqueue_admin_scripts() {
     global $typenow;
+	global $post;
     if ($typenow == 'page') {
         wp_enqueue_media();
         // Enqueue jQuery UI Sortable and Dialog
@@ -242,6 +258,53 @@ function afct_enqueue_admin_scripts() {
         wp_enqueue_script('d3', get_template_directory_uri() . '/js/d3.min.js', array(), '7.9', true);
         wp_enqueue_script('topojson', get_template_directory_uri() . '/js/topojson.min.js', array('d3'), '3.0', true);
     }
+
+	// Check if we are on the History page template edit screen                                                                                                                           
+        // *** IMPORTANT: Replace 'template-history.php' with the actual filename of your history page template ***                                                                           
+        $template_file = $post ? get_post_meta($post->ID, '_wp_page_template', true) : '';                                                                                                    
+        if ($post && $template_file === 'template-history.php') {                                                                                                                             
+                                                                                                                                                                                              
+            // Enqueue History Admin CSS                                                                                                                                                      
+            wp_enqueue_style(                                                                                                                                                                 
+                'afct-admin-history-style',                                                                                                                                                   
+                get_template_directory_uri() . '/css/admin-history.css',                                                                                                                      
+                [], // Dependencies                                                                                                                                                           
+                filemtime(get_template_directory() . '/css/admin-history.css') // Versioning                                                                                                  
+            );                                                                                                                                                                                
+                                                                                                                                                                                              
+            // Enqueue History Admin JS                                                                                                                                                       
+            wp_enqueue_script(                                                                                                                                                                
+                'afct-admin-history-script',                                                                                                                                                  
+                get_template_directory_uri() . '/js/admin-history.js',                                                                                                                        
+                ['jquery', 'jquery-ui-sortable', 'd3', 'topojson'], // Dependencies already enqueued above                                                                                    
+                filemtime(get_template_directory() . '/js/admin-history.js'), // Versioning                                                                                                   
+                true // Load in footer                                                                                                                                                        
+            );                                                                                                                                                                                
+                                                                                                                                                                                              
+            // Localize Data for History Admin JS                                                                                                                                             
+            $zoom_options = [                                                                                                                                                                 
+                'south_africa' => 'South Africa',                                                                                                                                             
+                'africa' => 'Africa',                                                                                                                                                         
+                'europe_and_africa' => 'Europe and Africa'                                                                                                                                    
+            ];                                                                                                                                                                                
+            $visualization_types = [                                                                                                                                                          
+                'arrow' => 'Arrow (Origin → Destination)',                                                                                                                                    
+                'dot' => 'Single Point',                                                                                                                                                      
+                'dots' => 'Multiple Points'                                                                                                                                                   
+            ];                                                                                                                                                                                
+            $topojson_url = get_template_directory_uri() . '/js/countries-110m.json'; // Adjust path if needed                                                                                
+                                                                                                                                                                                              
+            wp_localize_script(                                                                                                                                                               
+                'afct-admin-history-script', // Handle for the script that needs the data                                                                                                     
+                'afctHistoryAdminData',    // JavaScript object name                                                                                                                          
+                [                                                                                                                                                                             
+                    'zoomOptions'        => $zoom_options,                                                                                                                                    
+                    'visualizationTypes' => $visualization_types,                                                                                                                             
+                    'topoJsonUrl'        => $topojson_url,                                                                                                                                    
+                    // 'nonce' => wp_create_nonce('your_ajax_nonce_action') // Add nonce if needed later                                                                                      
+                ]                                                                                                                                                                             
+            );                                                                                                                                                                                
+        }        
 }
 add_action('admin_enqueue_scripts', 'afct_enqueue_admin_scripts');
 
