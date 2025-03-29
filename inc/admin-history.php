@@ -230,8 +230,8 @@ function afct_history_meta_box_callback($post) {
         <!-- JSON Import Section -->
         <div class="json-import-section" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border: 1px solid #ddd;">
             <h3>Import History Timeline Data</h3>
-            <p>Paste JSON data to import history timeline entries. This will replace all existing entries.</p>
-            <textarea id="json-import-data" rows="10" style="width: 100%; font-family: monospace;"></textarea>
+            <p>Upload a JSON file or paste JSON data to import history timeline entries. This will replace all existing entries.</p>
+            <textarea name="history_json" id="json-import-data" rows="10" style="width: 100%; font-family: monospace;"></textarea>
             <div style="margin-top: 10px;">
                 <button type="button" id="validate-json" class="button">Validate JSON</button>
                 <button type="button" id="import-json" class="button button-primary" style="margin-left: 10px;">Import JSON</button>
