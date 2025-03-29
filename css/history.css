@@ -83,7 +83,7 @@
     top: 20vh;
     left: 0;
     right: 0;
-    height: 10vh;
+    height: 4vh;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -111,7 +111,7 @@
     height: 100%; /* Match the height of .timeline-markers */
     width: 1px;   /* Thin line */
     background-color: var(--red); /* Or a distinct highlight color */
-    left: 0; /* Initial position */
+    left: -25px; /* Initial position with a shift to appear in front of year tag */
     transform: translateX(0); /* Initial transform */
     transition: transform 0.4s ease-in-out; /* Smooth transition */
     z-index: 16; /* Ensure it's above markers but potentially below other UI */

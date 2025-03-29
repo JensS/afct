@@ -25,7 +25,7 @@
     "year_end": 1652,
     "title": "Dutch Arrival at the Cape",
     "paragraph": "In 1652, the Dutch East India Company established a settlement at the Cape of Good Hope under Jan van Riebeeck. This introduced Dutch, which later evolved into Afrikaans, into the region’s linguistic mix alongside indigenous Khoisan languages. The settlement marked the beginning of European colonization, altering the linguistic landscape through trade and governance. Afrikaans would eventually emerge as a creole influenced by Dutch, Khoisan, and other languages.",
-    "map_zoom": "southern_africa",
+    "map_zoom": "europe_and_africa",
     "visualizations": [
       {
         "type": "arrow",
@@ -41,7 +41,7 @@
     "year_end": 1800,
     "title": "Dutch Slave Trade Begins",
     "paragraph": "Starting in 1658, the Dutch imported enslaved people from Madagascar, Mozambique, and Indonesia to work in the Cape Colony. This slave trade brought Malagasy, Bantu, and Malay linguistic influences, contributing to the development of Afrikaans as a distinct language. These diverse tongues mixed with Dutch and Khoisan dialects, creating a unique Cape Creole. The legacy of this multilingual contact persists in Afrikaans vocabulary and syntax today.",
-    "map_zoom": "world",
+    "map_zoom": "europe_and_africa",
     "visualizations": [
       {
         "type": "arrows",
@@ -69,7 +69,7 @@
     "year_end": 1806,
     "title": "British Takeover of the Cape",
     "paragraph": "In 1806, Britain captured the Cape Colony from the Dutch during the Napoleonic Wars, establishing English as an administrative language. This shift marginalized Dutch/Afrikaans among the ruling elite and introduced English as a prestige language in education and law. Over time, English competed with Afrikaans and indigenous languages, reshaping communication in the colony. The British presence laid the foundation for bilingual tensions that persisted into the 20th century.",
-    "map_zoom": "southern_africa",
+    "map_zoom": "europe_and_africa",
     "visualizations": [
       {
         "type": "arrow",
@@ -179,12 +179,42 @@
     "year_start": 1953,
     "year_end": 1953,
     "title": "Bantu Education Act",
-    "paragraph": "The Bantu Education Act of 1953 mandated inferior schooling for Black South Africans, designed to limit their socioeconomic mobility. It prioritized Afrikaans over English in Black schools, aiming to enforce Afrikaner control and suppress Bantu language use in formal education. This policy sparked widespread resentment, as it undermined indigenous languages and access to global communication via English. The act’s linguistic imposition became a flashpoint for resistance.",
-    "map_zoom": "south_africa",
+    "paragraph": "The Bantu Education Act of 1953 mandated inferior schooling for Black South Africans, designed to limit their socioeconomic mobility. It prioritized Afrikaans over English in Black schools, aiming to enforce Afrikaner control and suppress Bantu language use in formal education. The policy required vernacular languages as the medium of instruction only through the sixth year, limiting educational advancement. This sparked widespread resentment as it undermined indigenous languages while denying access to English as a language of wider communication. The act's linguistic imposition became a flashpoint for resistance.",
+   "map_zoom": "south_africa",
     "visualizations": [
       {
         "type": "dot",
         "label": "Bantu Education",
+        "origin": [25.0, -29.0]
+      }
+    ]
+  },
+  {
+    "id": 1954,
+    "year_start": 1954,
+    "year_end": 1954,
+    "title": "Bantu Education Act Amendments",
+    "paragraph": "The apartheid government expanded the Bantu Education Act in 1954, further restricting black education. The amendments enforced mother-tongue instruction only through primary school before transitioning to Afrikaans/English, deliberately limiting educational advancement. Dr. Verwoerd explicitly stated the policy aimed to prevent black students from aspiring beyond their prescribed societal roles. These amendments extended to universities in 1959, completely segregating higher education and sparking widespread protests that would culminate in the 1976 Soweto Uprising.",
+    "map_zoom": "south_africa",
+    "visualizations": [
+      {
+        "type": "dot",
+        "label": "Education Policy",
+        "origin": [25.0, -29.0]
+      }
+    ]
+  },
+  {
+    "id": 1955,
+    "year_start": 1955,
+    "year_end": 1955,
+    "title": "50-50 Language Policy in Schools",
+    "paragraph": "In 1955, the apartheid government implemented a policy requiring secondary schools to teach in both English and Afrikaans equally. However, due to a shortage of black teachers proficient in Afrikaans (as all teacher training schools for blacks were English-medium), this policy could only be implemented in 26% of schools. The policy was deeply unpopular as blacks saw it as a 'divide-and-conquer' tactic and preferred English as a language of wider communication.",
+    "map_zoom": "south_africa",
+    "visualizations": [
+      {
+        "type": "dot",
+        "label": "Education Policy",
         "origin": [25.0, -29.0]
       }
     ]
@@ -239,7 +269,7 @@
     "year_start": 1976,
     "year_end": 1976,
     "title": "Soweto Uprising",
-    "paragraph": "On June 16, 1976, thousands of students in Soweto protested the Afrikaans Medium Decree, marching against its imposition in their schools. Police responded with violence, killing hundreds and injuring thousands, turning the event into a national symbol of resistance. The uprising rejected Afrikaans as a tool of oppression and galvanized the use of English and Bantu languages in the anti-apartheid struggle. It marked a turning point in the fight for linguistic and political freedom.",
+    "paragraph": "On June 16, 1976, thousands of students in Soweto protested the Afrikaans Medium Decree, marching with banners declaring 'Blacks are not dustbins - Afrikaans stinks.' The protest began after a school board was dismissed for resisting Afrikaans imposition. Police opened fire on 15,000 marching students, sparking months of violence that left 172 dead, mostly teenagers. The uprising rejected Afrikaans as 'the language of the oppressor' and became a national symbol of resistance, galvanizing use of English and Bantu languages in the anti-apartheid struggle. It forced the government to allow school boards to choose their medium of instruction, with 99% subsequently choosing English.",
     "map_zoom": "south_africa",
     "visualizations": [
       {
