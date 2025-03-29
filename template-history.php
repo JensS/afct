@@ -22,6 +22,13 @@
         <div id="visualization-container">
             <div id="map-container"></div>
             <!-- Removed timeline-info div -->
+            
+            <div id="visualization-data" class="hidden" 
+                 data-history-entries="<?php 
+                     $history_entries = get_post_meta(get_the_ID(), '_afct_history_entries', true);
+                     echo esc_attr(json_encode($history_entries)); 
+                 ?>">
+            </div>
 
             <!-- Instruction removed as requested -->
             <div class="timeline-markers"></div>
