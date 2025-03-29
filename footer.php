@@ -14,7 +14,7 @@
 </div><!-- #page -->
 
 <section class="footer" >
-        <div class="global-container" style="display:block">
+        <div class="global-container">
             <div class="utility-links">
                 <p>©<?php echo date('Y'); ?></p>
                 <p><a href="<?php echo esc_url(home_url('/privacy-policy')); ?>">Imprint & Privacy Policy</a></p>

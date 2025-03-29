@@ -9,7 +9,7 @@
 
 ?>
 
-<div id="imprint" class="slide">
+<section id="imprint" class="slide">
     <?php
     $headline_parts = afct_split_headline(get_the_title());
     ?>
@@ -55,7 +55,7 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <?php
  if(!defined("IN_ONEPAGER")) 
