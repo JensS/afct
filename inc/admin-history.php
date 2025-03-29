@@ -377,17 +377,41 @@ function afct_history_meta_box_callback($post) {
                                         if (viz.type === 'dots' && viz.dotCoordinates && viz.dotCoordinates.length > 0) {
                                             const $dotsContainer = $newViz.find('.dots-coordinates-container');
                                             $dotsContainer.empty(); // Clear default coordinates
-                                            
+                        
                                             viz.dotCoordinates.forEach(function(coord, coordIndex) {
                                                 // Add coordinate button
                                                 $newViz.find('.add-dot-coordinate').trigger('click');
-                                                
+                            
                                                 // Get the newly created coordinate pair
                                                 const $newCoord = $dotsContainer.find('.dot-coordinate-pair').last();
-                                                
+                            
                                                 // Fill in coordinate fields
                                                 $newCoord.find('input').eq(0).val(coord[0] || '');
                                                 $newCoord.find('input').eq(1).val(coord[1] || '');
+                                            });
+                                        }
+                    
+                                        // Handle arrows for arrows type
+                                        if (viz.type === 'arrows' && viz.arrows && viz.arrows.length > 0) {
+                                            const $arrowsContainer = $newViz.find('.arrows-coordinates-container');
+                                            $arrowsContainer.empty(); // Clear default coordinates
+                        
+                                            viz.arrows.forEach(function(arrow, arrowIndex) {
+                                                // Add arrow button
+                                                $newViz.find('.add-arrow-coordinate').trigger('click');
+                            
+                                                // Get the newly created arrow pair
+                                                const $newArrow = $arrowsContainer.find('.arrow-coordinate-pair').last();
+                            
+                                                // Fill in arrow fields
+                                                if (arrow.origin) {
+                                                    $newArrow.find('input').eq(0).val(arrow.origin[0] || '');
+                                                    $newArrow.find('input').eq(1).val(arrow.origin[1] || '');
+                                                }
+                                                if (arrow.destination) {
+                                                    $newArrow.find('input').eq(2).val(arrow.destination[0] || '');
+                                                    $newArrow.find('input').eq(3).val(arrow.destination[1] || '');
+                                                }
                                             });
                                         }
                                     });
@@ -581,7 +605,8 @@ function afct_admin_history_scripts($hook) {
     $visualization_types = [                                                                                                                                                                   
         'arrow' => 'Arrow (Origin → Destination)',                                                                                                                                             
         'dot' => 'Single Point',                                                                                                                                                               
-        'dots' => 'Multiple Points'                                                                                                                                                            
+        'dots' => 'Multiple Points',
+        'arrows' => 'Multiple Arrows'                                                                                                                                                            
     ];                                                                                                                                                                                         
     $topojson_url = get_template_directory_uri() . '/js/countries-110m.json'; // Adjust path                                                                                                   
                                                                                                                                                                                                
