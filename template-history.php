@@ -21,10 +21,7 @@
     <div class="img-sections-wrap">
         <div id="visualization-container">
             <div id="map-container"></div>
-            <div id="timeline-info">
-                <div id="year-display">1652</div>
-                <div id="event-info"></div>
-            </div>
+            <!-- Removed timeline-info div -->
 
             <!-- Instruction removed as requested -->
             <div class="timeline-markers"></div>
