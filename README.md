@@ -1,8 +1,44 @@
-The wordpress plugin for the non profit project africanface.org 
+# African Face WordPress Plugin
 
-A onepage theme that boosts the following functionality:
-- bright/dark theme switcher
-- assembles the contents of the segments from individual wordpress pages for easier management
-- podcast player
-- desktop/mobile layouts
- 
+The WordPress plugin for the non-profit project africanface.org 
+
+A onepage theme that provides the following functionality:
+- Bright/dark theme switcher
+- Assembles the contents of the segments from individual WordPress pages for easier management
+- Podcast player
+- Desktop/mobile layouts
+- Interactive history timeline
+
+## History Timeline Data Structure
+
+The history timeline feature uses a structured data format to represent historical events and visualizations:
+
+### Entry Structure
+Each history entry contains:
+- `id`: Unique identifier (same as year_start)
+- `year_start`: Starting year of the event
+- `title`: Title of the event
+- `paragraph`: Description text
+- `map_zoom`: Map zoom level (south_africa, africa, europe_and_africa)
+- `visualizations`: Array of visualization objects
+
+### Visualization Types
+The timeline supports three types of visualizations:
+
+1. **Arrow** (`type: "arrow"`):
+   - `origin`: [longitude, latitude] coordinates
+   - `destination`: [longitude, latitude] coordinates
+   - `label`: Optional text label
+
+2. **Dot** (`type: "dot"`):
+   - `origin`: [longitude, latitude] coordinates
+   - `label`: Optional text label
+
+3. **Dots** (`type: "dots"`):
+   - `origin`: [longitude, latitude] coordinates
+   - `label`: Optional text label
+   - `languages`: Array of language names
+
+### REST API
+Timeline data is accessible via the REST API endpoint:
+`/wp-json/afct/v1/history`
