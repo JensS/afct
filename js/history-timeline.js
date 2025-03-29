@@ -788,7 +788,7 @@
                                 .attr("y", dotPos[1] + 20)
                                 .attr("text-anchor", "middle")
                                 .attr("fill", "var(--text)")
-                                .text(label)
+                                .text(viz.labels[i])
                                 .attr("opacity", 0)
                                 .transition()
                                 .duration(config.animationDuration)
@@ -800,7 +800,7 @@
                 // If no dot coordinates but we have labels, create dots in a circle around origin
                 else if (viz.labels && viz.labels.length > 0) {
                     viz.labels.forEach((label, i) => {
-                        const angle = (2 * Math.PI * i) / languages.length;
+                        const angle = (2 * Math.PI * i) / viz.labels.length;
                         const radius = 40;
                         const x = pos[0] + radius * Math.cos(angle);
                         const y = pos[1] + radius * Math.sin(angle);

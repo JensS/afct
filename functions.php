@@ -279,7 +279,19 @@ function afct_enqueue_admin_scripts() {
                 ['jquery', 'jquery-ui-sortable', 'd3', 'topojson'], // Dependencies already enqueued above                                                                                    
                 filemtime(get_template_directory() . '/js/admin-history.js'), // Versioning                                                                                                   
                 true // Load in footer                                                                                                                                                        
-            );                                                                                                                                                                                
+            );
+            
+            // Enqueue History JSON Upload JS
+            wp_enqueue_script(
+                'afct-history-json-upload',
+                get_template_directory_uri() . '/js/admin-history-json-upload.js',
+                ['jquery', 'wp-util'], // Dependencies
+                filemtime(get_template_directory() . '/js/admin-history-json-upload.js'), // Versioning
+                true // Load in footer
+            );
+            
+            // Enqueue Dashicons for the upload button
+            wp_enqueue_style('dashicons');
                                                                                                                                                                                               
             // Localize Data for History Admin JS                                                                                                                                             
             $zoom_options = [                                                                                                                                                                 
