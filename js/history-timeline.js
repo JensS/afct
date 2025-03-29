@@ -197,7 +197,7 @@
             const sortedYears = Array.from(years).sort((a, b) => a - b);
             const timeRange = config.maxYear - config.minYear;
             
-            timelineMarkers.empty();
+            timelineMarkers.find('.timeline-marker').remove(); // Only remove existing markers
             
             sortedYears.forEach(year => {
                 const markerPosition = (year - config.minYear) / timeRange;
