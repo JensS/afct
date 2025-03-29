@@ -31,7 +31,7 @@
         function getParagraphItems() {
             if (!cachedParagraphItems) {
                 cachedParagraphItems = historyData.filter(item => 
-                    item.visualisation === "paragraph" && item.history_paragraph
+                    item.title && item.paragraph
                 );
             }
             return cachedParagraphItems;
@@ -231,14 +231,8 @@
             
             paragraphItems.forEach(item => {
                 // Validate item has all required fields
-                if (!item || !item.id || !item.year_start || !item.history_paragraph) {
+                if (!item || !item.id || !item.year_start || !item.title) {
                     console.error('Invalid timeline item:', item);
-                    return;
-                }
-                
-                const paragraph = item.history_paragraph;
-                if (!paragraph.title || !paragraph.paragraph) {
-                    console.error('Timeline item missing title or paragraph:', item);
                     return;
                 }
                 
@@ -249,9 +243,8 @@
                              data-year-start="${item.year_start}">
                             <div class="content-wrapper">
                                 <div class="year">${item.year_start}</div>
-                                <h3>${paragraph.title}</h3>
-                                <p>${paragraph.paragraph}</p>
-                                <!-- Impact field removed -->
+                                <h3>${item.title}</h3>
+                                <p>${item.paragraph}</p>
                             </div>
                         </div>
                     `);
@@ -356,7 +349,7 @@
             $("#year-display").text(year);
             
             const newActiveKeyframes = historyData.filter(item => 
-                year >= item.year_start
+                year >= item.year_start && (!item.year_end || year <= item.year_end)
             );
             
             const keyframesToActivate = newActiveKeyframes.filter(item => 
@@ -375,59 +368,20 @@
             
             keyframesToDeactivate.forEach(deactivateKeyframe);
             keyframesToActivate.forEach(item => {
-                if (item.visualisation === "map") {
-                    // Debug the animation data
-                    console.log("Map animation item:", item);
-                    
-                    // If animation data is missing, try to create it from the available fields
-                    if (!item.animation && item.animation_type) {
-                        item.animation = {
-                            type: item.animation_type,
-                            label: item.animation_label || ''
-                        };
-                        
-                        // Add center point if available
-                        if (item.center_lng && item.center_lat) {
-                            item.animation.center = [parseFloat(item.center_lng), parseFloat(item.center_lat)];
+                if (item.visualizations && item.visualizations.length > 0) {
+                    item.visualizations.forEach(viz => {
+                        switch(viz.type) {
+                            case "arrow":
+                                createArrowVisualization(viz, item.year_start);
+                                break;
+                            case "dot":
+                                createDotVisualization(viz, item.year_start);
+                                break;
+                            case "dots":
+                                createDotsVisualization(viz, item.year_start);
+                                break;
                         }
-                        
-                        // Add migration points if available
-                        if (item.origin_points && item.destination_points) {
-                            if (item.origin_points.length === 1 && item.destination_points.length === 1) {
-                                item.animation.originPoint = item.origin_points[0];
-                                item.animation.destinationPoint = item.destination_points[0];
-                            } else {
-                                item.animation.originPoints = item.origin_points;
-                                item.animation.destinationPoints = item.destination_points;
-                            }
-                        }
-                        
-                        // Add languages if available
-                        if (item.languages) {
-                            if (item.animation_type === 'language_suppression') {
-                                item.animation.suppressed_languages = item.languages.split(',').map(l => l.trim());
-                            } else if (item.animation_type === 'language_development' || 
-                                      item.animation_type === 'language_recognition') {
-                                item.animation.languages = item.languages.split(',').map(l => l.trim());
-                            }
-                        }
-                    }
-                    
-                    if (item.animation) {
-                        switch(item.animation.type) {
-                        case "migration":
-                            createMigrationAnimation(item.animation, item.year_start);
-                            break;
-                        case "language_development":
-                        case "language_suppression":
-                        case "language_recognition":
-                            createLanguageAnimation(item.animation, item.year_start);
-                            break;
-                        case "event":
-                            createEventAnimation(item.animation, item.year_start);
-                            break;
-                        }
-                    }
+                    });
                 }
             });
         }
@@ -693,23 +647,23 @@
             });
         }
 
-        // Create migration animation
-        function createMigrationAnimation(animation, yearStart) {
-            const id = `migration-${yearStart}`;
+        // Create new visualization functions
+        function createArrowVisualization(viz, yearStart) {
+            const id = `arrow-${yearStart}-${Math.random().toString(36).substr(2, 5)}`;
             const layer = map.select("#migration-layer");
             
-            if (animation.originPoint && animation.destinationPoint) {
-                const originPos = projection(animation.originPoint);
-                const destPos = projection(animation.destinationPoint);
+            if (viz.origin && viz.destination) {
+                const originPos = projection(viz.origin);
+                const destPos = projection(viz.destination);
                 
                 layer.append("path")
                     .attr("class", `migration-line ${id}`)
-                    .attr("data-origin-x", animation.originPoint[0])
-                    .attr("data-origin-y", animation.originPoint[1])
-                    .attr("data-dest-x", animation.destinationPoint[0])
-                    .attr("data-dest-y", animation.destinationPoint[1])
+                    .attr("data-origin-x", viz.origin[0])
+                    .attr("data-origin-y", viz.origin[1])
+                    .attr("data-dest-x", viz.destination[0])
+                    .attr("data-dest-y", viz.destination[1])
                     .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`)
-                    .attr("stroke", config.colors.migration)
+                    .attr("stroke", viz.color || config.colors.migration)
                     .attr("stroke-width", 2)
                     .attr("stroke-dasharray", "5,5")
                     .attr("opacity", 0)
@@ -717,11 +671,148 @@
                     .duration(config.animationDuration)
                     .attr("opacity", 0.8);
                 
-                addMigrationMarkers(layer, id, originPos, destPos, animation.label);
+                // Add origin marker
+                layer.append("circle")
+                    .attr("class", `origin-marker ${id}`)
+                    .attr("cx", originPos[0])
+                    .attr("cy", originPos[1])
+                    .attr("r", 5)
+                    .attr("fill", viz.color || config.colors.migration)
+                    .attr("stroke", "var(--background)")
+                    .attr("opacity", 0)
+                    .transition()
+                    .duration(config.animationDuration)
+                    .attr("opacity", 1);
+                
+                // Add label if provided
+                if (viz.label) {
+                    layer.append("text")
+                        .attr("class", `migration-label ${id}`)
+                        .attr("x", (originPos[0] + destPos[0]) / 2)
+                        .attr("y", (originPos[1] + destPos[1]) / 2 - 10)
+                        .attr("text-anchor", "middle")
+                        .attr("fill", "var(--text)")
+                        .text(viz.label)
+                        .attr("opacity", 0)
+                        .transition()
+                        .duration(config.animationDuration)
+                        .attr("opacity", 1);
+                }
             }
+        }
+
+        function createDotVisualization(viz, yearStart) {
+            const id = `dot-${yearStart}-${Math.random().toString(36).substr(2, 5)}`;
+            const layer = map.select("#event-layer");
             
-            if (animation.originPoints && animation.destinationPoints) {
-                createMultipleMigrations(layer, id, animation);
+            if (viz.origin) {
+                const pos = projection(viz.origin);
+                
+                layer.append("circle")
+                    .attr("class", `event-marker ${id}`)
+                    .attr("data-x", viz.origin[0])
+                    .attr("data-y", viz.origin[1])
+                    .attr("cx", pos[0])
+                    .attr("cy", pos[1])
+                    .attr("r", 8)
+                    .attr("fill", viz.color || "#ff9800")
+                    .attr("stroke", "var(--background)")
+                    .attr("opacity", 0)
+                    .transition()
+                    .duration(config.animationDuration)
+                    .attr("opacity", 0.8);
+                
+                if (viz.label) {
+                    layer.append("text")
+                        .attr("class", `event-label ${id}`)
+                        .attr("data-x", viz.origin[0])
+                        .attr("data-y", viz.origin[1])
+                        .attr("data-offset", 20)
+                        .attr("x", pos[0])
+                        .attr("y", pos[1] + 20)
+                        .attr("text-anchor", "middle")
+                        .attr("fill", "var(--text)")
+                        .text(viz.label)
+                        .attr("opacity", 0)
+                        .transition()
+                        .duration(config.animationDuration)
+                        .attr("opacity", 1);
+                }
+            }
+        }
+
+        function createDotsVisualization(viz, yearStart) {
+            const id = `dots-${yearStart}-${Math.random().toString(36).substr(2, 5)}`;
+            const layer = map.select("#language-layer");
+            
+            if (viz.origin) {
+                const pos = projection(viz.origin);
+                const languages = viz.languages || [];
+                
+                // Create a central bubble
+                layer.append("circle")
+                    .attr("class", `language-bubble ${id}`)
+                    .attr("data-x", viz.origin[0])
+                    .attr("data-y", viz.origin[1])
+                    .attr("cx", pos[0])
+                    .attr("cy", pos[1])
+                    .attr("r", 15)
+                    .attr("fill", viz.color || config.colors.languageRecognition)
+                    .attr("stroke", "var(--background)")
+                    .attr("opacity", 0)
+                    .transition()
+                    .duration(config.animationDuration)
+                    .attr("opacity", 0.7);
+                
+                // Add smaller bubbles for each language
+                languages.forEach((lang, i) => {
+                    const angle = (2 * Math.PI * i) / languages.length;
+                    const radius = 40;
+                    const x = pos[0] + radius * Math.cos(angle);
+                    const y = pos[1] + radius * Math.sin(angle);
+                    
+                    layer.append("circle")
+                        .attr("class", `language-bubble ${id}`)
+                        .attr("cx", x)
+                        .attr("cy", y)
+                        .attr("r", 8)
+                        .attr("fill", viz.color || config.colors.languageRecognition)
+                        .attr("stroke", "var(--background)")
+                        .attr("opacity", 0)
+                        .transition()
+                        .duration(config.animationDuration)
+                        .delay(i * 100)
+                        .attr("opacity", 0.7);
+                    
+                    layer.append("text")
+                        .attr("class", `language-label ${id}`)
+                        .attr("x", x)
+                        .attr("y", y + 20)
+                        .attr("text-anchor", "middle")
+                        .attr("fill", "var(--text)")
+                        .text(lang)
+                        .attr("opacity", 0)
+                        .transition()
+                        .duration(config.animationDuration)
+                        .delay(i * 100)
+                        .attr("opacity", 1);
+                });
+                
+                if (viz.label) {
+                    layer.append("text")
+                        .attr("class", `language-label ${id}`)
+                        .attr("data-x", viz.origin[0])
+                        .attr("data-y", viz.origin[1])
+                        .attr("x", pos[0])
+                        .attr("y", pos[1] - 25)
+                        .attr("text-anchor", "middle")
+                        .attr("fill", "var(--text)")
+                        .text(viz.label)
+                        .attr("opacity", 0)
+                        .transition()
+                        .duration(config.animationDuration)
+                        .attr("opacity", 1);
+                }
             }
         }
 
@@ -909,14 +1000,16 @@
         
         // Deactivate keyframe
         function deactivateKeyframe(item) {
-            if (item.visualisation === "map" && item.animation) {
-                const id = `${item.animation.type}-${item.year_start}`;
-                
-                map.selectAll(`.${id}`)
-                    .transition()
-                    .duration(config.animationDuration / 2)
-                    .attr("opacity", 0)
-                    .remove();
+            if (item.visualizations) {
+                item.visualizations.forEach(viz => {
+                    const idPrefix = `${viz.type}-${item.year_start}`;
+                    
+                    map.selectAll(`[class*="${idPrefix}"]`)
+                        .transition()
+                        .duration(config.animationDuration / 2)
+                        .attr("opacity", 0)
+                        .remove();
+                });
             }
         }
         

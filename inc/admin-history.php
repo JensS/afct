@@ -19,10 +19,11 @@ function afct_history_meta_box_callback($post) {
         'europe_and_africa' => 'Europe and Africa'
     ];
 
-    // Animation types
-    $animation_types = [
-        'single_point' => 'Single Point',
-        'migration' => 'Migration (Origin → Destination)',
+    // Visualization types
+    $visualization_types = [
+        'arrow' => 'Arrow (Origin → Destination)',
+        'dot' => 'Single Point',
+        'dots' => 'Multiple Points'
     ];
     ?>
     <style>
@@ -172,8 +173,8 @@ function afct_history_meta_box_callback($post) {
                             </select>
                         </div>
                         
-                        <!-- Paragraph Fields -->
-                        <div class="paragraph-fields full-width" <?php echo $entry['visualisation'] === 'map' ? 'style="display:none"' : ''; ?>>
+                        <!-- Title and Paragraph Fields -->
+                        <div class="full-width">
                             <div>
                                 <label for="entry_title_<?php echo $index; ?>">Title:</label>
                                 <input type="text" id="entry_title_<?php echo $index; ?>" 
@@ -186,60 +187,109 @@ function afct_history_meta_box_callback($post) {
                                           name="history_entries[<?php echo $index; ?>][paragraph]" 
                                           rows="4"><?php echo esc_textarea($entry['paragraph'] ?? ''); ?></textarea>
                             </div>
-                            <!-- Impact field removed -->
                         </div>
                         
-                        <!-- Animation Fields -->
-                        <div class="animation-section full-width" <?php echo $entry['visualisation'] === 'paragraph' ? 'style="display:none"' : ''; ?>>
-                            <h4>Animation Settings</h4>
-                            <div class="animation-type-options">
-                                <label for="entry_animation_type_<?php echo $index; ?>">Animation Type:</label>
-                                <select id="entry_animation_type_<?php echo $index; ?>" 
-                                        name="history_entries[<?php echo $index; ?>][animation_type]" 
-                                        class="animation-type">
-                                    <?php foreach ($animation_types as $value => $label): ?>
-                                        <option value="<?php echo esc_attr($value); ?>" 
-                                            <?php selected($entry['animation_type'] ?? '', $value); ?>>
-                                            <?php echo esc_html($label); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
+                        <!-- Visualizations Section -->
+                        <div class="visualization-section full-width">
+                            <h4>Visualizations</h4>
                             
-                            <div>
-                                <label for="entry_animation_label_<?php echo $index; ?>">Animation Label:</label>
-                                <input type="text" id="entry_animation_label_<?php echo $index; ?>" 
-                                       name="history_entries[<?php echo $index; ?>][animation_label]" 
-                                       value="<?php echo esc_attr($entry['animation_label'] ?? ''); ?>">
-                            </div>
-                            
-                            <!-- Single Point Fields -->
-                            <div class="single-point-fields" <?php echo ($entry['animation_type'] ?? '') !== 'single_point' && ($entry['animation_type'] ?? '') !== 'language_development' && ($entry['animation_type'] ?? '') !== 'language_suppression' ? 'style="display:none"' : ''; ?>>
-                                <div class="coordinate-field">
-                                    <label>Center Point:</label>
-                                    <input type="number" step="0.01" 
-                                           name="history_entries[<?php echo $index; ?>][center_lng]" 
-                                           placeholder="Longitude" 
-                                           value="<?php echo esc_attr($entry['center_lng'] ?? ''); ?>">
-                                    <input type="number" step="0.01" 
-                                           name="history_entries[<?php echo $index; ?>][center_lat]" 
-                                           placeholder="Latitude" 
-                                           value="<?php echo esc_attr($entry['center_lat'] ?? ''); ?>">
-                                </div>
+                            <div class="visualizations-container" data-index="<?php echo $index; ?>">
+                                <?php 
+                                $visualizations = $entry['visualizations'] ?? [];
+                                if (empty($visualizations) && isset($entry['animation_type'])) {
+                                    // Convert old format to new if needed
+                                    if ($entry['animation_type'] === 'migration') {
+                                        $visualizations = [
+                                            [
+                                                'type' => 'arrow',
+                                                'origin' => isset($entry['origin_points']) ? $entry['origin_points'][0] : [],
+                                                'destination' => isset($entry['destination_points']) ? $entry['destination_points'][0] : [],
+                                                'label' => $entry['animation_label'] ?? ''
+                                            ]
+                                        ];
+                                    } elseif ($entry['animation_type'] === 'single_point') {
+                                        $visualizations = [
+                                            [
+                                                'type' => 'dot',
+                                                'origin' => [$entry['center_lng'] ?? 0, $entry['center_lat'] ?? 0],
+                                                'label' => $entry['animation_label'] ?? ''
+                                            ]
+                                        ];
+                                    }
+                                }
                                 
-                                <?php if (($entry['animation_type'] ?? '') === 'language_development' || ($entry['animation_type'] ?? '') === 'language_suppression'): ?>
-                                <div class="languages-field">
-                                    <label>Languages (comma-separated):</label>
-                                    <input type="text" 
-                                           name="history_entries[<?php echo $index; ?>][languages]" 
-                                           placeholder="e.g., zulu, xhosa, afrikaans" 
-                                           value="<?php echo esc_attr($entry['languages'] ?? ''); ?>">
+                                foreach ($visualizations as $viz_index => $viz): 
+                                ?>
+                                <div class="visualization-item" data-viz-index="<?php echo $viz_index; ?>">
+                                    <div class="viz-header">
+                                        <span>Visualization <?php echo $viz_index + 1; ?></span>
+                                        <button type="button" class="button remove-viz">Remove</button>
+                                    </div>
+                                    
+                                    <div class="viz-type">
+                                        <label>Type:</label>
+                                        <select name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][type]" class="viz-type-select">
+                                            <?php foreach ($visualization_types as $value => $label): ?>
+                                                <option value="<?php echo esc_attr($value); ?>" 
+                                                    <?php selected($viz['type'] ?? 'dot', $value); ?>>
+                                                    <?php echo esc_html($label); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="viz-label">
+                                        <label>Label:</label>
+                                        <input type="text" 
+                                               name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][label]" 
+                                               value="<?php echo esc_attr($viz['label'] ?? ''); ?>">
+                                    </div>
+                                    
+                                    <div class="viz-origin">
+                                        <label>Origin Point:</label>
+                                        <input type="number" step="0.01" 
+                                               name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][origin][0]" 
+                                               placeholder="Longitude" 
+                                               value="<?php echo esc_attr($viz['origin'][0] ?? ''); ?>">
+                                        <input type="number" step="0.01" 
+                                               name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][origin][1]" 
+                                               placeholder="Latitude" 
+                                               value="<?php echo esc_attr($viz['origin'][1] ?? ''); ?>">
+                                    </div>
+                                    
+                                    <div class="viz-destination" <?php echo ($viz['type'] ?? '') !== 'arrow' ? 'style="display:none"' : ''; ?>>
+                                        <label>Destination Point:</label>
+                                        <input type="number" step="0.01" 
+                                               name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][destination][0]" 
+                                               placeholder="Longitude" 
+                                               value="<?php echo esc_attr($viz['destination'][0] ?? ''); ?>">
+                                        <input type="number" step="0.01" 
+                                               name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][destination][1]" 
+                                               placeholder="Latitude" 
+                                               value="<?php echo esc_attr($viz['destination'][1] ?? ''); ?>">
+                                    </div>
+                                    
+                                    <div class="viz-languages" <?php echo ($viz['type'] ?? '') !== 'dots' ? 'style="display:none"' : ''; ?>>
+                                        <label>Languages (comma-separated):</label>
+                                        <input type="text" 
+                                               name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][languages]" 
+                                               placeholder="e.g., zulu, xhosa, afrikaans" 
+                                               value="<?php 
+                                                  if (isset($viz['languages']) && is_array($viz['languages'])) {
+                                                      echo esc_attr(implode(', ', $viz['languages']));
+                                                  } else {
+                                                      echo esc_attr($viz['languages'] ?? '');
+                                                  }
+                                               ?>">
+                                    </div>
                                 </div>
-                                <?php endif; ?>
+                                <?php endforeach; ?>
                             </div>
                             
-                            <!-- Migration Fields -->
-                            <div class="migration-fields" <?php echo ($entry['animation_type'] ?? '') !== 'migration' ? 'style="display:none"' : ''; ?>>
+                            <button type="button" class="button add-visualization" data-entry-index="<?php echo $index; ?>">
+                                Add Visualization
+                            </button>
+                        </div>
                                 <?php 
                                 $origin_points = $entry['origin_points'] ?? [];
                                 $destination_points = $entry['destination_points'] ?? [];
@@ -359,6 +409,94 @@ function afct_history_meta_box_callback($post) {
                 }
             });
             
+            // Add new visualization
+            $(document).on('click', '.add-visualization', function() {
+                const entryIndex = $(this).data('entry-index');
+                const container = $(this).prev('.visualizations-container');
+                const vizIndex = container.children('.visualization-item').length;
+                
+                const vizTemplate = `
+                <div class="visualization-item" data-viz-index="${vizIndex}">
+                    <div class="viz-header">
+                        <span>Visualization ${vizIndex + 1}</span>
+                        <button type="button" class="button remove-viz">Remove</button>
+                    </div>
+                    
+                    <div class="viz-type">
+                        <label>Type:</label>
+                        <select name="history_entries[${entryIndex}][visualizations][${vizIndex}][type]" class="viz-type-select">
+                            <?php foreach ($visualization_types as $value => $label): ?>
+                                <option value="<?php echo esc_attr($value); ?>">
+                                    <?php echo esc_html($label); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="viz-label">
+                        <label>Label:</label>
+                        <input type="text" 
+                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][label]" 
+                               value="">
+                    </div>
+                    
+                    <div class="viz-origin">
+                        <label>Origin Point:</label>
+                        <input type="number" step="0.01" 
+                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][origin][0]" 
+                               placeholder="Longitude" 
+                               value="">
+                        <input type="number" step="0.01" 
+                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][origin][1]" 
+                               placeholder="Latitude" 
+                               value="">
+                    </div>
+                    
+                    <div class="viz-destination">
+                        <label>Destination Point:</label>
+                        <input type="number" step="0.01" 
+                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][destination][0]" 
+                               placeholder="Longitude" 
+                               value="">
+                        <input type="number" step="0.01" 
+                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][destination][1]" 
+                               placeholder="Latitude" 
+                               value="">
+                    </div>
+                    
+                    <div class="viz-languages" style="display:none">
+                        <label>Languages (comma-separated):</label>
+                        <input type="text" 
+                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][languages]" 
+                               placeholder="e.g., zulu, xhosa, afrikaans" 
+                               value="">
+                    </div>
+                </div>
+                `;
+                
+                container.append(vizTemplate);
+                
+                // Initialize visualization type change handler
+                initVizTypeHandlers(entryIndex, vizIndex);
+            });
+            
+            // Remove visualization
+            $(document).on('click', '.remove-viz', function() {
+                if (confirm('Are you sure you want to remove this visualization?')) {
+                    $(this).closest('.visualization-item').remove();
+                    reindexVisualizations($(this).closest('.visualizations-container'));
+                }
+            });
+            
+            // Handle visualization type change
+            $(document).on('change', '.viz-type-select', function() {
+                const type = $(this).val();
+                const item = $(this).closest('.visualization-item');
+                
+                item.find('.viz-destination').toggle(type === 'arrow');
+                item.find('.viz-languages').toggle(type === 'dots');
+            });
+            
             // Add new entry
             $('#add-history-entry').on('click', function() {
                 const newIndex = $('.history-entry').length;
@@ -379,7 +517,12 @@ function afct_history_meta_box_callback($post) {
                                    name="history_entries[${newIndex}][year_start]" 
                                    value="1900" required>
                         </div>
-                        <!-- Year End field removed -->
+                        <div>
+                            <label for="entry_year_end_${newIndex}">Year End (optional):</label>
+                            <input type="number" id="entry_year_end_${newIndex}" 
+                                   name="history_entries[${newIndex}][year_end]" 
+                                   value="">
+                        </div>
                         <div>
                             <label for="entry_map_zoom_${newIndex}">Map Zoom:</label>
                             <select id="entry_map_zoom_${newIndex}" 
@@ -391,18 +534,9 @@ function afct_history_meta_box_callback($post) {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div>
-                            <label for="entry_visualisation_${newIndex}">Visualisation Type:</label>
-                            <select id="entry_visualisation_${newIndex}" 
-                                    name="history_entries[${newIndex}][visualisation]" 
-                                    class="visualisation-type">
-                                <option value="paragraph">Paragraph</option>
-                                <option value="map">Map Animation</option>
-                            </select>
-                        </div>
                         
-                        <!-- Paragraph Fields -->
-                        <div class="paragraph-fields full-width">
+                        <!-- Title and Paragraph Fields -->
+                        <div class="full-width">
                             <div>
                                 <label for="entry_title_${newIndex}">Title:</label>
                                 <input type="text" id="entry_title_${newIndex}" 
@@ -415,90 +549,19 @@ function afct_history_meta_box_callback($post) {
                                           name="history_entries[${newIndex}][paragraph]" 
                                           rows="4"></textarea>
                             </div>
-                            <!-- Impact field removed -->
                         </div>
                         
-                        <!-- Animation Fields -->
-                        <div class="animation-section full-width" style="display:none">
-                            <h4>Animation Settings</h4>
-                            <div class="animation-type-options">
-                                <label for="entry_animation_type_${newIndex}">Animation Type:</label>
-                                <select id="entry_animation_type_${newIndex}" 
-                                        name="history_entries[${newIndex}][animation_type]" 
-                                        class="animation-type">
-                                    <?php foreach ($animation_types as $value => $label): ?>
-                                        <option value="<?php echo esc_attr($value); ?>">
-                                            <?php echo esc_html($label); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                        <!-- Visualizations Section -->
+                        <div class="visualization-section full-width">
+                            <h4>Visualizations</h4>
+                            
+                            <div class="visualizations-container" data-index="${newIndex}">
+                                <!-- Visualizations will be added here -->
                             </div>
                             
-                            <div>
-                                <label for="entry_animation_label_${newIndex}">Animation Label:</label>
-                                <input type="text" id="entry_animation_label_${newIndex}" 
-                                       name="history_entries[${newIndex}][animation_label]" 
-                                       value="">
-                            </div>
-                            
-                            <!-- Single Point Fields -->
-                            <div class="single-point-fields">
-                                <div class="coordinate-field">
-                                    <label>Center Point:</label>
-                                    <input type="number" step="0.01" 
-                                           name="history_entries[${newIndex}][center_lng]" 
-                                           placeholder="Longitude" 
-                                           value="">
-                                    <input type="number" step="0.01" 
-                                           name="history_entries[${newIndex}][center_lat]" 
-                                           placeholder="Latitude" 
-                                           value="">
-                                </div>
-                                
-                                <div class="languages-field" style="display:none">
-                                    <label>Languages (comma-separated):</label>
-                                    <input type="text" 
-                                           name="history_entries[${newIndex}][languages]" 
-                                           placeholder="e.g., zulu, xhosa, afrikaans" 
-                                           value="">
-                                </div>
-                            </div>
-                            
-                            <!-- Migration Fields -->
-                            <div class="migration-fields" style="display:none">
-                                <div class="multi-point-container">
-                                    <div class="point-pair">
-                                        <span class="point-pair-label">Pair 1:</span>
-                                        <div>
-                                            <label>Origin:</label>
-                                            <input type="number" step="0.01" 
-                                                   name="history_entries[${newIndex}][origin_points][0][0]" 
-                                                   placeholder="Lng" 
-                                                   value="">
-                                            <input type="number" step="0.01" 
-                                                   name="history_entries[${newIndex}][origin_points][0][1]" 
-                                                   placeholder="Lat" 
-                                                   value="">
-                                        </div>
-                                        <div>
-                                            <label>Destination:</label>
-                                            <input type="number" step="0.01" 
-                                                   name="history_entries[${newIndex}][destination_points][0][0]" 
-                                                   placeholder="Lng" 
-                                                   value="">
-                                            <input type="number" step="0.01" 
-                                                   name="history_entries[${newIndex}][destination_points][0][1]" 
-                                                   placeholder="Lat" 
-                                                   value="">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Map Preview Placeholder -->
-                            <div class="map-preview">
-                                <div class="map-preview-label">Map Preview (Coming Soon)</div>
-                            </div>
+                            <button type="button" class="button add-visualization" data-entry-index="${newIndex}">
+                                Add Visualization
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -528,18 +591,21 @@ function afct_history_meta_box_callback($post) {
                         const id = $input.attr('id');
                         
                         if (name) {
-                            $input.attr('name', name.replace(/history_entries[d+]/, `history_entries[${index}]`));
+                            $input.attr('name', name.replace(/history_entries\[\d+\]/, `history_entries[${index}]`));
                         }
                         
                         if (id) {
-                            $input.attr('id', id.replace(/_d+$/, `_${index}`));
+                            $input.attr('id', id.replace(/_\d+$/, `_${index}`));
                         }
                     });
+                    
+                    // Update visualization container index
+                    $entry.find('.visualizations-container').attr('data-index', index);
+                    $entry.find('.add-visualization').attr('data-entry-index', index);
                     
                     // Update entry title
                     const title = $entry.find('input[name^="history_entries[' + index + '][title]"]').val();
                     const yearStart = $entry.find('input[name^="history_entries[' + index + '][year_start]"]').val();
-                    const yearEnd = $entry.find('input[name^="history_entries[' + index + '][year_end]"]').val();
                     
                     let displayTitle = 'Entry ' + (index + 1);
                     if (title) {
@@ -549,6 +615,41 @@ function afct_history_meta_box_callback($post) {
                     $entry.find('.entry-title').text(displayTitle + ' (' + yearStart + ')');
                 });
             }
+            
+            // Function to reindex visualizations within a container
+            function reindexVisualizations($container) {
+                const entryIndex = $container.data('index');
+                
+                $container.find('.visualization-item').each(function(vizIndex) {
+                    const $viz = $(this);
+                    $viz.attr('data-viz-index', vizIndex);
+                    
+                    // Update all input names
+                    $viz.find('input, select').each(function() {
+                        const $input = $(this);
+                        const name = $input.attr('name');
+                        
+                        if (name) {
+                            $input.attr('name', name.replace(/history_entries\[\d+\]\[visualizations\]\[\d+\]/, 
+                                                           `history_entries[${entryIndex}][visualizations][${vizIndex}]`));
+                        }
+                    });
+                    
+                    // Update header
+                    $viz.find('.viz-header span').text(`Visualization ${vizIndex + 1}`);
+                });
+            }
+            
+            // Initialize visualization type handlers
+            function initVizTypeHandlers(entryIndex, vizIndex) {
+                const selector = `select[name="history_entries[${entryIndex}][visualizations][${vizIndex}][type]"]`;
+                $(selector).trigger('change');
+            }
+            
+            // Initialize all visualization type handlers
+            $('.viz-type-select').each(function() {
+                $(this).trigger('change');
+            });
         });
     </script>
     <?php
@@ -586,48 +687,46 @@ function afct_save_history_meta_box_data($post_id) {
             // Sanitize basic fields
             $sanitized_entry = [
                 'year_start' => isset($entry['year_start']) ? intval($entry['year_start']) : '',
-                'map_zoom' => isset($entry['map_zoom']) ? sanitize_text_field($entry['map_zoom']) : '',
-                'visualisation' => isset($entry['visualisation']) ? sanitize_text_field($entry['visualisation']) : '',
+                'id' => isset($entry['year_start']) ? intval($entry['year_start']) : '',
+                'map_zoom' => isset($entry['map_zoom']) ? sanitize_text_field($entry['map_zoom']) : 'africa',
                 'title' => isset($entry['title']) ? sanitize_text_field($entry['title']) : '',
-                'paragraph' => isset($entry['paragraph']) ? wp_kses_post($entry['paragraph']) : '',
-                'animation_type' => isset($entry['animation_type']) ? sanitize_text_field($entry['animation_type']) : '',
-                'animation_label' => isset($entry['animation_label']) ? sanitize_text_field($entry['animation_label']) : ''
+                'paragraph' => isset($entry['paragraph']) ? wp_kses_post($entry['paragraph']) : ''
             ];
             
-            // Handle coordinates based on animation type
-            if (isset($entry['animation_type'])) {
-                if ($entry['animation_type'] === 'single_point' || 
-                    $entry['animation_type'] === 'language_development' || 
-                    $entry['animation_type'] === 'language_suppression' || 
-                    $entry['animation_type'] === 'language_recognition') {
+            // Add year_end if provided
+            if (!empty($entry['year_end'])) {
+                $sanitized_entry['year_end'] = intval($entry['year_end']);
+            }
+            
+            // Handle visualizations
+            if (isset($entry['visualizations']) && is_array($entry['visualizations'])) {
+                $sanitized_entry['visualizations'] = [];
+                
+                foreach ($entry['visualizations'] as $viz) {
+                    $sanitized_viz = [
+                        'type' => isset($viz['type']) ? sanitize_text_field($viz['type']) : 'dot',
+                        'label' => isset($viz['label']) ? sanitize_text_field($viz['label']) : '',
+                        'origin' => [
+                            isset($viz['origin'][0]) ? floatval($viz['origin'][0]) : 0,
+                            isset($viz['origin'][1]) ? floatval($viz['origin'][1]) : 0
+                        ]
+                    ];
                     
-                    $sanitized_entry['center_lng'] = isset($entry['center_lng']) ? floatval($entry['center_lng']) : '';
-                    $sanitized_entry['center_lat'] = isset($entry['center_lat']) ? floatval($entry['center_lat']) : '';
-                    
-                    if (isset($entry['languages'])) {
-                        $sanitized_entry['languages'] = sanitize_text_field($entry['languages']);
-                    }
-                } elseif ($entry['animation_type'] === 'migration') {
-                    // Handle origin and destination points
-                    if (isset($entry['origin_points']) && is_array($entry['origin_points'])) {
-                        $sanitized_entry['origin_points'] = [];
-                        foreach ($entry['origin_points'] as $point) {
-                            $sanitized_entry['origin_points'][] = [
-                                isset($point[0]) ? floatval($point[0]) : '',
-                                isset($point[1]) ? floatval($point[1]) : ''
-                            ];
-                        }
+                    // Add destination for arrows
+                    if ($sanitized_viz['type'] === 'arrow' && isset($viz['destination'])) {
+                        $sanitized_viz['destination'] = [
+                            isset($viz['destination'][0]) ? floatval($viz['destination'][0]) : 0,
+                            isset($viz['destination'][1]) ? floatval($viz['destination'][1]) : 0
+                        ];
                     }
                     
-                    if (isset($entry['destination_points']) && is_array($entry['destination_points'])) {
-                        $sanitized_entry['destination_points'] = [];
-                        foreach ($entry['destination_points'] as $point) {
-                            $sanitized_entry['destination_points'][] = [
-                                isset($point[0]) ? floatval($point[0]) : '',
-                                isset($point[1]) ? floatval($point[1]) : ''
-                            ];
-                        }
+                    // Add languages for dots
+                    if ($sanitized_viz['type'] === 'dots' && isset($viz['languages'])) {
+                        $languages = sanitize_text_field($viz['languages']);
+                        $sanitized_viz['languages'] = array_map('trim', explode(',', $languages));
                     }
+                    
+                    $sanitized_entry['visualizations'][] = $sanitized_viz;
                 }
             }
             
