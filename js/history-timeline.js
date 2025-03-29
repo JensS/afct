@@ -207,7 +207,7 @@
                 const markerClass = isParagraphYear ? "timeline-marker chapter-marker" : "timeline-marker";
 
                 // Create the marker with only the year and the chapter marker dot if applicable
-                $(`<div class="${markerClass}" data-year="${year}" style="left: ${markerPosition * 100}%">
+                $(`<div class="${markerClass}" data-year="${year}">
                    <span class="marker-year">${year}</span>
                  </div>`).appendTo(timelineMarkers);
             });

@@ -79,25 +79,30 @@
 }
 
 .timeline-markers {
-    left: 5vw; right: 5vw;
     position: absolute;
-    height: 40px; /* Reduced height as labels are removed */
     top: 20%;
-    width: auto;
+    left: 5vw;
+    right: 5vw; /* Constrain to viewport width with padding */
+    height: 40px;
+    display: flex; /* Use Flexbox */
+    justify-content: space-between; /* Distribute items evenly */
+    align-items: flex-start; /* Align items to the top */
+    z-index: 15;
+    pointer-events: auto;
     background: transparent;
-    z-index: 15; 
-    pointer-events: auto; /* Ensure it's clickable */
-    overflow: hidden; /* Remove scrollbar */
 }
 
 .timeline-marker {
-    position: absolute;
-    top: 0;
-    height: 100%;
-    z-index: 15; /* Higher z-index to appear above map */
-    pointer-events: auto; /* Ensure it's clickable */
-    transform-origin: top center;
+    position: relative; /* Position relative to flex container */
+    display: flex;
+    flex-direction: column; /* Stack dot and year vertically */
+    align-items: center; /* Center items horizontally */
+    flex: 0 0 auto; /* Prevent markers from stretching */
+    padding: 0 3px; /* Add small horizontal spacing */
+    z-index: 15;
+    pointer-events: auto;
     cursor: pointer;
+    transform-origin: top center;
 }
 
 .timeline-marker.active {
@@ -115,25 +120,21 @@
 
 .chapter-marker::before {
     content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    display: block; /* Make it a block element in the flex column */
     width: 8px;
     height: 8px;
     border-radius: 50%;
     background-color: var(--red);
+    margin-bottom: 3px; /* Space between dot and year */
 }
 
 .marker-year {
-    position: absolute;
-    top: 12px; /* Position below the chapter marker dot */
-    left: 50%;
-    transform: translateX(-50%); /* Center the year text */
+    display: block; /* Make it a block element */
     font-size: 10px;
     font-weight: bold;
     color: var(--red);
     white-space: nowrap;
+    line-height: 1; /* Adjust line height for better spacing */
 }
 
 .language-bubble.transitioning {
