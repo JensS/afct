@@ -21,7 +21,6 @@
     <div class="img-sections-wrap">
         <div id="visualization-container">
             <div id="map-container"></div>
-            <!-- Removed timeline-info div -->
             
             <div id="visualization-data" class="hidden" 
                  data-history-entries="<?php 
@@ -29,12 +28,10 @@
                      echo esc_attr(json_encode($history_entries)); 
                  ?>">
             </div>
-
-            <!-- Instruction removed as requested -->
             <div class="timeline-markers"></div>
         </div>
         
-        <!-- Timeline content will be dynamically generated from history.json -->
+        <!-- Timeline content will be dynamically generated  -->
         <div id="timeline-content" class="global-container"></div>
     </div>
 </div>

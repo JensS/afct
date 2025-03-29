@@ -5,13 +5,13 @@
 }
 
 #visualization-container {
-    position: sticky;
+    position: relative;
     top: 0;
     width: 100%;
     height: 100vh;
     margin: 2rem 0;
     overflow: hidden;
-    z-index: 1; /* Lower z-index so it doesn't overlap with content */
+    z-index: 1; 
 }
 
 #map-container {
@@ -80,25 +80,25 @@
 
 .timeline-markers {
     position: absolute;
-    top: 20%;
-    left: 5vw;
-    right: 5vw; /* Constrain to viewport width with padding */
-    height: 40px;
-    display: flex; /* Use Flexbox */
-    justify-content: space-between; /* Distribute items evenly */
-    align-items: flex-start; /* Align items to the top */
+    top: 20vh;
+    left: 0;
+    right: 0;
+    height: 10vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
     z-index: 15;
     pointer-events: auto;
     background: transparent;
+    width: 100%;
 }
-
 .timeline-marker {
-    position: relative; /* Position relative to flex container */
+    position: relative; 
     display: flex;
-    flex-direction: column; /* Stack dot and year vertically */
-    align-items: center; /* Center items horizontally */
-    flex: 0 0 auto; /* Prevent markers from stretching */
-    padding: 0 3px; /* Add small horizontal spacing */
+    flex-direction: column; 
+    align-items: center; 
+    flex: 0 0 auto; 
+    padding: 0 3px;
     z-index: 15;
     pointer-events: auto;
     cursor: pointer;
@@ -118,32 +118,12 @@
     position: relative;
 }
 
-.chapter-marker::before {
-    content: '';
-    display: block; /* Make it a block element in the flex column */
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: var(--red);
-    margin-bottom: 3px; /* Space between dot and year */
-}
-
 .marker-year {
-    display: block; /* Make it a block element */
-    font-size: 10px;
-    font-weight: bold;
+    display: block;
     color: var(--red);
     white-space: nowrap;
-    line-height: 1; /* Adjust line height for better spacing */
 }
 
-.language-bubble.transitioning {
-    transition: r 0.5s ease-in-out;
-}
-
-.language-label.transitioning {
-    transition: opacity 0.5s ease-in-out;
-}
 
 #timeline-content {
     position: absolute;
