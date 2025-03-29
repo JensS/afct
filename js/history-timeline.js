@@ -129,7 +129,7 @@
                         .attr("class", d => "country country-" + d.id)
                         .attr("opacity", d => d.id === 710 ? 1 : 0.3);
                     
-                    // South Africa highlight is now handled dynamically through the visualization system
+                    // South Africa highlight is handled dynamically through the visualization system
                         
                     createAnimationLayers();
                 })
@@ -788,7 +788,7 @@
                                 .attr("y", dotPos[1] + 20)
                                 .attr("text-anchor", "middle")
                                 .attr("fill", "var(--text)")
-                                .text(languages[i])
+                                .text(label)
                                 .attr("opacity", 0)
                                 .transition()
                                 .duration(config.animationDuration)
