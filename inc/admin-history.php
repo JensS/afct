@@ -31,7 +31,8 @@ function afct_history_meta_box_callback($post) {
     $visualization_types = [
         'arrow' => 'Arrow (Origin → Destination)',
         'dot' => 'Single Point',
-        'dots' => 'Multiple Points'
+        'dots' => 'Multiple Points',
+        'arrows' => 'Multiple Arrows' // Add this line
     ];
     ?>
     <!-- Wrap everything in a container to scope our styles -->
@@ -210,6 +211,48 @@ function afct_history_meta_box_callback($post) {
                                                 <?php endforeach; ?>
                                             </div>
                                             <button type="button" class="button add-dot-coordinate">Add Dot Coordinate</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="viz-arrows-details" <?php echo ($viz['type'] ?? '') !== 'arrows' ? 'style="display:none"' : ''; ?>>
+                                        <div class="arrows-coordinates">
+                                            <h5>Arrows (Origin → Destination)</h5>
+                                            <div class="arrows-coordinates-container">
+                                                <?php
+                                                $arrows = $viz['arrows'] ?? [];
+                                                // Ensure arrows is an array
+                                                if (!is_array($arrows)) {
+                                                    $arrows = [];
+                                                }
+                                                foreach ($arrows as $arrowIndex => $arrow):
+                                                    // Ensure origin and destination are arrays with at least two elements
+                                                    $origin = (isset($arrow['origin']) && is_array($arrow['origin'])) ? $arrow['origin'] : [null, null];
+                                                    $destination = (isset($arrow['destination']) && is_array($arrow['destination'])) ? $arrow['destination'] : [null, null];
+                                                ?>
+                                                <div class="arrow-coordinate-pair">
+                                                    <label>Arrow <?php echo $arrowIndex + 1; ?>:</label>
+                                                    <input type="number" step="0.01"
+                                                           name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][arrows][<?php echo $arrowIndex; ?>][origin][0]"
+                                                           placeholder="Origin Lon"
+                                                           value="<?php echo esc_attr($origin[0] ?? ''); ?>">
+                                                    <input type="number" step="0.01"
+                                                           name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][arrows][<?php echo $arrowIndex; ?>][origin][1]"
+                                                           placeholder="Origin Lat"
+                                                           value="<?php echo esc_attr($origin[1] ?? ''); ?>">
+                                                    <span>→</span>
+                                                    <input type="number" step="0.01"
+                                                           name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][arrows][<?php echo $arrowIndex; ?>][destination][0]"
+                                                           placeholder="Dest Lon"
+                                                           value="<?php echo esc_attr($destination[0] ?? ''); ?>">
+                                                    <input type="number" step="0.01"
+                                                           name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][arrows][<?php echo $arrowIndex; ?>][destination][1]"
+                                                           placeholder="Dest Lat"
+                                                           value="<?php echo esc_attr($destination[1] ?? ''); ?>">
+                                                    <button type="button" class="button remove-arrow-coordinate">×</button>
+                                                </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                            <button type="button" class="button add-arrow-coordinate">Add Arrow</button>
                                         </div>
                                     </div>
                                 </div>

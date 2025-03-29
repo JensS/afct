@@ -224,7 +224,8 @@ jQuery(document).ready(function($) {
         const item = $(this).closest('.visualization-item');
         
         item.find('.viz-destination').toggle(type === 'arrow');
-        item.find('.viz-dots-details').toggle(type === 'dots'); // Updated class name
+        item.find('.viz-dots-details').toggle(type === 'dots');
+        item.find('.viz-arrows-details').toggle(type === 'arrows'); // Add this line
     });
     
     // Add new entry
@@ -408,6 +409,44 @@ jQuery(document).ready(function($) {
         reindexDotCoordinates(container);
     });
 
+    // Handle adding new arrow coordinates
+    $(document).on('click', '.add-arrow-coordinate', function() {
+        const container = $(this).prev('.arrows-coordinates-container');
+        const entryIndex = $(this).closest('.history-entry').data('index');
+        const vizIndex = $(this).closest('.visualization-item').data('viz-index');
+        const arrowIndex = container.children('.arrow-coordinate-pair').length;
+
+        const template = `
+        <div class="arrow-coordinate-pair">
+            <label>Arrow ${arrowIndex + 1}:</label>
+            <input type="number" step="0.01"
+                   name="history_entries[${entryIndex}][visualizations][${vizIndex}][arrows][${arrowIndex}][origin][0]"
+                   placeholder="Origin Lon" value="">
+            <input type="number" step="0.01"
+                   name="history_entries[${entryIndex}][visualizations][${vizIndex}][arrows][${arrowIndex}][origin][1]"
+                   placeholder="Origin Lat" value="">
+            <span>→</span>
+            <input type="number" step="0.01"
+                   name="history_entries[${entryIndex}][visualizations][${vizIndex}][arrows][${arrowIndex}][destination][0]"
+                   placeholder="Dest Lon" value="">
+            <input type="number" step="0.01"
+                   name="history_entries[${entryIndex}][visualizations][${vizIndex}][arrows][${arrowIndex}][destination][1]"
+                   placeholder="Dest Lat" value="">
+            <button type="button" class="button remove-arrow-coordinate">×</button>
+        </div>
+        `;
+
+        container.append(template);
+    });
+
+    // Handle removing arrow coordinates
+    $(document).on('click', '.remove-arrow-coordinate', function() {
+        $(this).closest('.arrow-coordinate-pair').remove();
+        // Reindex the remaining arrows
+        const container = $(this).closest('.arrows-coordinates-container');
+        reindexArrowCoordinates(container);
+    });
+
     // Function to reindex dot coordinates
     function reindexDotCoordinates(container) {
         const entryIndex = container.closest('.history-entry').data('index');
@@ -423,7 +462,26 @@ jQuery(document).ready(function($) {
             });
         });
     }
-    
+
+    // Function to reindex arrow coordinates
+    function reindexArrowCoordinates(container) {
+        const entryIndex = container.closest('.history-entry').data('index');
+        const vizIndex = container.closest('.visualization-item').data('viz-index');
+
+        container.find('.arrow-coordinate-pair').each(function(arrowIndex) {
+            const $pair = $(this);
+            $pair.find('label').text(`Arrow ${arrowIndex + 1}:`); // Update label
+            $pair.find('input').each(function() {
+                const name = $(this).attr('name');
+                if (name) {
+                    // Update the arrow index in the name attribute
+                    $(this).attr('name', name.replace(/history_entries\[\d+\]\[visualizations\]\[\d+\]\[arrows\]\[\d+\]/,
+                                                   `history_entries[${entryIndex}][visualizations][${vizIndex}][arrows][${arrowIndex}]`));
+                }
+            });
+        });
+    }
+
     // Initialize visualization type handlers
     function initVizTypeHandlers(entryIndex, vizIndex) {
         const selector = `select[name="history_entries[${entryIndex}][visualizations][${vizIndex}][type]"]`;
