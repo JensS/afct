@@ -398,7 +398,7 @@ function afct_history_meta_box_callback($post) {
                             <!-- Map Preview Placeholder -->
                             <div class="map-preview">
                                 <div id="map-container"></div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+        <script src="<?php echo get_template_directory_uri(); ?>/js/three.min.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const container = document.getElementById('map-container');

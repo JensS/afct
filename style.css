@@ -1215,33 +1215,6 @@ nav.menu {
 	pointer-events: all;
 }
 
-.menu-item {
-	height: 16px;
-	width: 240px;
-	margin-bottom: 5px; 
-	position: relative;
-	transition: margin-bottom 0.3s ease; 
-}
-
-.menu-item a.nav-link {
-	text-decoration: none;
-	color: var(--red);
-	font-family: var(--serif-font);
-	font-size: 1rem;
-	font-weight: 400;
-	line-height: 120%;
-	opacity: 0.7; 
-	transition: opacity 0.3s ease, color 0.3s ease, transform 0.3s ease;
-	transform: translateY(-5px);
-	display: block;
-}
-
-.menu-item:hover a.nav-link {
-	opacity: 1;
-	color: var(--red);
-	transform: translateY(0); 
-}
-
 .menu ul {
 	display: grid;
 	gap: 0.4rem; 
@@ -1252,24 +1225,36 @@ nav.menu {
 
 .menu-item {
 	height: 16px;
-	width: 160px;
+	width: 240px;
 	margin-bottom: 5px; 
 	position: relative;
 	transition: margin-bottom 0.3s ease;
 }
 
-.menu-item a.nav-link {
-	text-decoration: none;
+nav.menu .menu-item a.nav-link {
+	opacity: 0;
 	color: var(--red);
+
+	text-decoration: none;
 	font-family: var(--serif-font);
 	font-size: 1rem;
 	font-weight: 400;
 	line-height: 120%;
-	opacity: 0;
 	transition: opacity 0.3s ease, color 0.3s ease, transform 0.3s ease;
 	transform: translateY(-1px); 
 	display: block;
 }
+
+
+nav.menu:hover .menu-item a.nav-link {
+	opacity: 0.5;
+}
+
+nav.menu .menu-item a.nav-link:hover, nav.menu:hover .menu-item a.nav-link.active {
+	opacity: 1;
+}
+
+
 
  .embed-menu-line {
 	position: absolute;
@@ -1317,7 +1302,7 @@ nav.menu:hover .menu-item .embed-menu-line {
 
 .theme-toggle .theme-toggle-text {
 	opacity: 0;
-	margin-top: 9px;
+	margin-top: 28px;
     margin-left: 10px;
 }
 

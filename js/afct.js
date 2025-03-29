@@ -37,47 +37,41 @@ jQuery(document).ready(function($) {
             updateToggleButton(isDark);
         }
     });
+
+    const sections = document.querySelectorAll('section');
     
+    // Create an Intersection Observer instance
+    const observerOptions = {
+        root: null, // Use viewport as the containing block
+        threshold: 0.5 // Trigger when at least 50% of the section is in view
+    };
+
+    const observerCallback = (entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.id;
+                
+                // Update active menu item
+                $('.nav-link').removeClass('active');
+                $(`.nav-link[data-target="#${id}"]`).addClass('active');
+            }
+        });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    // Observe each section
+    sections.forEach(section => {
+        observer.observe(section);
+    });
+
+
     // Menu hover effects - enhanced for smooth transitions
     const menuContainer = $('.menu');
     const menuItems = $('.menu-item');
     
-    menuContainer.on('mouseenter', function() {
-        // Show all menu items with reduced opacity and animate the transition
-        menuItems.find('.nav-link').stop().animate({
-            opacity: 0.5,
-            transform: 'translateY(0)'
-        }, 300);
-        menuItems.find('.embed-menu-line').css('color', 'var(--red)');
-        menuItems.find('.embed-menu-line').css('opacity', '1');
-    }).on('mouseleave', function() {
-        // Hide all menu items and reset position
-        menuItems.find('.nav-link').stop().animate({
-            opacity: 0,
-            transform: 'translateY(-5px)'
-        }, 300);
-        menuItems.find('.embed-menu-line').css('color', 'var(--red)');
-        menuItems.find('.embed-menu-line').css('opacity', '0.7');
-    });
+
     
-    // Individual menu item hover
-    menuItems.on('mouseenter', function() {
-        // Make the hovered item fully opaque with a slight bounce effect
-        $(this).find('.nav-link').stop().animate({
-            opacity: 1,
-            transform: 'translateY(0)'
-        }, 200);
-        $(this).find('.embed-menu-line').css('color', 'var(--red)');
-    }).on('mouseleave', function() {
-        // Return to reduced opacity if still hovering the menu
-        if (menuContainer.is(':hover')) {
-            $(this).find('.nav-link').stop().animate({
-                opacity: 0.5,
-                transform: 'translateY(0)'
-            }, 200);
-            menuItems.find('.embed-menu-line').css('opacity', '0.7');
-        }
-    });
     
     // Smooth scroll for anchor links
     $('.scroll-link').click(function(e) {

@@ -10,7 +10,7 @@ class AFCT_Menu_Walker extends Walker_Nav_Menu {
             // Get the post object to retrieve the post_name (slug)
             $post_obj = get_post($item->object_id);
             $post_slug = $post_obj ? $post_obj->post_name : '';
-            $output .= '<a href="#section-' . $post_slug . '" class="nav-link scroll-link">' . $item->title . '</a>';
+            $output .= '<a href="#section-' . $post_slug . '" data-target="#section-' . $post_slug . '" class="nav-link scroll-link">' . $item->title . '</a>';
         } else {
             // Regular page link
             $output .= '<a href="' . $item->url . '" class="nav-link">' . $item->title . '</a>';

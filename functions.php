@@ -186,12 +186,43 @@ function afct_customize_partial_blogdescription() {
 	bloginfo( 'description' );
 }
 
+/**
+ * Disable the emoji's
+ */
+function disable_emojis() {
+	remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+	remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+	remove_action( 'wp_print_styles', 'print_emoji_styles' );
+	remove_action( 'admin_print_styles', 'print_emoji_styles' );	
+	remove_filter( 'the_content_feed', 'wp_staticize_emoji' );
+	remove_filter( 'comment_text_rss', 'wp_staticize_emoji' );	
+	remove_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
+	
+	// Remove from TinyMCE
+	add_filter( 'tiny_mce_plugins', 'disable_emojis_tinymce' );
+}
+add_action( 'init', 'disable_emojis' );
 
 function afct_remove_editor_for_templates() {
       remove_post_type_support('page', 'editor');
 }
 add_action('admin_init', 'afct_remove_editor_for_templates');
-
+/**	
+ * hide footer cause it overlays some of our forms
+ */
+function my_footer_shh() {
+        remove_filter( 'update_footer', 'core_update_footer' ); 
+}
+add_action( 'admin_menu', 'my_footer_shh' );
+/**	
+ * hide the other footer cause it overlays some of our forms
+ */
+function remove_footer_admin () 
+{
+    echo '';
+}
+ 
+add_filter('admin_footer_text', 'remove_footer_admin');
 // Include admin files
 require_once get_template_directory() . '/inc/admin-homepage.php';
 
@@ -205,7 +236,7 @@ function afct_enqueue_admin_scripts() {
         wp_enqueue_script('jquery-ui-dialog');
 
         // Enqueue jQuery UI styles
-        wp_enqueue_style('jquery-ui-styles', 'https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css');
+        wp_enqueue_style('jquery-ui-styles', get_template_directory_uri() . '/css/jquery-ui.css');
     }
 }
 add_action('admin_enqueue_scripts', 'afct_enqueue_admin_scripts');
