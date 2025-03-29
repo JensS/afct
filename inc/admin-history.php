@@ -178,19 +178,7 @@ function afct_history_meta_box_callback($post) {
                                                value="<?php echo esc_attr($viz['destination'][1] ?? ''); ?>">
                                     </div>
                                     
-                                    <div class="viz-languages" <?php echo ($viz['type'] ?? '') !== 'dots' ? 'style="display:none"' : ''; ?>>
-                                        <label>Languages (comma-separated):</label>
-                                        <input type="text" 
-                                               name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][languages]" 
-                                               placeholder="e.g., zulu, xhosa, afrikaans" 
-                                               value="<?php 
-                                                  if (isset($viz['languages']) && is_array($viz['languages'])) {
-                                                      echo esc_attr(implode(', ', $viz['languages']));
-                                                  } else {
-                                                      echo esc_attr($viz['languages'] ?? '');
-                                                  }
-                                               ?>">
-                        
+                                    <div class="viz-dots-details" <?php echo ($viz['type'] ?? '') !== 'dots' ? 'style="display:none"' : ''; ?>>
                                         <div class="dots-coordinates">
                                             <h5>Dot Coordinates</h5>
                                             <div class="dots-coordinates-container">
@@ -319,14 +307,8 @@ function afct_save_history_meta_box_data($post_id) {
                         ];
                     }
                     
-                    // Add languages for dots
+                    // Add dot coordinates for dots type
                     if ($sanitized_viz['type'] === 'dots') {
-                        if (isset($viz['languages'])) {
-                            $languages = sanitize_text_field($viz['languages']);
-                            $sanitized_viz['languages'] = array_map('trim', explode(',', $languages));
-                        }
-                        
-                        // Add dot coordinates
                         if (isset($viz['dotCoordinates']) && is_array($viz['dotCoordinates'])) {
                             $sanitized_viz['dotCoordinates'] = [];
                             foreach ($viz['dotCoordinates'] as $coord) {

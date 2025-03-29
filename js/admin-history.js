@@ -221,7 +221,7 @@ jQuery(document).ready(function($) {
         const item = $(this).closest('.visualization-item');
         
         item.find('.viz-destination').toggle(type === 'arrow');
-        item.find('.viz-languages').toggle(type === 'dots');
+        item.find('.viz-dots-details').toggle(type === 'dots'); // Updated class name
     });
     
     // Add new entry

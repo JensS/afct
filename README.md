@@ -35,9 +35,9 @@ The timeline supports three types of visualizations:
    - `label`: Optional text label
 
 3. **Dots** (`type: "dots"`):
-   - `origin`: [longitude, latitude] coordinates for the central point
+   - `origin`: [longitude, latitude] coordinates for the central point (used for initial placement and label)
    - `label`: Optional text label
-   - `dotCoordinates`: Array of coordinate pairs for precise dot placement
+   - `dotCoordinates`: Array of coordinate pairs for precise dot placement. If omitted, only the `origin` point is used.
      ```json
      "dotCoordinates": [
        [24.0, -28.5],  // [longitude, latitude]

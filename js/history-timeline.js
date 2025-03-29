@@ -747,7 +747,6 @@
             
             if (viz.origin) {
                 const pos = projection(viz.origin);
-                const languages = viz.languages || [];
                 
                 // Create a central bubble
                 layer.append("circle")
