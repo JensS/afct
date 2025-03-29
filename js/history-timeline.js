@@ -8,14 +8,14 @@
         const config = {
             mapWidth: 800,
             mapHeight: 600,
-            minYear: 1500,
+            minYear: 1000, // Updated to match the earliest year in history.json
             maxYear: 2025,
             animationDuration: 400,
             zoomTransitionDuration: 750,
             colors: {
                 migration: "var(--red)",
-                languageSupression: "#d62728",
-                languageRecognition: "#2ca02c"
+                languageSupression: "var(--red)",
+                languageRecognition: "var(--red)"
             }
         };
         
@@ -60,7 +60,7 @@
                 try {
                     historyData = JSON.parse(visualizationDataEl.dataset.historyEntries);
                     if (Array.isArray(historyData)) {
-                        // Clear cache when data is loaded
+                        // Don't cache paragraph items
                         cachedParagraphItems = null;
                         init();
                         return;
@@ -70,10 +70,11 @@
                 }
             }
             
-            // Fallback to AJAX if the data attribute doesn't work
+            // Always make a fresh AJAX request (no caching)
             $.ajax({
                 url: afctSettings.historyDataUrl,
                 method: 'GET',
+                cache: false, // Disable caching
                 beforeSend: function(xhr) {
                     if (typeof afctSettings.historyNonce !== 'undefined') {
                         xhr.setRequestHeader('X-WP-Nonce', afctSettings.historyNonce);
@@ -107,7 +108,7 @@
                         return;
                     }
                     
-                    // Clear cache when data is loaded
+                    // Don't cache paragraph items
                     cachedParagraphItems = null;
                     
                     init();
@@ -341,39 +342,42 @@
             // Clear existing visualizations
             clearAllVisualizations();
             
-            // Update map zoom based on the current item
-            updateMapZoom(item);
+            // Store the visualizations to be drawn after zoom completes
+            const visualizationsToShow = item.visualizations || [];
             
-            // Draw visualizations for this item
-            if (item.visualizations && item.visualizations.length > 0) {
-                item.visualizations.forEach(viz => {
-                    switch(viz.type) {
-                        case "arrow":
-                            createArrowVisualization(viz, item.year_start);
-                            break;
-                        case "dot":
-                            createDotVisualization(viz, item.year_start);
-                            break;
-                        case "dots":
-                            createDotsVisualization(viz, item.year_start);
-                            break;
-                        case "arrows": // Add support for multiple arrows
-                            if (viz.arrows && Array.isArray(viz.arrows)) {
-                                viz.arrows.forEach((arrow, i) => {
-                                    const arrowViz = {
-                                        type: "arrow",
-                                        origin: arrow.origin,
-                                        destination: arrow.destination,
-                                        label: i === 0 ? viz.label : null, // Only add label to first arrow
-                                        color: viz.color
-                                    };
-                                    createArrowVisualization(arrowViz, item.year_start);
-                                });
-                            }
-                            break;
-                    }
-                });
-            }
+            // First update the map zoom and wait for it to complete
+            updateMapZoom(item, function() {
+                // Draw visualizations only after zoom completes
+                if (visualizationsToShow.length > 0) {
+                    visualizationsToShow.forEach(viz => {
+                        switch(viz.type) {
+                            case "arrow":
+                                createArrowVisualization(viz, item.year_start);
+                                break;
+                            case "dot":
+                                createDotVisualization(viz, item.year_start);
+                                break;
+                            case "dots":
+                                createDotsVisualization(viz, item.year_start);
+                                break;
+                            case "arrows": // Support for multiple arrows
+                                if (viz.arrows && Array.isArray(viz.arrows)) {
+                                    viz.arrows.forEach((arrow, i) => {
+                                        const arrowViz = {
+                                            type: "arrow",
+                                            origin: arrow.origin,
+                                            destination: arrow.destination,
+                                            label: i === 0 ? viz.label : null, // Only add label to first arrow
+                                            color: "var(--red)" // Use --red for all visualizations
+                                        };
+                                        createArrowVisualization(arrowViz, item.year_start);
+                                    });
+                                }
+                                break;
+                        }
+                    });
+                }
+            });
             
             updateTimelineMarker(item.year_start);
             
@@ -414,28 +418,31 @@
             if (itemsForYear.length > 0) {
                 const item = itemsForYear[0];
                 
-                // Update map zoom
-                updateMapZoom(item);
+                // Store the visualizations to be drawn after zoom completes
+                const visualizationsToShow = item.visualizations || [];
                 
-                // Draw visualizations
-                if (item.visualizations && item.visualizations.length > 0) {
-                    item.visualizations.forEach(viz => {
-                        switch(viz.type) {
-                            case "arrow":
-                                createArrowVisualization(viz, item.year_start);
-                                break;
-                            case "dot":
-                                createDotVisualization(viz, item.year_start);
-                                break;
-                            case "dots":
-                                createDotsVisualization(viz, item.year_start);
-                                break;
-                        }
-                    });
-                }
-                
-                // Update country highlights if needed
-                updateCountryHighlights([item]);
+                // Update map zoom and wait for it to complete
+                updateMapZoom(item, function() {
+                    // Draw visualizations only after zoom completes
+                    if (visualizationsToShow.length > 0) {
+                        visualizationsToShow.forEach(viz => {
+                            switch(viz.type) {
+                                case "arrow":
+                                    createArrowVisualization(viz, item.year_start);
+                                    break;
+                                case "dot":
+                                    createDotVisualization(viz, item.year_start);
+                                    break;
+                                case "dots":
+                                    createDotsVisualization(viz, item.year_start);
+                                    break;
+                            }
+                        });
+                    }
+                    
+                    // Update country highlights if needed
+                    updateCountryHighlights([item]);
+                });
             }
             
             updateTimelineContent(year);
@@ -584,7 +591,7 @@
         }
 
         // Update map zoom
-        function updateMapZoom(item) {
+        function updateMapZoom(item, callback) {
             let mapZoom = "europe_and_africa"; // Default zoom level
             
             // Get the map_zoom directly from the item
@@ -641,6 +648,12 @@
                         projection.center(i[0]).scale(i[1]);
                         return d3.geoPath().projection(projection)(d3.select(this).datum());
                     };
+                })
+                .on("end", function() {
+                    // Call the callback when the transition is complete
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
                 });
             
             updateAnimationPositions(t);
@@ -724,7 +737,7 @@
                     .attr("data-dest-x", viz.destination[0])
                     .attr("data-dest-y", viz.destination[1])
                     .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`)
-                    .attr("stroke", viz.color || config.colors.migration)
+                    .attr("stroke", "var(--red)") // Always use --red
                     .attr("stroke-width", 2)
                     .attr("stroke-dasharray", "5,5")
                     .attr("opacity", 0)
@@ -738,7 +751,7 @@
                     .attr("cx", originPos[0])
                     .attr("cy", originPos[1])
                     .attr("r", 5)
-                    .attr("fill", viz.color || config.colors.migration)
+                    .attr("fill", "var(--red)") // Always use --red
                     .attr("stroke", "var(--background)")
                     .attr("opacity", 0)
                     .transition()
@@ -790,7 +803,7 @@
                     .attr("cx", pos[0])
                     .attr("cy", pos[1])
                     .attr("r", 8)
-                    .attr("fill", viz.color || "#ff9800")
+                    .attr("fill", "var(--red)") // Always use --red
                     .attr("stroke", "var(--background)")
                     .attr("opacity", 0)
                     .transition()
@@ -831,7 +844,7 @@
                     .attr("cx", pos[0])
                     .attr("cy", pos[1])
                     .attr("r", 15)
-                    .attr("fill", viz.color || config.colors.languageRecognition)
+                    .attr("fill", "var(--red)") // Always use --red
                     .attr("stroke", "var(--background)")
                     .attr("opacity", 0)
                     .transition()
@@ -856,7 +869,7 @@
                             .attr("cx", dotPos[0])
                             .attr("cy", dotPos[1])
                             .attr("r", 8)
-                            .attr("fill", viz.color || config.colors.languageRecognition)
+                            .attr("fill", "var(--red)") // Always use --red
                             .attr("stroke", "var(--background)")
                             .attr("opacity", 0)
                             .transition()
@@ -897,7 +910,7 @@
                             .attr("cx", x)
                             .attr("cy", y)
                             .attr("r", 8)
-                            .attr("fill", viz.color || config.colors.languageRecognition)
+                            .attr("fill", "var(--red)") // Always use --red
                             .attr("stroke", "var(--background)")
                             .attr("opacity", 0)
                             .transition()
