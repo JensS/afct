@@ -129,15 +129,7 @@
                         .attr("class", d => "country country-" + d.id)
                         .attr("opacity", d => d.id === 710 ? 1 : 0.3);
                     
-                    // Highlight South Africa
-                    svg.append("circle")
-                        .attr("cx", projection([24, -29])[0])
-                        .attr("cy", projection([24, -29])[1])
-                        .attr("r", 20)
-                        .attr("fill", "#ffd700")
-                        .attr("stroke", "var(--background)")
-                        .attr("stroke-width", 1)
-                        .attr("opacity", 0.5);
+                    // South Africa highlight is now handled dynamically through the visualization system
                         
                     createAnimationLayers();
                 })
@@ -785,8 +777,8 @@
                             .delay(i * 100)
                             .attr("opacity", 0.7);
                         
-                        // If we have languages and they match the number of dots, add labels
-                        if (languages[i]) {
+                        // If we have labels in the visualization and they match the number of dots, add labels
+                        if (viz.labels && viz.labels[i]) {
                             layer.append("text")
                                 .attr("class", `language-label ${id}`)
                                 .attr("data-x", coord[0])
@@ -805,9 +797,9 @@
                         }
                     });
                 }
-                // If no dot coordinates but we have languages, create dots in a circle around origin
-                else if (languages.length > 0) {
-                    languages.forEach((lang, i) => {
+                // If no dot coordinates but we have labels, create dots in a circle around origin
+                else if (viz.labels && viz.labels.length > 0) {
+                    viz.labels.forEach((label, i) => {
                         const angle = (2 * Math.PI * i) / languages.length;
                         const radius = 40;
                         const x = pos[0] + radius * Math.cos(angle);
@@ -832,7 +824,7 @@
                             .attr("y", y + 20)
                             .attr("text-anchor", "middle")
                             .attr("fill", "var(--text)")
-                            .text(lang)
+                            .text(label)
                             .attr("opacity", 0)
                             .transition()
                             .duration(config.animationDuration)
