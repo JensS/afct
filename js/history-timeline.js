@@ -422,6 +422,20 @@
                                 case "dots":
                                     createDotsVisualization(viz, item.year_start);
                                     break;
+                                case "arrows":
+                                    if (viz.arrows && Array.isArray(viz.arrows)) {
+                                        viz.arrows.forEach((arrow, i) => {
+                                            const arrowViz = {
+                                                type: "arrow",
+                                                origin: arrow.origin,
+                                                destination: arrow.destination,
+                                                label: i === 0 ? viz.label : null, // Only add label to first arrow
+                                                color: "var(--red)" // Use --red for all visualizations
+                                            };
+                                            createArrowVisualization(arrowViz, item.year_start);
+                                        });
+                                    }
+                                    break;
                             }
                         });
                     }
