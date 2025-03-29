@@ -36,13 +36,16 @@ function afct_history_meta_box_callback($post) {
         }
         .entry-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             margin-bottom: 10px;
             align-items: center;
+            position: relative;
         }
         .entry-title {
             font-weight: bold;
             font-size: 16px;
+            text-align: left;
+            margin-right: auto;
         }
         .entry-actions {
             position: absolute;
@@ -114,6 +117,12 @@ function afct_history_meta_box_callback($post) {
             transform: translate(-50%, -50%);
             color: #999;
         }
+        .map-preview-container {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ddd;
+            background-color: #f8f8f8;
+        }
         .sort-handle {
             cursor: move;
             padding: 5px;
@@ -181,10 +190,7 @@ function afct_history_meta_box_callback($post) {
                             <select id="entry_map_zoom_<?php echo $index; ?>" 
                                     name="history_entries[<?php echo $index; ?>][map_zoom]">
                                 <?php foreach ($zoom_options as $value => $label): ?>
-                                    <option value="<?php echo esc_attr($value); ?>" 
-                                        <?php selected($entry['map_zoom'], $value); ?>>
-                                        <?php echo esc_html($label); ?>
-                                    </option>
+                                    <option value="<?php echo esc_attr($value); ?>" <?php selected($entry['map_zoom'], $value); ?>><?php echo esc_html($label); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -193,8 +199,8 @@ function afct_history_meta_box_callback($post) {
                             <select id="entry_visualisation_<?php echo $index; ?>" 
                                     name="history_entries[<?php echo $index; ?>][visualisation]" 
                                     class="visualisation-type">
-                                <option value="paragraph" <?php selected($entry['visualisation'], 'paragraph'); ?>>Paragraph</option>
-                                <option value="map" <?php selected($entry['visualisation'], 'map'); ?>>Map Animation</option>
+                                <option value="paragraph" <?php selected(isset($entry['visualisation']) ? $entry['visualisation'] : 'paragraph', 'paragraph'); ?>>Paragraph</option>
+                                <option value="map" <?php selected(isset($entry['visualisation']) ? $entry['visualisation'] : '', 'map'); ?>>Map Animation</option>
                             </select>
                         </div>
                         
@@ -395,39 +401,126 @@ function afct_history_meta_box_callback($post) {
                                 </div>
                             </div>
                             
-                            <!-- Map Preview Placeholder -->
-                            <div class="map-preview">
-                                <div id="map-container"></div>
-        <script src="<?php echo get_template_directory_uri(); ?>/js/three.min.js"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const container = document.getElementById('map-container');
-                const width = container.clientWidth;
-                const height = container.clientHeight;
+                            <!-- Map Preview -->
+                            <div class="map-preview full-width">
+                                <h4>Map Preview</h4>
+                                <div id="map-preview-container-<?php echo $index; ?>" class="map-preview-container"></div>
+                            </div>
 
-                const scene = new THREE.Scene();
-                const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-                const renderer = new THREE.WebGLRenderer();
-                renderer.setSize(width, height);
-                container.appendChild(renderer.domElement);
+                            <script>
+                                // Initialize map preview for this entry
+                                jQuery(document).ready(function($) {
+                                    // Make sure D3 is loaded
+                                    if (typeof d3 !== 'undefined' && typeof topojson !== 'undefined') {
+                                        initMapPreview(<?php echo $index; ?>, <?php echo json_encode($entry['visualizations'] ?? []); ?>);
+                                    } else {
+                                        console.error('D3 or topojson not loaded for map preview');
+                                    }
+                                });
 
-                const geometry = new THREE.SphereGeometry(0.5, 32, 32);
-                const material = new THREE.MeshBasicMaterial({ color: 0x0077ff });
-                const sphere = new THREE.Mesh(geometry, material);
-                scene.add(sphere);
-
-                camera.position.z = 2;
-
-                function animate() {
-                    requestAnimationFrame(animate);
-                    sphere.rotation.x += 0.01;
-                    sphere.rotation.y += 0.01;
-                    renderer.render(scene, camera);
-                }
-
-                animate();
-            });
-        </script>
+                                function initMapPreview(entryIndex, visualizations) {
+                                    const containerId = `map-preview-container-${entryIndex}`;
+                                    const container = document.getElementById(containerId);
+                                    if (!container) return;
+                                    
+                                    // Clear previous content
+                                    container.innerHTML = '';
+                                    
+                                    // Set dimensions
+                                    const width = container.clientWidth || 400;
+                                    const height = 300;
+                                    
+                                    // Create SVG
+                                    const svg = d3.select(container)
+                                        .append("svg")
+                                        .attr("width", width)
+                                        .attr("height", height)
+                                        .attr("viewBox", `0 0 ${width} ${height}`);
+                                    
+                                    // Create projection
+                                    const projection = d3.geoMercator()
+                                        .center([25, 0])
+                                        .scale(width / 3)
+                                        .translate([width / 2, height / 2]);
+                                    
+                                    // Create path generator
+                                    const path = d3.geoPath().projection(projection);
+                                    
+                                    // Load and render Africa topojson
+                                    d3.json('<?php echo get_template_directory_uri(); ?>/js/countries-110m.json')
+                                        .then(function(data) {
+                                            // Draw Africa map
+                                            svg.append("g")
+                                                .selectAll("path")
+                                                .data(topojson.feature(data, data.objects.countries).features)
+                                                .enter()
+                                                .append("path")
+                                                .attr("d", path)
+                                                .attr("fill", "#ccc")
+                                                .attr("stroke", "#fff")
+                                                .attr("stroke-width", 0.5);
+                                            
+                                            // Add visualizations
+                                            if (visualizations && visualizations.length) {
+                                                visualizations.forEach(viz => {
+                                                    if (!viz.origin) return;
+                                                    
+                                                    const originPos = projection(viz.origin);
+                                                    
+                                                    if (viz.type === 'arrow' && viz.destination) {
+                                                        const destPos = projection(viz.destination);
+                                                        
+                                                        // Draw arrow line
+                                                        svg.append("path")
+                                                            .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`)
+                                                            .attr("stroke", "#f00")
+                                                            .attr("stroke-width", 2)
+                                                            .attr("stroke-dasharray", "5,5");
+                                                        
+                                                        // Draw origin point
+                                                        svg.append("circle")
+                                                            .attr("cx", originPos[0])
+                                                            .attr("cy", originPos[1])
+                                                            .attr("r", 5)
+                                                            .attr("fill", "#f00");
+                                                    } 
+                                                    else if (viz.type === 'dot') {
+                                                        // Draw dot
+                                                        svg.append("circle")
+                                                            .attr("cx", originPos[0])
+                                                            .attr("cy", originPos[1])
+                                                            .attr("r", 8)
+                                                            .attr("fill", "#ff9800");
+                                                    }
+                                                    else if (viz.type === 'dots') {
+                                                        // Draw main dot
+                                                        svg.append("circle")
+                                                            .attr("cx", originPos[0])
+                                                            .attr("cy", originPos[1])
+                                                            .attr("r", 10)
+                                                            .attr("fill", "#2ca02c")
+                                                            .attr("opacity", 0.7);
+                                                        
+                                                        // Draw smaller dots for coordinates
+                                                        if (viz.dotCoordinates && viz.dotCoordinates.length) {
+                                                            viz.dotCoordinates.forEach((coord, i) => {
+                                                                const dotPos = projection(coord);
+                                                                
+                                                                svg.append("circle")
+                                                                    .attr("cx", dotPos[0])
+                                                                    .attr("cy", dotPos[1])
+                                                                    .attr("r", 5)
+                                                                    .attr("fill", "#2ca02c")
+                                                                    .attr("opacity", 0.7);
+                                                            });
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        })
+                                        .catch(error => console.error("Error loading map data:", error));
+                                }
+                            </script>
                             </div>
                         </div>
                     </div>
@@ -479,9 +572,7 @@ function afct_history_meta_box_callback($post) {
                         <label>Type:</label>
                         <select name="history_entries[${entryIndex}][visualizations][${vizIndex}][type]" class="viz-type-select">
                             <?php foreach ($visualization_types as $value => $label): ?>
-                                <option value="<?php echo esc_attr($value); ?>">
-                                    <?php echo esc_html($label); ?>
-                                </option>
+                                <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>

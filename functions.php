@@ -237,6 +237,10 @@ function afct_enqueue_admin_scripts() {
 
         // Enqueue jQuery UI styles
         wp_enqueue_style('jquery-ui-styles', get_template_directory_uri() . '/css/jquery-ui.css');
+        
+        // Enqueue D3.js and Topojson for map previews
+        wp_enqueue_script('d3', get_template_directory_uri() . '/js/d3.min.js', array(), '7.9', true);
+        wp_enqueue_script('topojson', get_template_directory_uri() . '/js/topojson.min.js', array('d3'), '3.0', true);
     }
 }
 add_action('admin_enqueue_scripts', 'afct_enqueue_admin_scripts');
