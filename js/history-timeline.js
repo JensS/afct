@@ -52,8 +52,25 @@
         }
 
         console.log(afctSettings.historyDataUrl);
-        // Load history data from WordPress REST API and assign sequential IDs
+        // Load history data from visualization-data element or WordPress REST API
         function loadHistoryData() {
+            // Try to get data from the visualization-data element first
+            const visualizationDataEl = document.getElementById('visualization-data');
+            if (visualizationDataEl && visualizationDataEl.dataset.historyEntries) {
+                try {
+                    historyData = JSON.parse(visualizationDataEl.dataset.historyEntries);
+                    if (Array.isArray(historyData)) {
+                        // Clear cache when data is loaded
+                        cachedParagraphItems = null;
+                        init();
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Error parsing history entries from data attribute:", e);
+                }
+            }
+            
+            // Fallback to AJAX if the data attribute doesn't work
             $.ajax({
                 url: afctSettings.historyDataUrl,
                 method: 'GET',
@@ -317,7 +334,30 @@
             $(".timeline-item").hide();
             
             currentYear = item.year_start;
-            updateVisualization(item.year_start);
+            
+            // Clear existing visualizations
+            clearAllVisualizations();
+            
+            // Update map zoom based on the current item
+            updateMapZoom(item);
+            
+            // Draw visualizations for this item
+            if (item.visualizations && item.visualizations.length > 0) {
+                item.visualizations.forEach(viz => {
+                    switch(viz.type) {
+                        case "arrow":
+                            createArrowVisualization(viz, item.year_start);
+                            break;
+                        case "dot":
+                            createDotVisualization(viz, item.year_start);
+                            break;
+                        case "dots":
+                            createDotsVisualization(viz, item.year_start);
+                            break;
+                    }
+                });
+            }
+            
             updateTimelineMarker(item.year_start);
             
             const timelineItem = $(`.timeline-item[data-id="${item.id}"]`);
@@ -333,6 +373,14 @@
             
             updateArrowStates(currentIndex, totalItems);
         }
+        
+        // Function to clear all visualizations
+        function clearAllVisualizations() {
+            const layers = ["#migration-layer", "#language-layer", "#event-layer"];
+            layers.forEach(layer => {
+                map.select(layer).selectAll("*").remove();
+            });
+        }
 
         // Update visualization based on year
         function updateVisualization(year) {
@@ -340,26 +388,19 @@
             
             $("#year-display").text(year);
             
-            const newActiveKeyframes = historyData.filter(item => 
-                year >= item.year_start && (!item.year_end || year <= item.year_end)
-            );
+            // Clear existing visualizations
+            clearAllVisualizations();
             
-            const keyframesToActivate = newActiveKeyframes.filter(item => 
-                !activeKeyframes.some(active => active.id === item.id)
-            );
+            // Find the item for this year
+            const itemsForYear = historyData.filter(item => item.year_start === year);
             
-            const keyframesToDeactivate = activeKeyframes.filter(item => 
-                !newActiveKeyframes.some(active => active.id === item.id)
-            );
-            
-            activeKeyframes = newActiveKeyframes;
-            
-            updateTimelineContent(year);
-            updateMapZoom(year, newActiveKeyframes);
-            updateCountryHighlights(newActiveKeyframes);
-            
-            keyframesToDeactivate.forEach(deactivateKeyframe);
-            keyframesToActivate.forEach(item => {
+            if (itemsForYear.length > 0) {
+                const item = itemsForYear[0];
+                
+                // Update map zoom
+                updateMapZoom(item);
+                
+                // Draw visualizations
                 if (item.visualizations && item.visualizations.length > 0) {
                     item.visualizations.forEach(viz => {
                         switch(viz.type) {
@@ -375,7 +416,13 @@
                         }
                     });
                 }
-            });
+                
+                // Update country highlights if needed
+                updateCountryHighlights([item]);
+            }
+            
+            updateTimelineContent(year);
+            updateTimelineMarker(year);
         }
 
         // Update timeline content based on year
@@ -513,24 +560,20 @@
                     transitionToItem(targetItem, targetIndex, paragraphItems.length);
                 } else {
                     // Otherwise just update the visualization
+                    clearAllVisualizations();
                     updateVisualization(year);
-                    updateTimelineMarker(year);
                 }
             });
         }
 
         // Update map zoom
-        function updateMapZoom(year, activeKeyframes) {
-            let mapZoom = "europe_and_africa";
+        function updateMapZoom(item) {
+            let mapZoom = "europe_and_africa"; // Default zoom level
             
-            activeKeyframes.forEach(keyframe => {
-                if (keyframe.map_zoom) {
-                    if (keyframe.map_zoom === "south_africa" || 
-                        (keyframe.map_zoom === "africa" && mapZoom === "europe_and_africa")) {
-                        mapZoom = keyframe.map_zoom;
-                    }
-                }
-            });
+            // Get the map_zoom directly from the item
+            if (item.map_zoom) {
+                mapZoom = item.map_zoom;
+            }
             
             let center, scale;
             switch(mapZoom) {
