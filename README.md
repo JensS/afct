@@ -35,9 +35,45 @@ The timeline supports three types of visualizations:
    - `label`: Optional text label
 
 3. **Dots** (`type: "dots"`):
-   - `origin`: [longitude, latitude] coordinates
+   - `origin`: [longitude, latitude] coordinates for the central point
    - `label`: Optional text label
    - `languages`: Array of language names
+   - `dotCoordinates`: Array of coordinate pairs for precise dot placement
+     ```json
+     "dotCoordinates": [
+       [24.0, -28.5],  // [longitude, latitude]
+       [26.0, -29.5],
+       [25.5, -30.0]
+     ]
+     ```
+
+### Example JSON Structure
+
+```json
+[
+  {
+    "id": 1500,
+    "year_start": 1500,
+    "year_end": 1550,
+    "title": "Bantu Languages",
+    "paragraph": "The spread of Bantu languages across southern Africa...",
+    "map_zoom": "africa",
+    "visualizations": [
+      {
+        "type": "dots",
+        "label": "Bantu Language Distribution",
+        "origin": [25.0, -29.0],
+        "languages": ["Zulu", "Xhosa", "Sotho"],
+        "dotCoordinates": [
+          [24.0, -28.5],
+          [26.0, -29.5],
+          [25.5, -30.0]
+        ]
+      }
+    ]
+  }
+]
+```
 
 ### REST API
 Timeline data is accessible via the REST API endpoint:

@@ -764,39 +764,83 @@
                     .duration(config.animationDuration)
                     .attr("opacity", 0.7);
                 
-                // Add smaller bubbles for each language
-                languages.forEach((lang, i) => {
-                    const angle = (2 * Math.PI * i) / languages.length;
-                    const radius = 40;
-                    const x = pos[0] + radius * Math.cos(angle);
-                    const y = pos[1] + radius * Math.sin(angle);
-                    
-                    layer.append("circle")
-                        .attr("class", `language-bubble ${id}`)
-                        .attr("cx", x)
-                        .attr("cy", y)
-                        .attr("r", 8)
-                        .attr("fill", viz.color || config.colors.languageRecognition)
-                        .attr("stroke", "var(--background)")
-                        .attr("opacity", 0)
-                        .transition()
-                        .duration(config.animationDuration)
-                        .delay(i * 100)
-                        .attr("opacity", 0.7);
-                    
-                    layer.append("text")
-                        .attr("class", `language-label ${id}`)
-                        .attr("x", x)
-                        .attr("y", y + 20)
-                        .attr("text-anchor", "middle")
-                        .attr("fill", "var(--text)")
-                        .text(lang)
-                        .attr("opacity", 0)
-                        .transition()
-                        .duration(config.animationDuration)
-                        .delay(i * 100)
-                        .attr("opacity", 1);
-                });
+                // Add dot coordinates if available
+                if (viz.dotCoordinates && viz.dotCoordinates.length > 0) {
+                    viz.dotCoordinates.forEach((coord, i) => {
+                        if (!coord || !Array.isArray(coord) || coord.length < 2) return;
+                        
+                        const dotPos = projection(coord);
+                        
+                        layer.append("circle")
+                            .attr("class", `language-bubble ${id}`)
+                            .attr("data-x", coord[0])
+                            .attr("data-y", coord[1])
+                            .attr("cx", dotPos[0])
+                            .attr("cy", dotPos[1])
+                            .attr("r", 8)
+                            .attr("fill", viz.color || config.colors.languageRecognition)
+                            .attr("stroke", "var(--background)")
+                            .attr("opacity", 0)
+                            .transition()
+                            .duration(config.animationDuration)
+                            .delay(i * 100)
+                            .attr("opacity", 0.7);
+                        
+                        // If we have languages and they match the number of dots, add labels
+                        if (languages[i]) {
+                            layer.append("text")
+                                .attr("class", `language-label ${id}`)
+                                .attr("data-x", coord[0])
+                                .attr("data-y", coord[1])
+                                .attr("data-offset", 20)
+                                .attr("x", dotPos[0])
+                                .attr("y", dotPos[1] + 20)
+                                .attr("text-anchor", "middle")
+                                .attr("fill", "var(--text)")
+                                .text(languages[i])
+                                .attr("opacity", 0)
+                                .transition()
+                                .duration(config.animationDuration)
+                                .delay(i * 100)
+                                .attr("opacity", 1);
+                        }
+                    });
+                }
+                // If no dot coordinates but we have languages, create dots in a circle around origin
+                else if (languages.length > 0) {
+                    languages.forEach((lang, i) => {
+                        const angle = (2 * Math.PI * i) / languages.length;
+                        const radius = 40;
+                        const x = pos[0] + radius * Math.cos(angle);
+                        const y = pos[1] + radius * Math.sin(angle);
+                        
+                        layer.append("circle")
+                            .attr("class", `language-bubble ${id}`)
+                            .attr("cx", x)
+                            .attr("cy", y)
+                            .attr("r", 8)
+                            .attr("fill", viz.color || config.colors.languageRecognition)
+                            .attr("stroke", "var(--background)")
+                            .attr("opacity", 0)
+                            .transition()
+                            .duration(config.animationDuration)
+                            .delay(i * 100)
+                            .attr("opacity", 0.7);
+                        
+                        layer.append("text")
+                            .attr("class", `language-label ${id}`)
+                            .attr("x", x)
+                            .attr("y", y + 20)
+                            .attr("text-anchor", "middle")
+                            .attr("fill", "var(--text)")
+                            .text(lang)
+                            .attr("opacity", 0)
+                            .transition()
+                            .duration(config.animationDuration)
+                            .delay(i * 100)
+                            .attr("opacity", 1);
+                    });
+                }
                 
                 if (viz.label) {
                     layer.append("text")

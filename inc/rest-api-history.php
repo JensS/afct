@@ -88,7 +88,7 @@ function afct_get_history_data($request) {
             else if (($entry['animation_type'] === 'language_development' || 
                      $entry['animation_type'] === 'language_suppression') && 
                      isset($entry['center_lng']) && isset($entry['center_lat'])) {
-                
+                        
                 $entry['visualizations'][] = [
                     'type' => 'dots',
                     'origin' => [$entry['center_lng'], $entry['center_lat']],
@@ -96,6 +96,14 @@ function afct_get_history_data($request) {
                     'languages' => isset($entry['languages']) ? 
                         array_map('trim', explode(',', $entry['languages'])) : []
                 ];
+                        
+                // Make sure dotCoordinates is properly formatted
+                if (!isset($entry['visualizations'][count($entry['visualizations'])-1]['dotCoordinates'])) {
+                    // If no dotCoordinates but we have origin, use origin as the first coordinate
+                    $entry['visualizations'][count($entry['visualizations'])-1]['dotCoordinates'] = [
+                        $entry['visualizations'][count($entry['visualizations'])-1]['origin']
+                    ];
+                }
             }
         }
         

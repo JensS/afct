@@ -126,6 +126,31 @@ function afct_history_meta_box_callback($post) {
         .languages-field input {
             width: 100%;
         }
+        .dots-coordinates {
+            margin-top: 10px;
+            border: 1px solid #eee;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .dots-coordinates h5 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .dot-coordinate-pair {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .dot-coordinate-pair input {
+            width: 80px;
+            margin-right: 5px;
+        }
+        .remove-dot-coordinate {
+            padding: 0 5px !important;
+            min-height: 0 !important;
+            height: 25px !important;
+            line-height: 1 !important;
+        }
     </style>
 
     <div id="history-entries-container">
@@ -281,6 +306,34 @@ function afct_history_meta_box_callback($post) {
                                                       echo esc_attr($viz['languages'] ?? '');
                                                   }
                                                ?>">
+                        
+                                        <div class="dots-coordinates">
+                                            <h5>Dot Coordinates</h5>
+                                            <div class="dots-coordinates-container">
+                                                <?php 
+                                                $dotCoordinates = $viz['dotCoordinates'] ?? [];
+                                                if (empty($dotCoordinates) && isset($viz['origin'])) {
+                                                    // Add origin as first coordinate if no coordinates exist
+                                                    $dotCoordinates = [$viz['origin']];
+                                                }
+                                
+                                                foreach ($dotCoordinates as $dotIndex => $coord): 
+                                                ?>
+                                                <div class="dot-coordinate-pair">
+                                                    <input type="number" step="0.01" 
+                                                           name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][dotCoordinates][<?php echo $dotIndex; ?>][0]" 
+                                                           placeholder="Longitude" 
+                                                           value="<?php echo esc_attr($coord[0] ?? ''); ?>">
+                                                    <input type="number" step="0.01" 
+                                                           name="history_entries[<?php echo $index; ?>][visualizations][<?php echo $viz_index; ?>][dotCoordinates][<?php echo $dotIndex; ?>][1]" 
+                                                           placeholder="Latitude" 
+                                                           value="<?php echo esc_attr($coord[1] ?? ''); ?>">
+                                                    <button type="button" class="button remove-dot-coordinate">×</button>
+                                                </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                            <button type="button" class="button add-dot-coordinate">Add Dot Coordinate</button>
+                                        </div>
                                     </div>
                                 </div>
                                 <?php endforeach; ?>
@@ -640,6 +693,54 @@ function afct_history_meta_box_callback($post) {
                 });
             }
             
+            // Handle adding new dot coordinates
+            $(document).on('click', '.add-dot-coordinate', function() {
+                const container = $(this).prev('.dots-coordinates-container');
+                const entryIndex = $(this).closest('.history-entry').data('index');
+                const vizIndex = $(this).closest('.visualization-item').data('viz-index');
+                const dotIndex = container.children('.dot-coordinate-pair').length;
+                
+                const template = `
+                <div class="dot-coordinate-pair">
+                    <input type="number" step="0.01" 
+                           name="history_entries[${entryIndex}][visualizations][${vizIndex}][dotCoordinates][${dotIndex}][0]" 
+                           placeholder="Longitude" 
+                           value="">
+                    <input type="number" step="0.01" 
+                           name="history_entries[${entryIndex}][visualizations][${vizIndex}][dotCoordinates][${dotIndex}][1]" 
+                           placeholder="Latitude" 
+                           value="">
+                    <button type="button" class="button remove-dot-coordinate">×</button>
+                </div>
+                `;
+                
+                container.append(template);
+            });
+
+            // Handle removing dot coordinates
+            $(document).on('click', '.remove-dot-coordinate', function() {
+                $(this).closest('.dot-coordinate-pair').remove();
+                // Reindex the remaining coordinates
+                const container = $(this).closest('.dots-coordinates-container');
+                reindexDotCoordinates(container);
+            });
+
+            // Function to reindex dot coordinates
+            function reindexDotCoordinates(container) {
+                const entryIndex = container.closest('.history-entry').data('index');
+                const vizIndex = container.closest('.visualization-item').data('viz-index');
+                
+                container.find('.dot-coordinate-pair').each(function(dotIndex) {
+                    $(this).find('input').each(function() {
+                        const name = $(this).attr('name');
+                        if (name) {
+                            $(this).attr('name', name.replace(/history_entries\[\d+\]\[visualizations\]\[\d+\]\[dotCoordinates\]\[\d+\]/, 
+                                                           `history_entries[${entryIndex}][visualizations][${vizIndex}][dotCoordinates][${dotIndex}]`));
+                        }
+                    });
+                });
+            }
+            
             // Initialize visualization type handlers
             function initVizTypeHandlers(entryIndex, vizIndex) {
                 const selector = `select[name="history_entries[${entryIndex}][visualizations][${vizIndex}][type]"]`;
@@ -721,9 +822,24 @@ function afct_save_history_meta_box_data($post_id) {
                     }
                     
                     // Add languages for dots
-                    if ($sanitized_viz['type'] === 'dots' && isset($viz['languages'])) {
-                        $languages = sanitize_text_field($viz['languages']);
-                        $sanitized_viz['languages'] = array_map('trim', explode(',', $languages));
+                    if ($sanitized_viz['type'] === 'dots') {
+                        if (isset($viz['languages'])) {
+                            $languages = sanitize_text_field($viz['languages']);
+                            $sanitized_viz['languages'] = array_map('trim', explode(',', $languages));
+                        }
+                        
+                        // Add dot coordinates
+                        if (isset($viz['dotCoordinates']) && is_array($viz['dotCoordinates'])) {
+                            $sanitized_viz['dotCoordinates'] = [];
+                            foreach ($viz['dotCoordinates'] as $coord) {
+                                if (is_array($coord) && isset($coord[0]) && isset($coord[1])) {
+                                    $sanitized_viz['dotCoordinates'][] = [
+                                        floatval($coord[0]),
+                                        floatval($coord[1])
+                                    ];
+                                }
+                            }
+                        }
                     }
                     
                     $sanitized_entry['visualizations'][] = $sanitized_viz;
