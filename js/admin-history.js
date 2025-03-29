@@ -179,7 +179,7 @@ jQuery(document).ready(function($) {
                        value="">
             </div>
             
-            <div class="viz-destination">
+            <div class="viz-destination" style="display:none"> <!-- Default to hidden -->
                 <label>Destination Point:</label>
                 <input type="number" step="0.01" 
                        name="history_entries[${entryIndex}][visualizations][${vizIndex}][destination][0]" 
@@ -191,12 +191,15 @@ jQuery(document).ready(function($) {
                        value="">
             </div>
             
-            <div class="viz-languages" style="display:none">
-                <label>Languages (comma-separated):</label>
-                <input type="text" 
-                       name="history_entries[${entryIndex}][visualizations][${vizIndex}][languages]" 
-                       placeholder="e.g., zulu, xhosa, afrikaans" 
-                       value="">
+            <div class="viz-dots-details" style="display:none">
+                <!-- Dot coordinates will be added here if needed -->
+                <div class="dots-coordinates">
+                    <h5>Dot Coordinates</h5>
+                    <div class="dots-coordinates-container">
+                        <!-- Coordinate pairs go here -->
+                    </div>
+                    <button type="button" class="button add-dot-coordinate">Add Dot Coordinate</button>
+                </div>
             </div>
         </div>
         `;
@@ -611,13 +614,7 @@ jQuery(document).ready(function($) {
                        value="${vizData.destination ? vizData.destination[1] : ''}">
             </div>
             
-            <div class="viz-languages" style="${vizData.type !== 'dots' ? 'display:none' : ''}">
-                <label>Languages (comma-separated):</label>
-                <input type="text" 
-                       name="history_entries[${entryIndex}][visualizations][${vizIndex}][languages]" 
-                       placeholder="e.g., zulu, xhosa, afrikaans" 
-                       value="${vizData.languages ? (Array.isArray(vizData.languages) ? vizData.languages.join(', ') : vizData.languages) : ''}">
-                
+            <div class="viz-dots-details" style="${vizData.type !== 'dots' ? 'display:none' : ''}">
                 <div class="dots-coordinates">
                     <h5>Dot Coordinates</h5>
                     <div class="dots-coordinates-container">
