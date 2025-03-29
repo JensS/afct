@@ -201,31 +201,14 @@
             
             sortedYears.forEach(year => {
                 const markerPosition = (year - config.minYear) / timeRange;
-                
-                // Find all events for this year
-                const events = historyData.filter(item => item.year_start === year);
-                let label = year.toString();
-                
-                // Prioritize paragraph items (chapters) for labels
-                if (events.length > 0) {
-                    // First try to find a paragraph item
-                    const paragraphEvent = events.find(e => e.history_paragraph && e.history_paragraph.title);
-                    // If no paragraph, then look for an animation
-                    const animationEvent = events.find(e => e.animation && e.animation.label);
-                    
-                    const event = paragraphEvent || animationEvent;
-                    if (event) {
-                        label += ": " + (event.history_paragraph?.title || event.animation?.label);
-                    }
-                }
-                
-                // Create the marker with appropriate styling
+
+                // Determine if this year corresponds to a paragraph item (chapter)
                 const isParagraphYear = paragraphItems.some(item => item.year_start === year);
                 const markerClass = isParagraphYear ? "timeline-marker chapter-marker" : "timeline-marker";
-                
+
+                // Create the marker with only the year and the chapter marker dot if applicable
                 $(`<div class="${markerClass}" data-year="${year}" style="left: ${markerPosition * 100}%">
                    <span class="marker-year">${year}</span>
-                   <span class="marker-label">${label.replace(year + ": ", "")}</span>
                  </div>`).appendTo(timelineMarkers);
             });
         }

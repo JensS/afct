@@ -81,7 +81,7 @@
 .timeline-markers {
     left: 5vw; right: 5vw;
     position: absolute;
-    height: 10vh; /* Increased height for labels */
+    height: 40px; /* Reduced height as labels are removed */
     top: 20%;
     width: auto;
     background: transparent;
@@ -126,26 +126,14 @@
 }
 
 .marker-year {
+    position: absolute;
+    top: 12px; /* Position below the chapter marker dot */
+    left: 50%;
+    transform: translateX(-50%); /* Center the year text */
+    font-size: 10px;
     font-weight: bold;
     color: var(--red);
-    margin-bottom: 5px;
-    transform-origin: left top;
-    top: 15px;
-    left: 10px; /* Position relative to marker */
-    font-size: 12px;
-    transform: rotate(-45deg);
     white-space: nowrap;
-}
-
-.marker-label {
-    white-space: nowrap;
-    top: 35px;
-    left: 10px; /* Position relative to marker */
-    font-size: 11px;
-    color: var(--red);
-    max-width: 100px; /* Reduced max-width */
-    transform: rotate(-45deg);
-    transform-origin: left top;
 }
 
 .language-bubble.transitioning {
