@@ -284,11 +284,18 @@ function afct_history_meta_box_callback($post) {
                                 // Set the entry index
                                 $newEntry.attr('data-index', index);
                                 
+                                // Open the entry form to ensure all fields are accessible
+                                $newEntry.find('.entry-form').show();
+                                
                                 // Fill in the form fields
                                 $newEntry.find('input[name^="history_entries[' + index + '][year_start]"]').val(entry.year_start || '');
                                 $newEntry.find('select[name^="history_entries[' + index + '][map_zoom]"]').val(entry.map_zoom || 'africa');
                                 $newEntry.find('input[name^="history_entries[' + index + '][title]"]').val(entry.title || '');
                                 $newEntry.find('textarea[name^="history_entries[' + index + '][paragraph]"]').val(entry.paragraph || '');
+                                
+                                // Set visualization type (default to paragraph if not specified)
+                                const visualizationType = entry.visualisation || 'paragraph';
+                                $newEntry.find('select[name^="history_entries[' + index + '][visualisation]"]').val(visualizationType);
                                 
                                 // Handle visualizations
                                 if (entry.visualizations && entry.visualizations.length > 0) {

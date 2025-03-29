@@ -58,6 +58,9 @@ jQuery(document).ready(function($) {
                     // Trigger change event to ensure any listeners are notified
                     $jsonTextarea.trigger('change');
                     
+                    // Automatically trigger the import button to process the data
+                    $('#import-json').trigger('click');
+                    
                     // Show success message
                     showNotice('JSON file loaded successfully!', 'success');
                 } catch (error) {
