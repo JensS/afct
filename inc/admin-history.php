@@ -3,7 +3,15 @@
  * Admin interface for the History Timeline
  */
 
+// Ensure we're in the admin area
+if (!is_admin()) {
+    return;
+}
+
 function afct_history_meta_box_callback($post) {
+    // Disable WordPress admin sortables that might conflict with our UI
+    wp_dequeue_script('postbox');
+    
     wp_nonce_field('afct_save_history_meta_box_data', 'afct_history_meta_box_nonce');
     $history_entries = get_post_meta($post->ID, '_afct_history_entries', true);
 
@@ -27,32 +35,39 @@ function afct_history_meta_box_callback($post) {
     ];
     ?>
     <style>
-        .history-entry {
+        /* Scope all styles to our container to prevent conflicts */
+        #afct-history-container {
+            padding: 15px;
+            background: #fff;
+            margin-top: 20px;
+        }
+        
+        #afct-history-container .history-entry {
             border: 1px solid #ccc;
             padding: 15px;
             margin-bottom: 15px;
             background-color: #f9f9f9;
             position: relative;
         }
-        .entry-header {
+        #afct-history-container .entry-header {
             display: flex;
             justify-content: flex-start;
             margin-bottom: 10px;
             align-items: center;
             position: relative;
         }
-        .entry-title {
+        #afct-history-container .entry-title {
             font-weight: bold;
             font-size: 16px;
             text-align: left;
             margin-right: auto;
         }
-        .entry-actions {
+        #afct-history-container .entry-actions {
             position: absolute;
             top: 10px;
             right: 10px;
         }
-        .entry-form {
+        #afct-history-container .entry-form {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
@@ -61,60 +76,60 @@ function afct_history_meta_box_callback($post) {
             border: 1px solid #eee;
             margin-top: 10px;
         }
-        .entry-form .full-width {
+        #afct-history-container .entry-form .full-width {
             grid-column: 1 / 3;
             margin-top: 10px;
         }
-        .entry-form textarea {
+        #afct-history-container .entry-form textarea {
             width: 100%;
             min-height: 150px; /* Increase textarea height */
             font-family: inherit;
             padding: 8px;
         }
-        .entry-form input[type="text"] {
+        #afct-history-container .entry-form input[type="text"] {
             width: 100%;
             padding: 8px;
         }
-        .entry-form label {
+        #afct-history-container .entry-form label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
-        .visualization-section {
+        #afct-history-container .visualization-section {
             margin-top: 20px;
             padding-top: 15px;
             border-top: 1px solid #eee;
         }
-        .animation-section {
+        #afct-history-container .animation-section {
             border-top: 1px solid #ddd;
             margin-top: 15px;
             padding-top: 15px;
         }
-        .animation-type-options {
+        #afct-history-container .animation-type-options {
             margin-bottom: 10px;
         }
-        .animation-fields {
+        #afct-history-container .animation-fields {
             margin-top: 10px;
         }
-        .coordinate-field {
+        #afct-history-container .coordinate-field {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 5px;
         }
-        .coordinate-field input {
+        #afct-history-container .coordinate-field input {
             width: 80px;
         }
-        .coordinate-field label {
+        #afct-history-container .coordinate-field label {
             min-width: 80px;
         }
-        .multi-point-container {
+        #afct-history-container .multi-point-container {
             border: 1px solid #ddd;
             padding: 10px;
             margin-top: 10px;
             background-color: #f0f0f0;
         }
-        .point-pair {
+        #afct-history-container .point-pair {
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
@@ -123,11 +138,11 @@ function afct_history_meta_box_callback($post) {
             background-color: #fff;
             border: 1px solid #eee;
         }
-        .point-pair-label {
+        #afct-history-container .point-pair-label {
             font-weight: bold;
             min-width: 70px;
         }
-        .map-preview {
+        #afct-history-container .map-preview {
             width: 100%;
             height: 300px;
             border: 1px solid #ddd;
@@ -135,14 +150,14 @@ function afct_history_meta_box_callback($post) {
             background-color: #f0f0f0;
             position: relative;
         }
-        .map-preview-label {
+        #afct-history-container .map-preview-label {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             color: #999;
         }
-        .map-preview-container {
+        #afct-history-container .map-preview-container {
             width: 100%;
             height: 300px;
             border: 1px solid #ddd;
@@ -150,38 +165,38 @@ function afct_history_meta_box_callback($post) {
             box-sizing: border-box; /* Include padding and border in the element's width */
             overflow: hidden; /* Prevent content from overflowing */
         }
-        .sort-handle {
+        #afct-history-container .sort-handle {
             cursor: move;
             padding: 5px;
             margin-right: 10px;
             color: #999;
         }
-        .languages-field {
+        #afct-history-container .languages-field {
             margin-top: 10px;
         }
-        .languages-field input {
+        #afct-history-container .languages-field input {
             width: 100%;
         }
-        .dots-coordinates {
+        #afct-history-container .dots-coordinates {
             margin-top: 10px;
             border: 1px solid #eee;
             padding: 10px;
             background-color: #f9f9f9;
         }
-        .dots-coordinates h5 {
+        #afct-history-container .dots-coordinates h5 {
             margin-top: 0;
             margin-bottom: 10px;
         }
-        .dot-coordinate-pair {
+        #afct-history-container .dot-coordinate-pair {
             display: flex;
             align-items: center;
             margin-bottom: 5px;
         }
-        .dot-coordinate-pair input {
+        #afct-history-container .dot-coordinate-pair input {
             width: 80px;
             margin-right: 5px;
         }
-        .remove-dot-coordinate {
+        #afct-history-container .remove-dot-coordinate {
             padding: 0 5px !important;
             min-height: 0 !important;
             height: 25px !important;
@@ -189,11 +204,13 @@ function afct_history_meta_box_callback($post) {
         }
     </style>
 
-    <div style="margin-bottom: 15px;">
-        <button type="button" id="add-history-entry" class="button button-primary">Add New History Entry</button>
-    </div>
+    <!-- Wrap everything in a container to scope our styles -->
+    <div id="afct-history-container">
+        <div style="margin-bottom: 15px;">
+            <button type="button" id="add-history-entry" class="button button-primary">Add New History Entry</button>
+        </div>
 
-    <div id="history-entries-container">
+        <div id="history-entries-container">
         <?php if (!empty($history_entries)): ?>
             <?php foreach ($history_entries as $index => $entry): ?>
                 <div class="history-entry" data-index="<?php echo $index; ?>">
@@ -435,150 +452,144 @@ function afct_history_meta_box_callback($post) {
                             <!-- Map Preview -->
                             <div class="map-preview full-width">
                                 <h4>Map Preview</h4>
-                                <div id="map-preview-container-<?php echo $index; ?>" class="map-preview-container"></div>
+                                <div id="map-preview-container-<?php echo $index; ?>" class="map-preview-container" data-entry-index="<?php echo $index; ?>" data-visualizations='<?php echo json_encode($entry['visualizations'] ?? []); ?>'></div>
                             </div>
-
-                            <script>
-                                // Initialize map preview for this entry
-                                jQuery(document).ready(function($) {
-
-                                    // Make sure D3 is loaded
-                                    if (typeof d3 !== 'undefined' && typeof topojson !== 'undefined') {
-                                        initMapPreview(<?php echo $index; ?>, <?php echo json_encode($entry['visualizations'] ?? []); ?>);
-                                    } else {
-                                        console.error('D3 or topojson not loaded for map preview');
-                                    }
-                                });
-
-                                function initMapPreview(entryIndex, visualizations) {
-                                    const containerId = `map-preview-container-${entryIndex}`;
-                                    const container = document.getElementById(containerId);
-                                    if (!container) return;
-                                    
-                                    // Clear previous content
-                                    container.innerHTML = '';
-                                    
-                                    // Set dimensions
-                                    const width = container.clientWidth || 400;
-                                    const height = 300;
-                                    
-                                    // Create SVG
-                                    const svg = d3.select(container)
-                                        .append("svg")
-                                        .attr("width", width)
-                                        .attr("height", height)
-                                        .attr("viewBox", `0 0 ${width} ${height}`);
-                                    
-                                    // Create projection
-                                    const projection = d3.geoMercator()
-                                        .center([25, 0])
-                                        .scale(width / 3)
-                                        .translate([width / 2, height / 2]);
-                                    
-                                    // Create path generator
-                                    const path = d3.geoPath().projection(projection);
-                                    
-                                    // Load and render Africa topojson
-                                    d3.json('<?php echo get_template_directory_uri(); ?>/js/countries-110m.json')
-                                        .then(function(data) {
-                                            // Draw Africa map
-                                            svg.append("g")
-                                                .selectAll("path")
-                                                .data(topojson.feature(data, data.objects.countries).features)
-                                                .enter()
-                                                .append("path")
-                                                .attr("d", path)
-                                                .attr("fill", "#ccc")
-                                                .attr("stroke", "#fff")
-                                                .attr("stroke-width", 0.5);
-                                            
-                                            // Add visualizations
-                                            if (visualizations && visualizations.length) {
-                                                visualizations.forEach(viz => {
-                                                    if (!viz.origin) return;
-                                                    
-                                                    const originPos = projection(viz.origin);
-                                                    
-                                                    if (viz.type === 'arrow' && viz.destination) {
-                                                        const destPos = projection(viz.destination);
-                                                        
-                                                        // Draw arrow line
-                                                        svg.append("path")
-                                                            .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`)
-                                                            .attr("stroke", "#f00")
-                                                            .attr("stroke-width", 2)
-                                                            .attr("stroke-dasharray", "5,5");
-                                                        
-                                                        // Draw origin point
-                                                        svg.append("circle")
-                                                            .attr("cx", originPos[0])
-                                                            .attr("cy", originPos[1])
-                                                            .attr("r", 5)
-                                                            .attr("fill", "#f00");
-                                                    } 
-                                                    else if (viz.type === 'dot') {
-                                                        // Draw dot
-                                                        svg.append("circle")
-                                                            .attr("cx", originPos[0])
-                                                            .attr("cy", originPos[1])
-                                                            .attr("r", 8)
-                                                            .attr("fill", "#ff9800");
-                                                    }
-                                                    else if (viz.type === 'dots') {
-                                                        // Draw main dot
-                                                        svg.append("circle")
-                                                            .attr("cx", originPos[0])
-                                                            .attr("cy", originPos[1])
-                                                            .attr("r", 10)
-                                                            .attr("fill", "#2ca02c")
-                                                            .attr("opacity", 0.7);
-                                                        
-                                                        // Draw smaller dots for coordinates
-                                                        if (viz.dotCoordinates && viz.dotCoordinates.length) {
-                                                            viz.dotCoordinates.forEach((coord, i) => {
-                                                                const dotPos = projection(coord);
-                                                                
-                                                                svg.append("circle")
-                                                                    .attr("cx", dotPos[0])
-                                                                    .attr("cy", dotPos[1])
-                                                                    .attr("r", 5)
-                                                                    .attr("fill", "#2ca02c")
-                                                                    .attr("opacity", 0.7);
-                                                            });
-                                                        }
-                                                    }
-                                                });
-                                            }
-                                        })
-                                        .catch(error => console.error("Error loading map data:", error));
-                                }
-                            </script>
                             </div>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
-    </div>
-    
-    <!-- JSON Import Section -->
-    <div class="json-import-section" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border: 1px solid #ddd;">
-        <h3>Import History Timeline Data</h3>
-        <p>Paste JSON data to import history timeline entries. This will replace all existing entries.</p>
-        <textarea id="json-import-data" rows="10" style="width: 100%; font-family: monospace;"></textarea>
-        <div style="margin-top: 10px;">
-            <button type="button" id="validate-json" class="button">Validate JSON</button>
-            <button type="button" id="import-json" class="button button-primary" style="margin-left: 10px;">Import JSON</button>
-            <span id="json-validation-result" style="margin-left: 10px;"></span>
+        </div>
+        
+        <!-- JSON Import Section -->
+        <div class="json-import-section" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border: 1px solid #ddd;">
+            <h3>Import History Timeline Data</h3>
+            <p>Paste JSON data to import history timeline entries. This will replace all existing entries.</p>
+            <textarea id="json-import-data" rows="10" style="width: 100%; font-family: monospace;"></textarea>
+            <div style="margin-top: 10px;">
+                <button type="button" id="validate-json" class="button">Validate JSON</button>
+                <button type="button" id="import-json" class="button button-primary" style="margin-left: 10px;">Import JSON</button>
+                <span id="json-validation-result" style="margin-left: 10px;"></span>
+            </div>
         </div>
     </div>
     
     <script>
         jQuery(document).ready(function($) {
+            // Initialize map previews for all entries
+            $('.map-preview-container').each(function() {
+                const container = $(this);
+                const entryIndex = container.data('entry-index');
+                const visualizations = container.data('visualizations');
+                initMapPreview(container[0], visualizations);
+            });
 
+            function initMapPreview(container, visualizations) {
+                if (!container) return;
+                
+                // Clear previous content
+                container.innerHTML = '';
+                
+                // Set dimensions
+                const width = container.clientWidth || 400;
+                const height = 300;
+                
+                // Create SVG
+                const svg = d3.select(container)
+                    .append("svg")
+                    .attr("width", width)
+                    .attr("height", height)
+                    .attr("viewBox", `0 0 ${width} ${height}`);
+                
+                // Create projection
+                const projection = d3.geoMercator()
+                    .center([25, 0])
+                    .scale(width / 3)
+                    .translate([width / 2, height / 2]);
+                
+                // Create path generator
+                const path = d3.geoPath().projection(projection);
+                
+                // Load and render Africa topojson
+                d3.json('<?php echo get_template_directory_uri(); ?>/js/countries-110m.json')
+                    .then(function(data) {
+                        // Draw Africa map
+                        svg.append("g")
+                            .selectAll("path")
+                            .data(topojson.feature(data, data.objects.countries).features)
+                            .enter()
+                            .append("path")
+                            .attr("d", path)
+                            .attr("fill", "#ccc")
+                            .attr("stroke", "#fff")
+                            .attr("stroke-width", 0.5);
+                        
+                        // Add visualizations
+                        if (visualizations && visualizations.length) {
+                            visualizations.forEach(viz => {
+                                if (!viz.origin) return;
+                                
+                                const originPos = projection(viz.origin);
+                                
+                                if (viz.type === 'arrow' && viz.destination) {
+                                    const destPos = projection(viz.destination);
+                                    
+                                    // Draw arrow line
+                                    svg.append("path")
+                                        .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`)
+                                        .attr("stroke", "#f00")
+                                        .attr("stroke-width", 2)
+                                        .attr("stroke-dasharray", "5,5");
+                                    
+                                    // Draw origin point
+                                    svg.append("circle")
+                                        .attr("cx", originPos[0])
+                                        .attr("cy", originPos[1])
+                                        .attr("r", 5)
+                                        .attr("fill", "#f00");
+                                } 
+                                else if (viz.type === 'dot') {
+                                    // Draw dot
+                                    svg.append("circle")
+                                        .attr("cx", originPos[0])
+                                        .attr("cy", originPos[1])
+                                        .attr("r", 8)
+                                        .attr("fill", "#ff9800");
+                                }
+                                else if (viz.type === 'dots') {
+                                    // Draw main dot
+                                    svg.append("circle")
+                                        .attr("cx", originPos[0])
+                                        .attr("cy", originPos[1])
+                                        .attr("r", 10)
+                                        .attr("fill", "#2ca02c")
+                                        .attr("opacity", 0.7);
+                                    
+                                    // Draw smaller dots for coordinates
+                                    if (viz.dotCoordinates && viz.dotCoordinates.length) {
+                                        viz.dotCoordinates.forEach((coord, i) => {
+                                            const dotPos = projection(coord);
+                                            
+                                            svg.append("circle")
+                                                .attr("cx", dotPos[0])
+                                                .attr("cy", dotPos[1])
+                                                .attr("r", 5)
+                                                .attr("fill", "#2ca02c")
+                                                .attr("opacity", 0.7);
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => console.error("Error loading map data:", error));
+            }
+
+            // Ensure WordPress admin UI is not affected
             $('.meta-box-sortables').sortable({
-                                        disabled: true
-                                    });
+                disabled: true
+            });
 
             $('.postbox .hndle').css('cursor', 'pointer');
 

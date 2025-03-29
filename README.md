@@ -37,7 +37,6 @@ The timeline supports three types of visualizations:
 3. **Dots** (`type: "dots"`):
    - `origin`: [longitude, latitude] coordinates for the central point
    - `label`: Optional text label
-   - `languages`: Array of language names
    - `dotCoordinates`: Array of coordinate pairs for precise dot placement
      ```json
      "dotCoordinates": [
@@ -63,7 +62,6 @@ The timeline supports three types of visualizations:
         "type": "dots",
         "label": "Bantu Language Distribution",
         "origin": [25.0, -29.0],
-        "languages": ["Zulu", "Xhosa", "Sotho"],
         "dotCoordinates": [
           [24.0, -28.5],
           [26.0, -29.5],
