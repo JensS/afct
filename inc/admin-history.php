@@ -716,10 +716,12 @@ function afct_history_meta_box_callback($post) {
                 
                 // Show the form for the new entry
                 $('.history-entry').last().find('.entry-form').show();
-                
-                // Initialize visualisation type change handler for the new entry
-                initVisualisationTypeHandlers(newIndex);
-                initAnimationTypeHandlers(newIndex);
+            
+                // Initialize visualization type handlers for the new entry
+                const $newEntry = $('.history-entry').last();
+                $newEntry.find('.viz-type-select').each(function() {
+                    $(this).trigger('change');
+                });
             });
             
             // Function to reindex entries after sorting or removal
