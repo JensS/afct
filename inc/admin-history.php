@@ -55,10 +55,35 @@ function afct_history_meta_box_callback($post) {
         .entry-form {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 15px;
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #eee;
+            margin-top: 10px;
         }
         .entry-form .full-width {
             grid-column: 1 / 3;
+            margin-top: 10px;
+        }
+        .entry-form textarea {
+            width: 100%;
+            min-height: 150px; /* Increase textarea height */
+            font-family: inherit;
+            padding: 8px;
+        }
+        .entry-form input[type="text"] {
+            width: 100%;
+            padding: 8px;
+        }
+        .entry-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .visualization-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
         }
         .animation-section {
             border-top: 1px solid #ddd;
@@ -122,6 +147,8 @@ function afct_history_meta_box_callback($post) {
             height: 300px;
             border: 1px solid #ddd;
             background-color: #f8f8f8;
+            box-sizing: border-box; /* Include padding and border in the element's width */
+            overflow: hidden; /* Prevent content from overflowing */
         }
         .sort-handle {
             cursor: move;
@@ -161,6 +188,10 @@ function afct_history_meta_box_callback($post) {
             line-height: 1 !important;
         }
     </style>
+
+    <div style="margin-bottom: 15px;">
+        <button type="button" id="add-history-entry" class="button button-primary">Add New History Entry</button>
+    </div>
 
     <div id="history-entries-container">
         <?php if (!empty($history_entries)): ?>
@@ -206,7 +237,7 @@ function afct_history_meta_box_callback($post) {
                         
                         <!-- Title and Paragraph Fields -->
                         <div class="full-width">
-                            <div>
+                            <div style="margin-bottom: 15px;">
                                 <label for="entry_title_<?php echo $index; ?>">Title:</label>
                                 <input type="text" id="entry_title_<?php echo $index; ?>" 
                                        name="history_entries[<?php echo $index; ?>][title]" 
@@ -216,7 +247,7 @@ function afct_history_meta_box_callback($post) {
                                 <label for="entry_paragraph_<?php echo $index; ?>">Paragraph:</label>
                                 <textarea id="entry_paragraph_<?php echo $index; ?>" 
                                           name="history_entries[<?php echo $index; ?>][paragraph]" 
-                                          rows="4"><?php echo esc_textarea($entry['paragraph'] ?? ''); ?></textarea>
+                                          rows="8"><?php echo esc_textarea($entry['paragraph'] ?? ''); ?></textarea>
                             </div>
                         </div>
                         
@@ -529,7 +560,17 @@ function afct_history_meta_box_callback($post) {
         <?php endif; ?>
     </div>
     
-    <button type="button" id="add-history-entry" class="button button-primary">Add New History Entry</button>
+    <!-- JSON Import Section -->
+    <div class="json-import-section" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border: 1px solid #ddd;">
+        <h3>Import History Timeline Data</h3>
+        <p>Paste JSON data to import history timeline entries. This will replace all existing entries.</p>
+        <textarea id="json-import-data" rows="10" style="width: 100%; font-family: monospace;"></textarea>
+        <div style="margin-top: 10px;">
+            <button type="button" id="validate-json" class="button">Validate JSON</button>
+            <button type="button" id="import-json" class="button button-primary" style="margin-left: 10px;">Import JSON</button>
+            <span id="json-validation-result" style="margin-left: 10px;"></span>
+        </div>
+    </div>
     
     <script>
         jQuery(document).ready(function($) {
@@ -681,7 +722,7 @@ function afct_history_meta_box_callback($post) {
                         
                         <!-- Title and Paragraph Fields -->
                         <div class="full-width">
-                            <div>
+                            <div style="margin-bottom: 15px;">
                                 <label for="entry_title_${newIndex}">Title:</label>
                                 <input type="text" id="entry_title_${newIndex}" 
                                        name="history_entries[${newIndex}][title]" 
@@ -691,7 +732,7 @@ function afct_history_meta_box_callback($post) {
                                 <label for="entry_paragraph_${newIndex}">Paragraph:</label>
                                 <textarea id="entry_paragraph_${newIndex}" 
                                           name="history_entries[${newIndex}][paragraph]" 
-                                          rows="4"></textarea>
+                                          rows="8"></textarea>
                             </div>
                         </div>
                         
@@ -844,6 +885,228 @@ function afct_history_meta_box_callback($post) {
             $('.viz-type-select').each(function() {
                 $(this).trigger('change');
             });
+            
+            // JSON Import functionality
+            $('#validate-json').on('click', function() {
+                const jsonData = $('#json-import-data').val();
+                try {
+                    const data = JSON.parse(jsonData);
+                    if (!Array.isArray(data)) {
+                        $('#json-validation-result').html('<span style="color: red;">Invalid format: JSON must be an array</span>');
+                        return;
+                    }
+                    
+                    // Check if each item has required fields
+                    let isValid = true;
+                    let errorMessage = '';
+                    
+                    data.forEach((item, index) => {
+                        if (!item.year_start) {
+                            isValid = false;
+                            errorMessage = `Item at index ${index} is missing required field: year_start`;
+                            return false;
+                        }
+                    });
+                    
+                    if (isValid) {
+                        $('#json-validation-result').html('<span style="color: green;">JSON is valid ✓</span>');
+                    } else {
+                        $('#json-validation-result').html(`<span style="color: red;">Invalid JSON: ${errorMessage}</span>`);
+                    }
+                } catch (e) {
+                    $('#json-validation-result').html(`<span style="color: red;">Invalid JSON: ${e.message}</span>`);
+                }
+            });
+
+            $('#import-json').on('click', function() {
+                const jsonData = $('#json-import-data').val();
+                try {
+                    const data = JSON.parse(jsonData);
+                    if (!Array.isArray(data)) {
+                        alert('Invalid format: JSON must be an array');
+                        return;
+                    }
+                    
+                    if (confirm('This will replace all existing history entries. Are you sure you want to continue?')) {
+                        // Clear existing entries
+                        $('#history-entries-container').empty();
+                        
+                        // Import new entries
+                        data.forEach((item, index) => {
+                            // Create a new entry with the imported data
+                            const newIndex = index;
+                            const entryTemplate = `
+                            <div class="history-entry" data-index="${newIndex}">
+                                <div class="entry-header">
+                                    <span class="sort-handle">☰</span>
+                                    <span class="entry-title">
+                                        ${item.title || 'New Entry'} (${item.year_start})
+                                    </span>
+                                    <div class="entry-actions">
+                                        <button type="button" class="button toggle-entry-form">Edit</button>
+                                        <button type="button" class="button remove-entry">Remove</button>
+                                    </div>
+                                </div>
+                                <div class="entry-form" style="display: none;">
+                                    <div>
+                                        <label for="entry_year_start_${newIndex}">Year Start:</label>
+                                        <input type="number" id="entry_year_start_${newIndex}" 
+                                               name="history_entries[${newIndex}][year_start]" 
+                                               value="${item.year_start}" required>
+                                    </div>
+                                    <div>
+                                        <label for="entry_map_zoom_${newIndex}">Map Zoom:</label>
+                                        <select id="entry_map_zoom_${newIndex}" 
+                                                name="history_entries[${newIndex}][map_zoom]">
+                                            <?php foreach ($zoom_options as $value => $label): ?>
+                                                <option value="<?php echo esc_attr($value); ?>"
+                                                    ${item.map_zoom === '<?php echo esc_attr($value); ?>' ? 'selected' : ''}>
+                                                    <?php echo esc_html($label); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Title and Paragraph Fields -->
+                                    <div class="full-width">
+                                        <div style="margin-bottom: 15px;">
+                                            <label for="entry_title_${newIndex}">Title:</label>
+                                            <input type="text" id="entry_title_${newIndex}" 
+                                                   name="history_entries[${newIndex}][title]" 
+                                                   value="${item.title || ''}">
+                                        </div>
+                                        <div>
+                                            <label for="entry_paragraph_${newIndex}">Paragraph:</label>
+                                            <textarea id="entry_paragraph_${newIndex}" 
+                                                      name="history_entries[${newIndex}][paragraph]" 
+                                                      rows="8">${item.paragraph || ''}</textarea>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Visualizations Section -->
+                                    <div class="visualization-section full-width">
+                                        <h4>Visualizations</h4>
+                                        
+                                        <div class="visualizations-container" data-index="${newIndex}">
+                                            <!-- Visualizations will be added here -->
+                                        </div>
+                                        
+                                        <button type="button" class="button add-visualization" data-entry-index="${newIndex}">
+                                            Add Visualization
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+                            
+                            $('#history-entries-container').append(entryTemplate);
+                            
+                            // Add visualizations if they exist
+                            if (item.visualizations && item.visualizations.length) {
+                                const $container = $(`.visualizations-container[data-index="${newIndex}"]`);
+                                
+                                item.visualizations.forEach((viz, vizIndex) => {
+                                    addVisualizationFromData($container, newIndex, vizIndex, viz);
+                                });
+                            }
+                        });
+                        
+                        reindexEntries();
+                        $('#json-validation-result').html('<span style="color: green;">Import successful ✓</span>');
+                    }
+                } catch (e) {
+                    alert(`Invalid JSON: ${e.message}`);
+                }
+            });
+
+            // Helper function to add visualization from imported data
+            function addVisualizationFromData($container, entryIndex, vizIndex, vizData) {
+                const vizTemplate = `
+                <div class="visualization-item" data-viz-index="${vizIndex}">
+                    <div class="viz-header">
+                        <span>Visualization ${vizIndex + 1}</span>
+                        <button type="button" class="button remove-viz">Remove</button>
+                    </div>
+                    
+                    <div class="viz-type">
+                        <label>Type:</label>
+                        <select name="history_entries[${entryIndex}][visualizations][${vizIndex}][type]" class="viz-type-select">
+                            <?php foreach ($visualization_types as $value => $label): ?>
+                                <option value="<?php echo esc_attr($value); ?>"
+                                    ${vizData.type === '<?php echo esc_attr($value); ?>' ? 'selected' : ''}>
+                                    <?php echo esc_html($label); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="viz-label">
+                        <label>Label:</label>
+                        <input type="text" 
+                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][label]" 
+                               value="${vizData.label || ''}">
+                    </div>
+                    
+                    <div class="viz-origin">
+                        <label>Origin Point:</label>
+                        <input type="number" step="0.01" 
+                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][origin][0]" 
+                               placeholder="Longitude" 
+                               value="${vizData.origin ? vizData.origin[0] : ''}">
+                        <input type="number" step="0.01" 
+                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][origin][1]" 
+                               placeholder="Latitude" 
+                               value="${vizData.origin ? vizData.origin[1] : ''}">
+                    </div>
+                    
+                    <div class="viz-destination" style="${vizData.type !== 'arrow' ? 'display:none' : ''}">
+                        <label>Destination Point:</label>
+                        <input type="number" step="0.01" 
+                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][destination][0]" 
+                               placeholder="Longitude" 
+                               value="${vizData.destination ? vizData.destination[0] : ''}">
+                        <input type="number" step="0.01" 
+                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][destination][1]" 
+                               placeholder="Latitude" 
+                               value="${vizData.destination ? vizData.destination[1] : ''}">
+                    </div>
+                    
+                    <div class="viz-languages" style="${vizData.type !== 'dots' ? 'display:none' : ''}">
+                        <label>Languages (comma-separated):</label>
+                        <input type="text" 
+                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][languages]" 
+                               placeholder="e.g., zulu, xhosa, afrikaans" 
+                               value="${vizData.languages ? (Array.isArray(vizData.languages) ? vizData.languages.join(', ') : vizData.languages) : ''}">
+                        
+                        <div class="dots-coordinates">
+                            <h5>Dot Coordinates</h5>
+                            <div class="dots-coordinates-container">
+                                ${vizData.dotCoordinates && vizData.dotCoordinates.length ? 
+                                  vizData.dotCoordinates.map((coord, dotIndex) => `
+                                    <div class="dot-coordinate-pair">
+                                        <input type="number" step="0.01" 
+                                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][dotCoordinates][${dotIndex}][0]" 
+                                               placeholder="Longitude" 
+                                               value="${coord[0]}">
+                                        <input type="number" step="0.01" 
+                                               name="history_entries[${entryIndex}][visualizations][${vizIndex}][dotCoordinates][${dotIndex}][1]" 
+                                               placeholder="Latitude" 
+                                               value="${coord[1]}">
+                                        <button type="button" class="button remove-dot-coordinate">×</button>
+                                    </div>
+                                  `).join('') : ''}
+                            </div>
+                            <button type="button" class="button add-dot-coordinate">Add Dot Coordinate</button>
+                        </div>
+                    </div>
+                </div>
+                `;
+                
+                $container.append(vizTemplate);
+                
+                // Initialize visualization type change handler
+                initVizTypeHandlers(entryIndex, vizIndex);
+            }
         });
     </script>
     <?php
