@@ -252,7 +252,10 @@
                              data-id="${item.id}" 
                              data-year-start="${item.year_start}">
                             <div class="content-wrapper">
-                                <div class="year">${item.year_start}</div>
+                                <div class="year">
+                                    ${item.year_start}
+                                    ${(item.year_end && item.year_end !== item.year_start) ? ` - ${item.year_end}` : ''}
+                                </div>
                                 <h3>${item.title}</h3>
                                 <p>${item.paragraph}</p>
                             </div>
