@@ -28,7 +28,9 @@
                      echo esc_attr(json_encode($history_entries)); 
                  ?>">
             </div>
-            <div class="timeline-markers"></div>
+            <div class="timeline-markers">
+                <div id="active-marker-line"></div>
+            </div>
         </div>
         
         <!-- Timeline content will be dynamically generated  -->

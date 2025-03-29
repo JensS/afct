@@ -105,13 +105,17 @@
     transform-origin: top center;
 }
 
-.timeline-marker.active {
-    font-weight: bold;
-}
-
-.timeline-marker.active {
-    width: 2px;
-    background-color: var(--red);
+#active-marker-line {
+    position: absolute;
+    top: 0;
+    height: 100%; /* Match the height of .timeline-markers */
+    width: 1px;   /* Thin line */
+    background-color: var(--red); /* Or a distinct highlight color */
+    left: 0; /* Initial position */
+    transform: translateX(0); /* Initial transform */
+    transition: transform 0.4s ease-in-out; /* Smooth transition */
+    z-index: 16; /* Ensure it's above markers but potentially below other UI */
+    pointer-events: none; /* Don't interfere with clicks */
 }
 
 .chapter-marker {

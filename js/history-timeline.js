@@ -500,26 +500,38 @@
             }
         }
 
-        // Update timeline marker
+        // Update the position of the active marker line
         function updateTimelineMarker(year) {
-            $(".timeline-marker").removeClass("active");
-            
             let closestMarker = null;
             let minDiff = Infinity;
-            
+            const timelineMarkersContainer = $(".timeline-markers"); // Get the container
+
+            // Find the marker closest to the target year
             $(".timeline-marker").each(function() {
                 const marker = $(this);
                 const markerYear = parseInt(marker.attr("data-year"));
                 const diff = Math.abs(markerYear - year);
-                
+
                 if (diff < minDiff) {
                     minDiff = diff;
                     closestMarker = marker;
                 }
             });
-            
-            if (closestMarker) {
-                closestMarker.addClass("active");
+
+            if (closestMarker && timelineMarkersContainer.length > 0) {
+                // Calculate the horizontal center position of the closest marker
+                // relative to the timelineMarkersContainer's padding box
+                const containerOffset = timelineMarkersContainer.offset().left;
+                const markerOffset = closestMarker.offset().left;
+                const markerWidth = closestMarker.outerWidth();
+
+                // Calculate the target X position for the center of the marker
+                // relative to the container's left edge.
+                const targetX = markerOffset - containerOffset + (markerWidth / 2);
+
+                // Select the active marker line and apply the transform
+                // Subtract half the line's width (0.5px) to center the 1px line
+                $('#active-marker-line').css('transform', `translateX(${targetX - 0.5}px)`);
             }
         }
 
