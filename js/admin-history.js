@@ -103,6 +103,28 @@ jQuery(document).ready(function($) {
                                 });
                             }
                         }
+                        else if (viz.type === 'arrows' && viz.arrows && viz.arrows.length) { // Add this else if block
+                            viz.arrows.forEach(arrow => {
+                                if (arrow.origin && arrow.destination) {
+                                    const arrowOriginPos = projection(arrow.origin);
+                                    const arrowDestPos = projection(arrow.destination);
+
+                                    // Draw arrow line
+                                    svg.append("path")
+                                        .attr("d", `M${arrowOriginPos[0]},${arrowOriginPos[1]} L${arrowDestPos[0]},${arrowDestPos[1]}`)
+                                        .attr("stroke", "#00f") // Use a different color (e.g., blue)
+                                        .attr("stroke-width", 2)
+                                        .attr("stroke-dasharray", "4,4"); // Different dash style
+
+                                    // Draw origin point
+                                    svg.append("circle")
+                                        .attr("cx", arrowOriginPos[0])
+                                        .attr("cy", arrowOriginPos[1])
+                                        .attr("r", 4) // Slightly smaller radius
+                                        .attr("fill", "#00f");
+                                }
+                            });
+                        }
                     });
                 }
             })
@@ -199,6 +221,16 @@ jQuery(document).ready(function($) {
                         <!-- Coordinate pairs go here -->
                     </div>
                     <button type="button" class="button add-dot-coordinate">Add Dot Coordinate</button>
+                </div>
+            </div>
+
+            <div class="viz-arrows-details" style="display:none">
+                <div class="arrows-coordinates">
+                    <h5>Arrows (Origin → Destination)</h5>
+                    <div class="arrows-coordinates-container">
+                        <!-- Arrow coordinate pairs go here -->
+                    </div>
+                    <button type="button" class="button add-arrow-coordinate">Add Arrow</button>
                 </div>
             </div>
         </div>
@@ -698,6 +730,39 @@ jQuery(document).ready(function($) {
                           `).join('') : ''}
                     </div>
                     <button type="button" class="button add-dot-coordinate">Add Dot Coordinate</button>
+                </div>
+            </div>
+
+            <div class="viz-arrows-details" style="${vizData.type !== 'arrows' ? 'display:none' : ''}">
+                <div class="arrows-coordinates">
+                    <h5>Arrows (Origin → Destination)</h5>
+                    <div class="arrows-coordinates-container">
+                        ${vizData.arrows && vizData.arrows.length ?
+                          vizData.arrows.map((arrow, arrowIndex) => `
+                            <div class="arrow-coordinate-pair">
+                                <label>Arrow ${arrowIndex + 1}:</label>
+                                <input type="number" step="0.01"
+                                       name="history_entries[${entryIndex}][visualizations][${vizIndex}][arrows][${arrowIndex}][origin][0]"
+                                       placeholder="Origin Lon"
+                                       value="${arrow.origin ? arrow.origin[0] : ''}">
+                                <input type="number" step="0.01"
+                                       name="history_entries[${entryIndex}][visualizations][${vizIndex}][arrows][${arrowIndex}][origin][1]"
+                                       placeholder="Origin Lat"
+                                       value="${arrow.origin ? arrow.origin[1] : ''}">
+                                <span>→</span>
+                                <input type="number" step="0.01"
+                                       name="history_entries[${entryIndex}][visualizations][${vizIndex}][arrows][${arrowIndex}][destination][0]"
+                                       placeholder="Dest Lon"
+                                       value="${arrow.destination ? arrow.destination[0] : ''}">
+                                <input type="number" step="0.01"
+                                       name="history_entries[${entryIndex}][visualizations][${vizIndex}][arrows][${arrowIndex}][destination][1]"
+                                       placeholder="Dest Lat"
+                                       value="${arrow.destination ? arrow.destination[1] : ''}">
+                                <button type="button" class="button remove-arrow-coordinate">×</button>
+                            </div>
+                          `).join('') : ''}
+                    </div>
+                    <button type="button" class="button add-arrow-coordinate">Add Arrow</button>
                 </div>
             </div>
         </div>

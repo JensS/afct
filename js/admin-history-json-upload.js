@@ -67,6 +67,17 @@ jQuery(document).ready(function($) {
                                 if (!viz.type) {
                                     viz.type = 'dot'; // Default value
                                 }
+                                // Add validation/default for arrows type
+                                if (viz.type === 'arrows') {
+                                    if (!viz.arrows || !Array.isArray(viz.arrows)) {
+                                        viz.arrows = []; // Ensure arrows is an array
+                                    }
+                                    // Optionally, validate each arrow object within the array
+                                    viz.arrows = viz.arrows.filter(arrow =>
+                                        arrow && arrow.origin && Array.isArray(arrow.origin) && arrow.origin.length >= 2 &&
+                                        arrow.destination && Array.isArray(arrow.destination) && arrow.destination.length >= 2
+                                    );
+                                }
                             });
                         }
                     });

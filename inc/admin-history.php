@@ -492,6 +492,33 @@ function afct_save_history_meta_box_data($post_id) {
                             }
                         }
                     }
+
+                    // Add arrows for arrows type
+                    if ($sanitized_viz['type'] === 'arrows') {
+                        if (isset($viz['arrows']) && is_array($viz['arrows'])) {
+                            $sanitized_viz['arrows'] = [];
+                            foreach ($viz['arrows'] as $arrow) {
+                                if (is_array($arrow) && isset($arrow['origin']) && is_array($arrow['origin']) && isset($arrow['destination']) && is_array($arrow['destination'])) {
+                                    $sanitized_arrow = [
+                                        'origin' => [
+                                            isset($arrow['origin'][0]) ? floatval($arrow['origin'][0]) : 0,
+                                            isset($arrow['origin'][1]) ? floatval($arrow['origin'][1]) : 0
+                                        ],
+                                        'destination' => [
+                                            isset($arrow['destination'][0]) ? floatval($arrow['destination'][0]) : 0,
+                                            isset($arrow['destination'][1]) ? floatval($arrow['destination'][1]) : 0
+                                        ]
+                                    ];
+                                    // Only add if both origin and destination seem valid (at least have values)
+                                    if ($sanitized_arrow['origin'][0] !== 0 || $sanitized_arrow['origin'][1] !== 0 || $sanitized_arrow['destination'][0] !== 0 || $sanitized_arrow['destination'][1] !== 0) {
+                                        $sanitized_viz['arrows'][] = $sanitized_arrow;
+                                    }
+                                }
+                            }
+                        } else {
+                             $sanitized_viz['arrows'] = []; // Ensure it's an empty array if not set or not an array
+                        }
+                    }
                     
                     $sanitized_entry['visualizations'][] = $sanitized_viz;
                 }
