@@ -62,7 +62,12 @@ function afct_history_meta_box_callback($post) {
                                    name="history_entries[<?php echo $index; ?>][year_start]" 
                                    value="<?php echo esc_attr($entry['year_start']); ?>" required>
                         </div>
-                        <!-- Year End field removed -->
+                        <div>
+                            <label for="entry_year_end_<?php echo $index; ?>">Year End (optional):</label>
+                            <input type="number" id="entry_year_end_<?php echo $index; ?>" 
+                                   name="history_entries[<?php echo $index; ?>][year_end]" 
+                                   value="<?php echo esc_attr($entry['year_end'] ?? ''); ?>">
+                        </div>
                         <div>
                             <label for="entry_map_zoom_<?php echo $index; ?>">Map Zoom:</label>
                             <select id="entry_map_zoom_<?php echo $index; ?>" 

@@ -49,6 +49,28 @@ jQuery(document).ready(function($) {
                     // Parse JSON to validate it
                     const jsonData = JSON.parse(jsonString);
                     
+                    // Ensure each entry has the required fields
+                    jsonData.forEach(entry => {
+                        // Make sure year_end is preserved
+                        if (entry.year_end) {
+                            entry.year_end = parseInt(entry.year_end);
+                        }
+                        
+                        // Ensure map_zoom is set
+                        if (!entry.map_zoom) {
+                            entry.map_zoom = 'africa'; // Default value
+                        }
+                        
+                        // Ensure visualizations have type set
+                        if (entry.visualizations && Array.isArray(entry.visualizations)) {
+                            entry.visualizations.forEach(viz => {
+                                if (!viz.type) {
+                                    viz.type = 'dot'; // Default value
+                                }
+                            });
+                        }
+                    });
+                    
                     // Format the JSON with indentation for better readability
                     const formattedJson = JSON.stringify(jsonData, null, 2);
                     

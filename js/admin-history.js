@@ -254,6 +254,12 @@ jQuery(document).ready(function($) {
                            value="">
                 </div>
                 <div>
+                    <label for="entry_year_end_${newIndex}">Year End (optional):</label>
+                    <input type="number" id="entry_year_end_${newIndex}" 
+                           name="history_entries[${newIndex}][year_end]" 
+                           value="">
+                </div>
+                <div>
                     <label for="entry_map_zoom_${newIndex}">Map Zoom:</label>
                     <select id="entry_map_zoom_${newIndex}"                                                                                                                        
                                        name="history_entries[${newIndex}][map_zoom]">                                                                                                         
@@ -498,15 +504,18 @@ jQuery(document).ready(function($) {
                                        value="${item.year_start}" required>
                             </div>
                             <div>
+                                <label for="entry_year_end_${newIndex}">Year End (optional):</label>
+                                <input type="number" id="entry_year_end_${newIndex}" 
+                                       name="history_entries[${newIndex}][year_end]" 
+                                       value="${item.year_end || ''}">
+                            </div>
+                            <div>
                                 <label for="entry_map_zoom_${newIndex}">Map Zoom:</label>
                                 <select id="entry_map_zoom_${newIndex}" 
                                         name="history_entries[${newIndex}][map_zoom]">
-                                    <?php foreach ($zoom_options as $value => $label): ?>
-                                        <option value="<?php echo esc_attr($value); ?>"
-                                            ${item.map_zoom === '<?php echo esc_attr($value); ?>' ? 'selected' : ''}>
-                                            <?php echo esc_html($label); ?>
-                                        </option>
-                                    <?php endforeach; ?>
+                                    ${Object.entries(afctHistoryAdminData.zoomOptions).map(([value, label]) => 
+                                        `<option value="${value}" ${item.map_zoom === value ? 'selected' : ''}>${label}</option>`
+                                    ).join('')}
                                 </select>
                             </div>
                             
@@ -574,12 +583,9 @@ jQuery(document).ready(function($) {
             <div class="viz-type">
                 <label>Type:</label>
                 <select name="history_entries[${entryIndex}][visualizations][${vizIndex}][type]" class="viz-type-select">
-                    <?php foreach ($visualization_types as $value => $label): ?>
-                        <option value="<?php echo esc_attr($value); ?>"
-                            ${vizData.type === '<?php echo esc_attr($value); ?>' ? 'selected' : ''}>
-                            <?php echo esc_html($label); ?>
-                        </option>
-                    <?php endforeach; ?>
+                    ${Object.entries(afctHistoryAdminData.visualizationTypes).map(([value, label]) => 
+                        `<option value="${value}" ${vizData.type === value ? 'selected' : ''}>${label}</option>`
+                    ).join('')}
                 </select>
             </div>
             
