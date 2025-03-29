@@ -329,6 +329,9 @@
                 return;
             }
             
+            // Debug visualization data
+            debugVisualization(item);
+            
             isAnimating = true;
             
             $(".timeline-item").hide();
@@ -353,6 +356,20 @@
                             break;
                         case "dots":
                             createDotsVisualization(viz, item.year_start);
+                            break;
+                        case "arrows": // Add support for multiple arrows
+                            if (viz.arrows && Array.isArray(viz.arrows)) {
+                                viz.arrows.forEach((arrow, i) => {
+                                    const arrowViz = {
+                                        type: "arrow",
+                                        origin: arrow.origin,
+                                        destination: arrow.destination,
+                                        label: i === 0 ? viz.label : null, // Only add label to first arrow
+                                        color: viz.color
+                                    };
+                                    createArrowVisualization(arrowViz, item.year_start);
+                                });
+                            }
                             break;
                     }
                 });
@@ -586,8 +603,17 @@
                     scale = config.mapWidth / 2;
                     break;
                 case "south_africa":
-                    center = [25, -28];
+                    // Move South Africa view higher up to avoid text overlay
+                    center = [25, -25]; // Changed from -28 to -25 to move it up
                     scale = config.mapWidth * 1.2;
+                    break;
+                case "southern_africa": // Add support for southern_africa zoom level from the data
+                    center = [25, -25];
+                    scale = config.mapWidth * 0.8;
+                    break;
+                case "world": // Add support for world zoom level from the data
+                    center = [20, 10];
+                    scale = config.mapWidth / 6;
                     break;
                 default:
                     center = [20, 20];
@@ -726,13 +752,27 @@
                         .attr("x", (originPos[0] + destPos[0]) / 2)
                         .attr("y", (originPos[1] + destPos[1]) / 2 - 10)
                         .attr("text-anchor", "middle")
-                        .attr("fill", "var(--text)")
+                        .attr("fill", "var(--text)") // Use --text CSS variable
                         .text(viz.label)
                         .attr("opacity", 0)
                         .transition()
                         .duration(config.animationDuration)
                         .attr("opacity", 1);
                 }
+            }
+        }
+
+        // Debug function to help diagnose visualization issues
+        function debugVisualization(item) {
+            console.log("Visualizing item:", item);
+            if (item.visualizations) {
+                console.log("Visualizations:", item.visualizations);
+                item.visualizations.forEach((viz, i) => {
+                    console.log(`Visualization ${i}:`, viz);
+                    if (viz.type === "dots" && viz.dotCoordinates) {
+                        console.log("Dot coordinates:", viz.dotCoordinates);
+                    }
+                });
             }
         }
 
@@ -766,7 +806,7 @@
                         .attr("x", pos[0])
                         .attr("y", pos[1] + 20)
                         .attr("text-anchor", "middle")
-                        .attr("fill", "var(--text)")
+                        .attr("fill", "var(--text)") // Use --text CSS variable
                         .text(viz.label)
                         .attr("opacity", 0)
                         .transition()
@@ -801,10 +841,14 @@
                 // Add dot coordinates if available
                 if (viz.dotCoordinates && viz.dotCoordinates.length > 0) {
                     viz.dotCoordinates.forEach((coord, i) => {
-                        if (!coord || !Array.isArray(coord) || coord.length < 2) return;
+                        if (!coord || !Array.isArray(coord) || coord.length < 2) {
+                            console.error("Invalid dot coordinate:", coord);
+                            return;
+                        }
                         
                         const dotPos = projection(coord);
                         
+                        // Add sequential delay for fade-in animation
                         layer.append("circle")
                             .attr("class", `language-bubble ${id}`)
                             .attr("data-x", coord[0])
@@ -817,7 +861,7 @@
                             .attr("opacity", 0)
                             .transition()
                             .duration(config.animationDuration)
-                            .delay(i * 100)
+                            .delay(i * 200) // Increased delay between dots
                             .attr("opacity", 0.7);
                         
                         // If we have labels in the visualization and they match the number of dots, add labels
@@ -835,7 +879,7 @@
                                 .attr("opacity", 0)
                                 .transition()
                                 .duration(config.animationDuration)
-                                .delay(i * 100)
+                                .delay(i * 200) // Match the dot delay
                                 .attr("opacity", 1);
                         }
                     });
@@ -858,7 +902,7 @@
                             .attr("opacity", 0)
                             .transition()
                             .duration(config.animationDuration)
-                            .delay(i * 100)
+                            .delay(i * 200) // Increased delay
                             .attr("opacity", 0.7);
                         
                         layer.append("text")
@@ -866,12 +910,12 @@
                             .attr("x", x)
                             .attr("y", y + 20)
                             .attr("text-anchor", "middle")
-                            .attr("fill", "var(--text)")
+                            .attr("fill", "var(--text)") // Use --text CSS variable
                             .text(label)
                             .attr("opacity", 0)
                             .transition()
                             .duration(config.animationDuration)
-                            .delay(i * 100)
+                            .delay(i * 200) // Match the dot delay
                             .attr("opacity", 1);
                     });
                 }
