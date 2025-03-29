@@ -441,6 +441,7 @@ function afct_history_meta_box_callback($post) {
                             <script>
                                 // Initialize map preview for this entry
                                 jQuery(document).ready(function($) {
+
                                     // Make sure D3 is loaded
                                     if (typeof d3 !== 'undefined' && typeof topojson !== 'undefined') {
                                         initMapPreview(<?php echo $index; ?>, <?php echo json_encode($entry['visualizations'] ?? []); ?>);
@@ -574,6 +575,13 @@ function afct_history_meta_box_callback($post) {
     
     <script>
         jQuery(document).ready(function($) {
+
+            $('.meta-box-sortables').sortable({
+                                        disabled: true
+                                    });
+
+            $('.postbox .hndle').css('cursor', 'pointer');
+
             // Make entries sortable
             $('#history-entries-container').sortable({
                 handle: '.sort-handle',
