@@ -226,67 +226,15 @@ function afct_history_meta_box_callback($post) {
                             <button type="button" class="button add-visualization" data-entry-index="<?php echo $index; ?>">
                                 Add Visualization
                             </button>
-                        </div>
-                                <?php 
-                                $origin_points = $entry['origin_points'] ?? [];
-                                $destination_points = $entry['destination_points'] ?? [];
-                                
-                                // If we have single origin/destination points instead of arrays
-                                if (isset($entry['origin_lng']) && isset($entry['origin_lat'])) {
-                                    $origin_points = [[$entry['origin_lng'], $entry['origin_lat']]];
-                                }
-                                
-                                if (isset($entry['destination_lng']) && isset($entry['destination_lat'])) {
-                                    $destination_points = [[$entry['destination_lng'], $entry['destination_lat']]];
-                                }
-                                
-                                // Ensure we have at least one pair
-                                if (empty($origin_points) && empty($destination_points)) {
-                                    $origin_points = [['']];
-                                    $destination_points = [['']];
-                                }
-                                ?>
-                                
-                                <div class="multi-point-container">
-                                    <?php for ($i = 0; $i < max(count($origin_points), count($destination_points)); $i++): ?>
-                                    <div class="point-pair">
-                                        <span class="point-pair-label">Pair <?php echo $i + 1; ?>:</span>
-                                        <div>
-                                            <label>Origin:</label>
-                                            <input type="number" step="0.01" 
-                                                   name="history_entries[<?php echo $index; ?>][origin_points][<?php echo $i; ?>][0]" 
-                                                   placeholder="Lng" 
-                                                   value="<?php echo esc_attr($origin_points[$i][0] ?? ''); ?>">
-                                            <input type="number" step="0.01" 
-                                                   name="history_entries[<?php echo $index; ?>][origin_points][<?php echo $i; ?>][1]" 
-                                                   placeholder="Lat" 
-                                                   value="<?php echo esc_attr($origin_points[$i][1] ?? ''); ?>">
-                                        </div>
-                                        <div>
-                                            <label>Destination:</label>
-                                            <input type="number" step="0.01" 
-                                                   name="history_entries[<?php echo $index; ?>][destination_points][<?php echo $i; ?>][0]" 
-                                                   placeholder="Lng" 
-                                                   value="<?php echo esc_attr($destination_points[$i][0] ?? ''); ?>">
-                                            <input type="number" step="0.01" 
-                                                   name="history_entries[<?php echo $index; ?>][destination_points][<?php echo $i; ?>][1]" 
-                                                   placeholder="Lat" 
-                                                   value="<?php echo esc_attr($destination_points[$i][1] ?? ''); ?>">
-                                        </div>
-                                    </div>
-                                    <?php endfor; ?>
-                                    <button type="button" class="button add-point-pair">+ Add Origin/Destination Pair</button>
-                                </div>
-                                
-                                <!-- Map Preview -->
-                                <div class="map-preview full-width">
-                                    <h4>Map Preview</h4>
-                                    <div id="map-preview-container-<?php echo $index; ?>" class="map-preview-container" data-entry-index="<?php echo $index; ?>" data-visualizations='<?php echo json_encode($entry['visualizations'] ?? []); ?>'></div>
-                                </div>
+                            
+                            <!-- Map Preview -->
+                            <div class="map-preview full-width">
+                                <h4>Map Preview</h4>
+                                <div id="map-preview-container-<?php echo $index; ?>" class="map-preview-container" data-entry-index="<?php echo $index; ?>" data-visualizations='<?php echo json_encode($entry['visualizations'] ?? []); ?>'></div>
                             </div>
-                        </div>
-                    </div>
-                </div>
+                        </div> <!-- End visualization-section -->
+                    </div> <!-- End entry-form -->
+                </div> <!-- End history-entry -->
             <?php endforeach; ?>
         <?php endif; ?>
         </div>
