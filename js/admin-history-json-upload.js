@@ -40,8 +40,14 @@ jQuery(document).ready(function($) {
             const reader = new FileReader();
             reader.onload = function(event) {
                 try {
+                    // Get the content and trim any whitespace
+                    const content = event.target.result.trim();
+                    
+                    // Handle the case where the file might have a BOM (Byte Order Mark)
+                    const jsonString = content.replace(/^\uFEFF/, '');
+                    
                     // Parse JSON to validate it
-                    const jsonData = JSON.parse(event.target.result);
+                    const jsonData = JSON.parse(jsonString);
                     
                     // Format the JSON with indentation for better readability
                     const formattedJson = JSON.stringify(jsonData, null, 2);
@@ -56,7 +62,7 @@ jQuery(document).ready(function($) {
                     showNotice('JSON file loaded successfully!', 'success');
                 } catch (error) {
                     console.error('Error parsing JSON file:', error);
-                    showNotice('Error parsing JSON file. Please check the file format.', 'error');
+                    showNotice('Error parsing JSON file. Please check the file format: ' + error.message, 'error');
                 }
             };
             

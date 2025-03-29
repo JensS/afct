@@ -237,6 +237,122 @@ function afct_history_meta_box_callback($post) {
                 <button type="button" id="import-json" class="button button-primary" style="margin-left: 10px;">Import JSON</button>
                 <span id="json-validation-result" style="margin-left: 10px;"></span>
             </div>
+            <script>
+                jQuery(document).ready(function($) {
+                    // Validate JSON button click handler
+                    $('#validate-json').on('click', function() {
+                        const jsonText = $('#json-import-data').val().trim();
+                        if (!jsonText) {
+                            $('#json-validation-result').html('<span style="color: red;">Please enter JSON data.</span>');
+                            return;
+                        }
+                        
+                        try {
+                            // Handle potential BOM character
+                            const cleanJson = jsonText.replace(/^\uFEFF/, '');
+                            JSON.parse(cleanJson);
+                            $('#json-validation-result').html('<span style="color: green;">Valid JSON format!</span>');
+                        } catch (error) {
+                            $('#json-validation-result').html('<span style="color: red;">Invalid JSON: ' + error.message + '</span>');
+                        }
+                    });
+                    
+                    // Import JSON button click handler
+                    $('#import-json').on('click', function() {
+                        const jsonText = $('#json-import-data').val().trim();
+                        if (!jsonText) {
+                            $('#json-validation-result').html('<span style="color: red;">Please enter JSON data.</span>');
+                            return;
+                        }
+                        
+                        try {
+                            // Handle potential BOM character
+                            const cleanJson = jsonText.replace(/^\uFEFF/, '');
+                            const historyData = JSON.parse(cleanJson);
+                            
+                            // Clear existing entries
+                            $('#history-entries-container').empty();
+                            
+                            // Import each entry
+                            historyData.forEach(function(entry, index) {
+                                // Trigger the add entry button to create a new entry
+                                $('#add-history-entry').trigger('click');
+                                
+                                // Get the newly created entry
+                                const $newEntry = $('.history-entry').last();
+                                
+                                // Set the entry index
+                                $newEntry.attr('data-index', index);
+                                
+                                // Fill in the form fields
+                                $newEntry.find('input[name^="history_entries[' + index + '][year_start]"]').val(entry.year_start || '');
+                                $newEntry.find('select[name^="history_entries[' + index + '][map_zoom]"]').val(entry.map_zoom || 'africa');
+                                $newEntry.find('input[name^="history_entries[' + index + '][title]"]').val(entry.title || '');
+                                $newEntry.find('textarea[name^="history_entries[' + index + '][paragraph]"]').val(entry.paragraph || '');
+                                
+                                // Handle visualizations
+                                if (entry.visualizations && entry.visualizations.length > 0) {
+                                    const $vizContainer = $newEntry.find('.visualizations-container');
+                                    $vizContainer.empty(); // Clear default visualizations
+                                    
+                                    entry.visualizations.forEach(function(viz, vizIndex) {
+                                        // Add visualization button
+                                        $newEntry.find('.add-visualization').trigger('click');
+                                        
+                                        // Get the newly created visualization
+                                        const $newViz = $vizContainer.find('.visualization-item').last();
+                                        
+                                        // Fill in visualization fields
+                                        $newViz.find('select.viz-type-select').val(viz.type || 'dot').trigger('change');
+                                        $newViz.find('input[name$="[label]"]').val(viz.label || '');
+                                        
+                                        // Set origin coordinates
+                                        if (viz.origin) {
+                                            $newViz.find('input[name$="[origin][0]"]').val(viz.origin[0] || '');
+                                            $newViz.find('input[name$="[origin][1]"]').val(viz.origin[1] || '');
+                                        }
+                                        
+                                        // Set destination coordinates for arrows
+                                        if (viz.type === 'arrow' && viz.destination) {
+                                            $newViz.find('input[name$="[destination][0]"]').val(viz.destination[0] || '');
+                                            $newViz.find('input[name$="[destination][1]"]').val(viz.destination[1] || '');
+                                        }
+                                        
+                                        // Handle dot coordinates for dots type
+                                        if (viz.type === 'dots' && viz.dotCoordinates && viz.dotCoordinates.length > 0) {
+                                            const $dotsContainer = $newViz.find('.dots-coordinates-container');
+                                            $dotsContainer.empty(); // Clear default coordinates
+                                            
+                                            viz.dotCoordinates.forEach(function(coord, coordIndex) {
+                                                // Add coordinate button
+                                                $newViz.find('.add-dot-coordinate').trigger('click');
+                                                
+                                                // Get the newly created coordinate pair
+                                                const $newCoord = $dotsContainer.find('.dot-coordinate-pair').last();
+                                                
+                                                // Fill in coordinate fields
+                                                $newCoord.find('input').eq(0).val(coord[0] || '');
+                                                $newCoord.find('input').eq(1).val(coord[1] || '');
+                                            });
+                                        }
+                                    });
+                                }
+                                
+                                // Update the entry title display
+                                const entryTitle = entry.title || 'Entry ' + (index + 1);
+                                const yearStart = entry.year_start || '';
+                                $newEntry.find('.entry-title').text(entryTitle + ' (' + yearStart + ')');
+                            });
+                            
+                            // Show success message
+                            $('#json-validation-result').html('<span style="color: green;">Successfully imported ' + historyData.length + ' entries!</span>');
+                            
+                        } catch (error) {
+                            $('#json-validation-result').html('<span style="color: red;">Error importing JSON: ' + error.message + '</span>');
+                        }
+                    });
+                });
+            </script>
         </div>
     </div>
 <?php
