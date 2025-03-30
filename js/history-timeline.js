@@ -202,13 +202,18 @@
                 }
                 
                 /* Apply animations to visualization elements */
-                .event-marker, .language-bubble, .origin-marker {
+                .event-marker, .language-bubble, .origin-marker, .destination-marker {
                     animation: pulseOpacity 3s ease-in-out infinite;
                 }
                 
                 .migration-line {
                     stroke-dasharray: 4, 4;
                     animation: flowDots 3s linear infinite;
+                }
+                
+                /* Add destination-marker to the animation class list */
+                .destination-marker {
+                    animation: pulseOpacity 3s ease-in-out infinite;
                 }
             `;
             document.head.appendChild(styleElement);
@@ -344,26 +349,51 @@
             
             map = svg;
             
+            // Create dot patterns
+            const defs = svg.append("defs");
+            
+            // Regular dot pattern for countries
+            defs.append("pattern")
+                .attr("id", "countryPattern")
+                .attr("patternUnits", "userSpaceOnUse")
+                .attr("width", 4)
+                .attr("height", 4)
+                .append("circle")
+                .attr("cx", 2)
+                .attr("cy", 2)
+                .attr("r", 0.5)
+                .attr("fill", "var(--text)");
+            
+            // Denser dot pattern for South Africa
+            defs.append("pattern")
+                .attr("id", "southAfricaPattern")
+                .attr("patternUnits", "userSpaceOnUse")
+                .attr("width", 3) // Smaller spacing for denser pattern
+                .attr("height", 3)
+                .append("circle")
+                .attr("cx", 1.5)
+                .attr("cy", 1.5)
+                .attr("r", 0.6) // Slightly larger dots
+                .attr("fill", "var(--text)");
+            
             // Load and render Africa topojson
             d3.json(afctSettings.templateUrl + "/js/countries-110m.json")
                 .then(function(data) {
                     const path = d3.geoPath().projection(projection);
                     
-                    // Draw Africa map with --text color
+                    // Draw Africa map with dot patterns
                     svg.append("g")
                         .selectAll("path")
                         .data(topojson.feature(data, data.objects.countries).features)
                         .enter()
                         .append("path")
                         .attr("d", path)
-                        .attr("fill", "var(--text)") // Use --text color for countries
+                        .attr("fill", d => d.id === 710 ? "url(#southAfricaPattern)" : "url(#countryPattern)") // Use patterns
                         .attr("stroke", "var(--background)")
                         .attr("stroke-width", 1) // Thinner stroke
                         .attr("class", d => "country country-" + d.id)
-                        .attr("opacity", d => d.id === 710 ? 0.8 : 0.3); // Slightly more transparent
+                        .attr("opacity", d => d.id === 710 ? 0.8 : 0.5); // Adjust opacity
                     
-                    // South Africa highlight is handled dynamically through the visualization system
-                        
                     createAnimationLayers();
                 })
                 .catch(error => console.error("Error loading map data:", error));
@@ -1126,8 +1156,9 @@
                     .attr("data-dest-x", viz.destination[0])
                     .attr("data-dest-y", viz.destination[1])
                     .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`)
-                    .attr("stroke", "var(--text)") // Use --text color
+                    .attr("stroke", "var(--red)") // Use --red color
                     .attr("stroke-width", 2)
+                    .attr("stroke-dasharray", "4, 4") // Ensure dotted line is visible
                     .attr("fill", "none");
                 
                 // Add origin marker (pulsing dot)
@@ -1136,7 +1167,16 @@
                     .attr("cx", originPos[0])
                     .attr("cy", originPos[1])
                     .attr("r", 5)
-                    .attr("fill", "var(--text)") // Use --text color
+                    .attr("fill", "var(--red)") // Use --red color
+                    .attr("stroke", "none"); // No border
+                
+                // Add destination marker (pulsing dot)
+                layer.append("circle")
+                    .attr("class", `destination-marker ${id}`)
+                    .attr("cx", destPos[0])
+                    .attr("cy", destPos[1])
+                    .attr("r", 5)
+                    .attr("fill", "var(--red)") // Use --red color
                     .attr("stroke", "none"); // No border
                 
                 // Add label if provided
@@ -1146,7 +1186,7 @@
                         .attr("x", (originPos[0] + destPos[0]) / 2)
                         .attr("y", (originPos[1] + destPos[1]) / 2 - 10)
                         .attr("text-anchor", "middle")
-                        .attr("fill", "var(--text)") // Use --text color
+                        .attr("fill", "var(--red)") // Use --red color
                         .text(viz.label);
                 }
             }
@@ -1181,7 +1221,7 @@
                     .attr("cx", pos[0])
                     .attr("cy", pos[1])
                     .attr("r", 8)
-                    .attr("fill", "var(--text)") // Use --text color
+                    .attr("fill", "var(--red)") // Use --red color
                     .attr("stroke", "none"); // No border
                 
                 if (viz.label) {
@@ -1193,7 +1233,7 @@
                         .attr("x", pos[0])
                         .attr("y", pos[1] + 20)
                         .attr("text-anchor", "middle")
-                        .attr("fill", "var(--text)") // Use --text color
+                        .attr("fill", "var(--red)") // Use --red color
                         .text(viz.label);
                 }
             }
@@ -1214,7 +1254,7 @@
                     .attr("cx", pos[0])
                     .attr("cy", pos[1])
                     .attr("r", 15)
-                    .attr("fill", "var(--text)") // Use --text color
+                    .attr("fill", "var(--red)") // Use --red color
                     .attr("stroke", "none"); // No border
                 
                 // Add dot coordinates if available
@@ -1235,7 +1275,7 @@
                             .attr("cx", dotPos[0])
                             .attr("cy", dotPos[1])
                             .attr("r", 8)
-                            .attr("fill", "var(--text)") // Use --text color
+                            .attr("fill", "var(--red)") // Use --red color
                             .attr("stroke", "none") // No border
                             .style("animation-delay", `${i * 0.2}s`); // Stagger the animation
                         
@@ -1249,7 +1289,7 @@
                                 .attr("x", dotPos[0])
                                 .attr("y", dotPos[1] + 20)
                                 .attr("text-anchor", "middle")
-                                .attr("fill", "var(--text)") // Use --text color
+                                .attr("fill", "var(--red)") // Use --red color
                                 .text(viz.labels[i]);
                         }
                     });
@@ -1268,7 +1308,7 @@
                             .attr("cx", x)
                             .attr("cy", y)
                             .attr("r", 8)
-                            .attr("fill", "var(--text)") // Use --text color
+                            .attr("fill", "var(--red)") // Use --red color
                             .attr("stroke", "none") // No border
                             .style("animation-delay", `${i * 0.2}s`); // Stagger the animation
                         
@@ -1277,7 +1317,7 @@
                             .attr("x", x)
                             .attr("y", y + 20)
                             .attr("text-anchor", "middle")
-                            .attr("fill", "var(--text)") // Use --text color
+                            .attr("fill", "var(--red)") // Use --red color
                             .text(label);
                     });
                 }
@@ -1290,7 +1330,7 @@
                         .attr("x", pos[0])
                         .attr("y", pos[1] - 25)
                         .attr("text-anchor", "middle")
-                        .attr("fill", "var(--text)") // Use --text color
+                        .attr("fill", "var(--red)") // Use --red color
                         .text(viz.label);
                 }
             }
