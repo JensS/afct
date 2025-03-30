@@ -156,34 +156,34 @@
     position: absolute; 
     top: 50%;
     transform: translateY(-50%);
-    z-index: 35; /* Ensure visibility above content */
-    background-color: rgba(var(--background-rgb), 0.5); /* Semi-transparent background */
-    color: var(--red); /* Arrow color */
-    border: none;
-    border-radius: 50%; /* Circular background */
-    width: 80px; /* Adjust size as per design */
-    height: 80px; /* Adjust size as per design */
-    font-size: 40px; /* Adjust arrow size */
-    line-height: 80px; /* Center arrow vertically */
+    z-index: 35;
+    background-color: transparent; /* Remove background */
+    color: var(--red);
+    border: 1px solid var(--red); /* Add 1px red border */
+    border-radius: 50%;
+    width: 50px; /* Smaller size */
+    height: 50px;
+    font-size: 18px; /* Smaller arrow */
+    line-height: 1;
     text-align: center;
     cursor: pointer;
-    transition: background-color 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .carousel-arrow:hover {
-    background-color: rgba(var(--background-rgb), 0.7);
-    transform: translateY(-50%) scale(1.1); /* Slight scale effect on hover */
+    background-color: rgba(var(--red-rgb), 0.1); /* Slight red background on hover */
+    transform: translateY(-50%) scale(1.1);
 }
 
 .carousel-arrow.prev {
-    left: 5%; /* Adjust position */
+    left: -60px; /* Position further outside */
 }
 
 .carousel-arrow.next {
-    right: 5%; /* Adjust position */
+    right: -60px; /* Position further outside */
 }
 
 .carousel-arrow.disabled,
@@ -191,7 +191,30 @@
     opacity: 0.3;
     cursor: default;
     pointer-events: none;
-    transform: translateY(-50%); /* Reset hover transform */
+    transform: translateY(-50%);
+}
+
+/* Replace the default arrow characters with finer arrow shapes */
+.carousel-arrow.prev::before {
+    content: "";
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-left: 1px solid var(--red);
+    border-bottom: 1px solid var(--red);
+    transform: rotate(45deg);
+    margin-left: 4px; /* Adjust position */
+}
+
+.carousel-arrow.next::before {
+    content: "";
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-right: 1px solid var(--red);
+    border-top: 1px solid var(--red);
+    transform: rotate(45deg);
+    margin-right: 4px; /* Adjust position */
 }
 
 

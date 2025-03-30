@@ -73,9 +73,9 @@ if ( ! is_array( $slides ) ) {
                 </div>
 
                 <?php if ( count( $slides ) > 1 ) : ?>
-                    <!-- Use shared carousel arrow classes -->
-                    <button class="carousel-arrow prev" aria-label="Previous Slide">&#x276E;</button>
-                    <button class="carousel-arrow next" aria-label="Next Slide">&#x276F;</button>
+                    <!-- Use shared carousel arrow classes with no text content -->
+                    <button class="carousel-arrow prev" aria-label="Previous Slide"></button>
+                    <button class="carousel-arrow next" aria-label="Next Slide"></button>
                 <?php endif; ?>
             </div>
         <?php else : ?>

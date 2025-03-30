@@ -274,18 +274,8 @@ function afct_prospect_text_meta_box_callback($post) {
     ?>
     <div class="prospect-text-content">
         <p>Add text content to display above the carousel:</p>
-        <?php
-        wp_editor(
-            $text_content,
-            'prospect_text',
-            array(
-                'media_buttons' => true,
-                'textarea_name' => 'prospect_text',
-                'textarea_rows' => 5,
-                'teeny' => false
-            )
-        );
-        ?>
+        <textarea name="prospect_text" id="prospect_text" rows="5" style="width: 100%;"><?php echo esc_textarea($text_content); ?></textarea>
+        <p class="description">This text will appear above the carousel on the Prospect page.</p>
     </div>
     <?php
 }

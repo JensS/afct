@@ -39,6 +39,9 @@ jQuery(document).ready(function($) {
 
     // Function to update slide classes based on current index
     function updateSlideClasses(index) {
+        // Store the previous index before updating
+        const prevIndex = currentIndex;
+        
         // Remove all classes first
         $slides.removeClass('active prev-slide next-slide');
         
