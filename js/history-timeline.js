@@ -59,6 +59,53 @@
              $('#the-history .carousel-arrow.next').toggleClass('disabled', currentIndex >= totalItems - 1);
         }
 
+        // Initialize scroll handler
+        function initScrollHandler() {
+            const timelineInfo = $('#timeline-info');
+            const timelineMarkers = $('.timeline-markers');
+            const timelineContent = $('#timeline-content');
+            const historySection = $('#the-history');
+            
+            // Hide all timeline items initially
+            $(".timeline-item").hide();
+            
+            $(window).on('scroll', function() {
+                const historyRect = historySection[0].getBoundingClientRect();
+                const isHistoryVisible = 
+                    historyRect.top < window.innerHeight && 
+                    historyRect.bottom > 0;
+                
+                timelineMarkers.toggle(isHistoryVisible);
+                timelineInfo.toggle(isHistoryVisible);
+                timelineContent.toggle(isHistoryVisible);
+            }).trigger('scroll');
+            
+            // Add click handlers to timeline markers
+            $(document).off('click', '.timeline-marker').on('click', '.timeline-marker', function() {
+                if (isAnimating) return;
+                
+                const year = parseInt($(this).data('year'));
+                currentYear = year;
+                
+                // Find paragraph items for this year
+                const paragraphItems = getParagraphItems();
+                const itemsForYear = paragraphItems.filter(item => 
+                    item.year_start === year
+                );
+                
+                // If there's a paragraph item for this year, transition to it
+                if (itemsForYear.length > 0) {
+                    const targetItem = itemsForYear[0];
+                    const targetIndex = paragraphItems.findIndex(item => item.id === targetItem.id);
+                    transitionToItem(targetItem, targetIndex, paragraphItems.length);
+                } else {
+                    // Otherwise just update the visualization
+                    clearAllVisualizations();
+                    updateVisualization(year);
+                }
+            });
+        }
+
         // Initialize the visualization
         function init() {
             projection = d3.geoMercator()
@@ -983,53 +1030,6 @@
                     closestMarker.addClass('active');
                 }
             }
-        }
-
-        // Initialize scroll handler
-        function initScrollHandler() {
-            const timelineInfo = $('#timeline-info');
-            const timelineMarkers = $('.timeline-markers');
-            const timelineContent = $('#timeline-content');
-            const historySection = $('#the-history');
-            
-            // Hide all timeline items initially
-            $(".timeline-item").hide();
-            
-            $(window).on('scroll', function() {
-                const historyRect = historySection[0].getBoundingClientRect();
-                const isHistoryVisible = 
-                    historyRect.top < window.innerHeight && 
-                    historyRect.bottom > 0;
-                
-                timelineMarkers.toggle(isHistoryVisible);
-                timelineInfo.toggle(isHistoryVisible);
-                timelineContent.toggle(isHistoryVisible);
-            }).trigger('scroll');
-            
-            // Add click handlers to timeline markers
-            $(document).off('click', '.timeline-marker').on('click', '.timeline-marker', function() {
-                if (isAnimating) return;
-                
-                const year = parseInt($(this).data('year'));
-                currentYear = year;
-                
-                // Find paragraph items for this year
-                const paragraphItems = getParagraphItems();
-                const itemsForYear = paragraphItems.filter(item => 
-                    item.year_start === year
-                );
-                
-                // If there's a paragraph item for this year, transition to it
-                if (itemsForYear.length > 0) {
-                    const targetItem = itemsForYear[0];
-                    const targetIndex = paragraphItems.findIndex(item => item.id === targetItem.id);
-                    transitionToItem(targetItem, targetIndex, paragraphItems.length);
-                } else {
-                    // Otherwise just update the visualization
-                    clearAllVisualizations();
-                    updateVisualization(year);
-                }
-            });
         }
 
         // Update map zoom
