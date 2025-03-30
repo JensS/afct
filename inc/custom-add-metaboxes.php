@@ -120,6 +120,16 @@ function afct_add_custom_boxes() {
                 'high'
             );
             break;
+        case 'template-prospect.php':
+            add_meta_box(
+                'afct_prospect_slides_meta_box', // Unique ID for the meta box
+                'Prospect Carousel Slides',      // Title of the meta box
+                'afct_prospect_slides_meta_box_callback', // Callback function to render the fields
+                'page',                          // Screen type (post type)
+                'normal',                        // Context (where it appears)
+                'high'                           // Priority
+            );
+            break;
         default:
             
     }
