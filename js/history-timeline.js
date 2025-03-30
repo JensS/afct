@@ -47,8 +47,58 @@
             initMap();
             initTimelineContent();
             initScrollHandler();
+        }
+        
+        // Add welcome message function to display on map initialization
+        function showWelcomeMessage() {
+            // Clear any existing visualizations
+            clearAllVisualizations();
             
-            updateVisualization(config.minYear);
+            // Get the map container and add welcome text
+            const layer = map.select("#event-layer");
+            
+            // Add a title
+            layer.append("text")
+                .attr("class", "welcome-title")
+                .attr("x", config.mapWidth / 2)
+                .attr("y", config.mapHeight / 2 - 40)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "24px")
+                .attr("font-weight", "bold")
+                .attr("fill", "var(--text)")
+                .text("South African History Timeline")
+                .attr("opacity", 0)
+                .transition()
+                .duration(config.animationDuration)
+                .attr("opacity", 1);
+            
+            // Add instructions
+            layer.append("text")
+                .attr("class", "welcome-instructions")
+                .attr("x", config.mapWidth / 2)
+                .attr("y", config.mapHeight / 2 + 10)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "16px")
+                .attr("fill", "var(--text)")
+                .text("Use the arrows to navigate through history")
+                .attr("opacity", 0)
+                .transition()
+                .duration(config.animationDuration)
+                .attr("opacity", 1);
+            
+            // Add start instruction
+            layer.append("text")
+                .attr("class", "welcome-start")
+                .attr("x", config.mapWidth / 2)
+                .attr("y", config.mapHeight / 2 + 40)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "16px")
+                .attr("fill", "var(--red)")
+                .text("Click the right arrow to begin →")
+                .attr("opacity", 0)
+                .transition()
+                .duration(config.animationDuration)
+                .attr("opacity", 1);
         }
 
         console.log(afctSettings.historyDataUrl);
@@ -300,11 +350,18 @@
                 if ($(this).hasClass('disabled') || isAnimating) return;
                 
                 const visibleItem = $('.timeline-item:visible');
+                const paragraphItems = getParagraphItems();
+                
+                // If no item is visible, we're in the welcome state
                 if (visibleItem.length === 0) {
+                    // Clear welcome message
+                    clearAllVisualizations();
+                    // Show the first item
                     transitionToItem(paragraphItems[0], 0, paragraphItems.length);
                     return;
                 }
                 
+                // Normal navigation logic
                 const currentId = parseInt(visibleItem.attr('data-id'));
                 const currentIndex = paragraphItems.findIndex(item => item.id === currentId);
                 
@@ -563,7 +620,17 @@
 
         // Update arrow states using shared classes, scoped to history
         function updateArrowStates(currentIndex, totalItems) {
-            // Use prop('disabled', true/false) for buttons for better accessibility/semantics
+            // Special case for welcome screen (index = -1)
+            if (currentIndex === -1) {
+                // Disable prev, enable next
+                $('#the-history .carousel-arrow.prev').prop('disabled', true);
+                $('#the-history .carousel-arrow.next').prop('disabled', false);
+                $('#the-history .carousel-arrow.prev').addClass('disabled');
+                $('#the-history .carousel-arrow.next').removeClass('disabled');
+                return;
+            }
+            
+            // Normal case for timeline items
             $('#the-history .carousel-arrow.prev').prop('disabled', currentIndex === 0);
             $('#the-history .carousel-arrow.next').prop('disabled', currentIndex >= totalItems - 1); // Use >= for safety
 
@@ -579,55 +646,19 @@
             const timelineContent = $('#timeline-content');
             const historySection = $('#the-history');
             
-            // Get the first paragraph item and show it immediately
-            const paragraphItems = getParagraphItems();
-            if (paragraphItems && paragraphItems.length > 0) {
-                // Directly show the first item without animation
-                const firstItem = paragraphItems[0];
-                
-                // First update the map zoom
-                updateMapZoom(firstItem, function() {
-                    // Then draw visualizations after zoom completes
-                    if (firstItem.visualizations && firstItem.visualizations.length > 0) {
-                        firstItem.visualizations.forEach(viz => {
-                            switch(viz.type) {
-                                case "arrow":
-                                    createArrowVisualization(viz, firstItem.year_start);
-                                    break;
-                                case "dot":
-                                    createDotVisualization(viz, firstItem.year_start);
-                                    break;
-                                case "dots":
-                                    createDotsVisualization(viz, firstItem.year_start);
-                                    break;
-                                case "arrows": // Support for multiple arrows
-                                    if (viz.arrows && Array.isArray(viz.arrows)) {
-                                        viz.arrows.forEach((arrow, i) => {
-                                            const arrowViz = {
-                                                type: "arrow",
-                                                origin: arrow.origin,
-                                                destination: arrow.destination,
-                                                label: i === 0 ? viz.label : null, // Only add label to first arrow
-                                                color: "var(--red)" // Use --red for all visualizations
-                                            };
-                                            createArrowVisualization(arrowViz, firstItem.year_start);
-                                        });
-                                    }
-                                    break;
-                            }
-                        });
-                    }
-                });
-                
-                // Show the first timeline item
-                $(`.timeline-item[data-id="${firstItem.id}"]`).show();
-                updateTimelineMarker(firstItem.year_start);
-                updateArrowStates(0, paragraphItems.length);
-            } else {
-                // Fallback to default behavior if no paragraph items
-                updateVisualization(config.minYear);
-                updateTimelineMarker(config.minYear);
-            }
+            // Hide all timeline items initially
+            $(".timeline-item").hide();
+            
+            // Show welcome message instead of first item
+            showWelcomeMessage();
+            
+            // Set default map zoom for welcome screen
+            updateMapZoom({map_zoom: "africa"}, function() {
+                // Callback after zoom is complete
+            });
+            
+            // Update arrow states - only enable next arrow
+            updateArrowStates(-1, getParagraphItems().length);
             
             $(window).on('scroll', function() {
                 const historyRect = historySection[0].getBoundingClientRect();
