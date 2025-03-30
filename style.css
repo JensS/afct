@@ -985,14 +985,11 @@ blockquote {
 }
 
 
-.content-frame {
+.content-frame,.content-frame,.content  {
 	justify-content: center;
-}
-
-.content-frame,.content {
+    min-height: 100vh;
 	margin: auto;
-} 
-
+}
 .blending-difference {
 	mix-blend-mode: difference;
 }
@@ -1346,7 +1343,7 @@ div.slide .text-upper-left {
 	left: 1rem;
 	font-size: 8rem;
 	line-height: 1;
-	width: 60%;
+	width: 70%;
 	z-index: 1000;
 }
 div.slide .text-upper-left h1 {
