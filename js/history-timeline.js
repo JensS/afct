@@ -45,6 +45,18 @@
                 .translate([config.mapWidth / 2, config.mapHeight / 2]);
             
             initMap();
+            
+            // Add this line to ensure the welcome message is shown after map initialization
+            setTimeout(function() {
+                showWelcomeMessage();
+                // Set default map zoom for welcome screen
+                updateMapZoom({map_zoom: "africa"}, function() {
+                    // Callback after zoom is complete
+                });
+                // Update arrow states - only enable next arrow
+                updateArrowStates(-1, getParagraphItems().length);
+            }, 500); // Small delay to ensure map is ready
+            
             initTimelineContent();
             initScrollHandler();
         }
@@ -648,17 +660,6 @@
             
             // Hide all timeline items initially
             $(".timeline-item").hide();
-            
-            // Show welcome message instead of first item
-            showWelcomeMessage();
-            
-            // Set default map zoom for welcome screen
-            updateMapZoom({map_zoom: "africa"}, function() {
-                // Callback after zoom is complete
-            });
-            
-            // Update arrow states - only enable next arrow
-            updateArrowStates(-1, getParagraphItems().length);
             
             $(window).on('scroll', function() {
                 const historyRect = historySection[0].getBoundingClientRect();
