@@ -153,7 +153,7 @@
 # Shared Carousel Arrows
 --------------------------------------------------------------*/
 .carousel-arrow {
-    position: fixed; /* Or absolute relative to a container */
+    position: absolute; 
     top: 50%;
     transform: translateY(-50%);
     z-index: 35; /* Ensure visibility above content */
@@ -171,8 +171,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0; /* Remove default button padding */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 .carousel-arrow:hover {
