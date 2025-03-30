@@ -38,6 +38,27 @@
             return cachedParagraphItems;
         }
 
+        // Update arrow states using shared classes, scoped to history
+        function updateArrowStates(currentIndex, totalItems) {
+            // Special case for welcome screen (index = -1)
+            if (currentIndex === -1) {
+                // Disable prev, enable next
+                $('#the-history .carousel-arrow.prev').prop('disabled', true);
+                $('#the-history .carousel-arrow.next').prop('disabled', false);
+                $('#the-history .carousel-arrow.prev').addClass('disabled');
+                $('#the-history .carousel-arrow.next').removeClass('disabled');
+                return;
+            }
+            
+            // Normal case for timeline items
+            $('#the-history .carousel-arrow.prev').prop('disabled', currentIndex === 0);
+            $('#the-history .carousel-arrow.next').prop('disabled', currentIndex >= totalItems - 1); // Use >= for safety
+
+            // Also toggle class if needed for styling overrides not covered by :disabled pseudo-class
+             $('#the-history .carousel-arrow.prev').toggleClass('disabled', currentIndex === 0);
+             $('#the-history .carousel-arrow.next').toggleClass('disabled', currentIndex >= totalItems - 1);
+        }
+
         // Initialize the visualization
         function init() {
             projection = d3.geoMercator()
@@ -962,27 +983,6 @@
                     closestMarker.addClass('active');
                 }
             }
-        }
-
-        // Update arrow states using shared classes, scoped to history
-        function updateArrowStates(currentIndex, totalItems) {
-            // Special case for welcome screen (index = -1)
-            if (currentIndex === -1) {
-                // Disable prev, enable next
-                $('#the-history .carousel-arrow.prev').prop('disabled', true);
-                $('#the-history .carousel-arrow.next').prop('disabled', false);
-                $('#the-history .carousel-arrow.prev').addClass('disabled');
-                $('#the-history .carousel-arrow.next').removeClass('disabled');
-                return;
-            }
-            
-            // Normal case for timeline items
-            $('#the-history .carousel-arrow.prev').prop('disabled', currentIndex === 0);
-            $('#the-history .carousel-arrow.next').prop('disabled', currentIndex >= totalItems - 1); // Use >= for safety
-
-            // Also toggle class if needed for styling overrides not covered by :disabled pseudo-class
-             $('#the-history .carousel-arrow.prev').toggleClass('disabled', currentIndex === 0);
-             $('#the-history .carousel-arrow.next').toggleClass('disabled', currentIndex >= totalItems - 1);
         }
 
         // Initialize scroll handler
