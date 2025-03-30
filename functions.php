@@ -256,8 +256,11 @@ function afct_enqueue_admin_scripts() {
     wp_enqueue_style('jquery-ui-styles', get_template_directory_uri() . '/css/jquery-ui.css');
     
     // Always enqueue the prospect carousel admin script on post/page edit screens
-    $current_screen = get_current_screen();
-    if (is_admin() && $current_screen && in_array($current_screen->base, array('post', 'page'))) {
+    // Check if we're on a post or page edit screen using the pagenow global
+    $pagenow = isset($GLOBALS['pagenow']) ? $GLOBALS['pagenow'] : '';
+    
+    if (is_admin() && ($pagenow == 'post.php' || $pagenow == 'post-new.php')) {
+        // Enqueue the script for all post/page edit screens
         wp_enqueue_script(
             'afct-prospect-carousel-admin',
             get_template_directory_uri() . '/js/admin-prospect-carousel.js',
@@ -265,6 +268,9 @@ function afct_enqueue_admin_scripts() {
             filemtime(get_template_directory() . '/js/admin-prospect-carousel.js'),
             true
         );
+        
+        // Add console log for debugging
+        wp_add_inline_script('afct-prospect-carousel-admin', 'console.log("Prospect carousel admin script loaded");');
     }
     
     // Check if we are on the History page template edit screen
