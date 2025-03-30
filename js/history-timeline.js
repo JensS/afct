@@ -656,6 +656,171 @@
                 }
             });
             
+        }
+
+        // Update the updateTimelineMarker function to correctly center the active year
+        function updateTimelineMarker(year) {
+            // Find the marker for this year
+            const marker = $(`.timeline-marker[data-year="${year}"]`);
+
+            if (marker.length) {
+                // Get the marker's position
+                const markerPosition = marker.position().left;
+
+                // Calculate the offset to center this marker
+                const bandContainer = $('.timeline-band-container');
+                const containerCenter = bandContainer.width() / 2;
+
+                // Update the band position to center the marker
+                $('.timeline-band').css('transform', `translateX(calc(50% - ${markerPosition}px))`);
+
+                // Highlight the active marker
+                $('.timeline-marker').removeClass('active');
+                marker.addClass('active');
+            } else {
+                // If no exact marker exists for this year, find the closest one
+                console.log("No marker found for year:", year);
+
+                // Get all markers and their years
+                const markers = $('.timeline-marker');
+                let closestMarker = null;
+                let minDiff = Infinity;
+
+                markers.each(function() {
+                    const markerYear = parseInt($(this).data('year'));
+                    const diff = Math.abs(markerYear - year);
+
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestMarker = $(this);
+                    }
+                });
+
+                if (closestMarker) {
+                    const markerPosition = closestMarker.position().left;
+                    $('.timeline-band').css('transform', `translateX(calc(50% - ${markerPosition}px))`);
+                    $('.timeline-marker').removeClass('active');
+                    closestMarker.addClass('active');
+                }
+            }
+        }
+
+        // Update map zoom
+        function updateMapZoom(item, callback) {
+            let mapZoom = item.map_zoom || "europe_and_africa";
+
+            const zoomSettings = {
+                europe_and_africa: { center: [20, 30], scale: config.mapWidth / 4 },
+                africa: { center: [25, 0], scale: config.mapWidth / 2 },
+                south_africa: { center: [25, -25], scale: config.mapWidth * 1.2 },
+                southern_africa: { center: [25, -25], scale: config.mapWidth * 0.8 },
+                world: { center: [20, 10], scale: config.mapWidth / 6 }
+            };
+
+            // Get zoom settings or use defaults
+            const settings = zoomSettings[mapZoom] || zoomSettings.europe_and_africa;
+
+            // Add transition duration to config if not exists
+            if (!config.zoomTransitionDuration) {
+                config.zoomTransitionDuration = 1000; // 1 second transition
+            }
+
+            const t = d3.transition().duration(config.zoomTransitionDuration);
+            const oldProjection = {
+                center: projection.center(),
+                scale: projection.scale()
+            };
+
+            projection.center(settings.center).scale(settings.scale);
+
+            map.selectAll("path")
+                .transition(t)
+                .attrTween("d", function() {
+                    const d = d3.select(this).attr("d");
+                    const interpolate = d3.interpolate(
+                        [oldProjection.center, oldProjection.scale],
+                        [settings.center, settings.scale]
+                    );
+                    return function(t) {
+                        const i = interpolate(t);
+                        projection.center(i[0]).scale(i[1]);
+                        return d3.geoPath().projection(projection)(d3.select(this).datum());
+                    };
+                })
+                .on("end", function() {
+                    // Call the callback when the transition is complete
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
+                });
+
+            updateAnimationPositions(t);
+        }
+
+        // Transition to a specific item
+        function transitionToItem(item, currentIndex, totalItems) {
+            if (isAnimating || !item?.year_start || !item.id) return;
+
+            isAnimating = true;
+            currentYear = item.year_start;
+
+            clearAllVisualizations();
+
+            const visualizationsToShow = item.visualizations || [];
+
+            updateMapZoom(item, () => {
+                visualizationsToShow.forEach(viz => {
+                    switch(viz.type) {
+                        case "arrow":
+                            createArrowVisualization(viz);
+                            break;
+                        case "dot":
+                            createDotVisualization(viz);
+                            break;
+                        case "dots":
+                            createDotsVisualization(viz);
+                            break;
+                        case "arrows":
+                            if (viz.arrows?.length) {
+                                viz.arrows.forEach((arrow, i) => {
+                                    createArrowVisualization({
+                                        type: "arrow",
+                                        origin: arrow.origin,
+                                        destination: arrow.destination,
+                                        label: i === 0 ? viz.label : null
+                                    });
+                                });
+                            }
+                            break;
+                    }
+                });
+            });
+
+            updateTimelineMarker(item.year_start);
+
+            const timelineItem = $(`.timeline-item[data-id="${item.id}"]`);
+            if (!timelineItem.length) {
+                console.error('Timeline item not found:', item.id);
+                isAnimating = false;
+                return;
+            }
+
+            gsap.to(".timeline-item", {
+                autoAlpha: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    $(".timeline-item").hide();
+                    timelineItem.show();
+                    gsap.to(timelineItem, {
+                        autoAlpha: 1,
+                        duration: 0.3,
+                        onComplete: () => {
+                            isAnimating = false;
+                        }
+                    });
+                }
+            });
+
             updateArrowStates(currentIndex, totalItems);
         }
 
@@ -983,106 +1148,6 @@
             if (!visibleItem.length || targetItem.id !== currentVisibleId) {
                 transitionToItem(targetItem, targetIndex, paragraphItems.length);
             }
-        }
-
-        // Update the updateTimelineMarker function to correctly center the active year
-        function updateTimelineMarker(year) {
-            // Find the marker for this year
-            const marker = $(`.timeline-marker[data-year="${year}"]`);
-            
-            if (marker.length) {
-                // Get the marker's position
-                const markerPosition = marker.position().left;
-                
-                // Calculate the offset to center this marker
-                const bandContainer = $('.timeline-band-container');
-                const containerCenter = bandContainer.width() / 2;
-                
-                // Update the band position to center the marker
-                $('.timeline-band').css('transform', `translateX(calc(50% - ${markerPosition}px))`);
-                
-                // Highlight the active marker
-                $('.timeline-marker').removeClass('active');
-                marker.addClass('active');
-            } else {
-                // If no exact marker exists for this year, find the closest one
-                console.log("No marker found for year:", year);
-                
-                // Get all markers and their years
-                const markers = $('.timeline-marker');
-                let closestMarker = null;
-                let minDiff = Infinity;
-                
-                markers.each(function() {
-                    const markerYear = parseInt($(this).data('year'));
-                    const diff = Math.abs(markerYear - year);
-                    
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        closestMarker = $(this);
-                    }
-                });
-                
-                if (closestMarker) {
-                    const markerPosition = closestMarker.position().left;
-                    $('.timeline-band').css('transform', `translateX(calc(50% - ${markerPosition}px))`);
-                    $('.timeline-marker').removeClass('active');
-                    closestMarker.addClass('active');
-                }
-            }
-        }
-
-        // Update map zoom
-        function updateMapZoom(item, callback) {
-            let mapZoom = item.map_zoom || "europe_and_africa";
-            
-            const zoomSettings = {
-                europe_and_africa: { center: [20, 30], scale: config.mapWidth / 4 },
-                africa: { center: [25, 0], scale: config.mapWidth / 2 },
-                south_africa: { center: [25, -25], scale: config.mapWidth * 1.2 },
-                southern_africa: { center: [25, -25], scale: config.mapWidth * 0.8 },
-                world: { center: [20, 10], scale: config.mapWidth / 6 }
-            };
-            
-            // Get zoom settings or use defaults
-            const settings = zoomSettings[mapZoom] || zoomSettings.europe_and_africa;
-            
-            // Add transition duration to config if not exists
-            if (!config.zoomTransitionDuration) {
-                config.zoomTransitionDuration = 1000; // 1 second transition
-            }
-            
-            const t = d3.transition().duration(config.zoomTransitionDuration);
-            const oldProjection = {
-                center: projection.center(),
-                scale: projection.scale()
-            };
-            
-            projection.center(settings.center).scale(settings.scale);
-            
-            map.selectAll("path")
-                .transition(t)
-                .attrTween("d", function() {
-                    const d = d3.select(this).attr("d");
-                    const interpolate = d3.interpolate(
-                        [oldProjection.center, oldProjection.scale],
-                        [settings.center, settings.scale]
-                    );
-                    return function(t) {
-                        const i = interpolate(t);
-                        projection.center(i[0]).scale(i[1]);
-                        return d3.geoPath().projection(projection)(d3.select(this).datum());
-                    };
-                })
-                .on("end", function() {
-                    // Call the callback when the transition is complete
-                    if (typeof callback === 'function') {
-                        callback();
-                    }
-                });
-            
-            updateAnimationPositions(t);
-        }
         }
 
         // Update animation positions
