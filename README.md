@@ -8,7 +8,8 @@ A comprehensive theme that provides rich content management and display function
 - **One-Page Architecture**: Assembles content segments from individual WordPress pages for easier management                              
 - **Responsive Design**: Optimized layouts for desktop and mobile devices                                                                  
 - **Custom Navigation**: Special menu walker class for enhanced navigation experience                                                      
-                                                                                                                                           
+- **Split Headlines**: Support for comma-separated headlines that display in two parts for visual interest
+
 ## Content Management Features                                                                                                             
                                                                                                                                            
 ### Homepage Management                                                                                                                    
@@ -67,6 +68,38 @@ The theme exposes data through custom REST API endpoints:
 ### History Timeline                                                                                                                       
 - Endpoint: `/wp-json/afct/v1/history`                                                                                                     
 - Returns structured history timeline data           
+
+## Additional Features
+
+### One-Page Architecture
+- Defined by `template-homepage.php`
+- Uses `IN_ONEPAGER` constant to manage template inclusion
+- Automatically assembles pages from menu items in the primary menu
+- Wraps each page in a section with ID based on the page slug
+
+### Theme Optimization
+- Emoji removal for improved performance
+- Selective script and style loading
+- Version string generation based on file modification time for cache busting
+
+### JavaScript Utilities
+- Headline positioning for visual layout
+- YouTube consent mechanism for GDPR compliance
+- Custom admin interfaces for meta boxes
+
+### Admin Customizations
+- Simplified WordPress admin footer
+- Removal of default meta boxes for cleaner editing experience
+- Custom admin scripts for managing complex content types
+
+### Split Headlines
+- Upper and lower headline positioning for visual interest
+- Consistent implementation across all templates
+
+### Custom JSON Data Sources
+- Credits data loaded from external JSON file
+- Fallback mechanisms for missing data
+- Structured data approach for complex content types
 ## History Timeline Data Structure
 
 The history timeline feature uses a structured data format to represent historical events and visualizations:
