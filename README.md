@@ -96,6 +96,52 @@ A phased approach to React migration could include:
 3. Gradually replace PHP template rendering with React components
 4. Maintain backward compatibility with existing admin interfaces
 
+## Scroll Behavior and Transitions
+
+The theme implements a sophisticated scroll-based navigation system with smooth transitions between sections:
+
+### Section Layout
+- Each section (page) in the one-pager is at least 100% of the viewport height
+- Sections use `scroll-snap-align: center` to create a guided scrolling experience
+- The `scroll-snap-type: y proximity` property on the body creates a natural yet directed scroll flow
+
+### Split Headlines Transition
+- Each section features a split headline with text in the upper-left and lower-right corners
+- When scrolling between sections, headlines fade in/out based on scroll distance:
+  - As the user approaches section boundaries, the current headlines begin to fade out
+  - The upcoming section's headlines begin to fade in before the section is fully in view
+  - This creates a seamless visual transition between content areas
+
+### Captive Scroll Sections
+- Some sections implement "captive scrolling" (similar to Apple's product pages)
+- In these sections, initial scrolling triggers in-section animations rather than page navigation
+- Only after completing the section's internal scroll experience does the page continue to the next section
+
+### Specialized Scroll Behaviors
+- **History Timeline**: Scrolling through this section navigates between historical entries
+  - Vertical scrolling advances through time periods
+  - The map visualization updates in response to scroll position
+  - Timeline markers at the bottom indicate the current position in history
+
+- **Gallery Section**: Implements parallax scrolling effects
+  - Images scroll at different speeds based on their position and size
+  - This creates a sense of depth and dimension as the user scrolls
+  - The effect is controlled by the CSS variable `--parallax-speed`
+
+### Scroll Performance Optimization
+- Scroll events are throttled to maintain smooth performance
+- CSS `will-change` property is used strategically to optimize rendering
+- Hardware-accelerated animations via CSS transforms reduce jank during transitions
+
+### React Implementation Considerations
+- The current scroll behavior relies on vanilla JS and CSS properties
+- React implementation will need to:
+  - Use intersection observers to detect section visibility
+  - Implement scroll-based animations using React hooks
+  - Manage scroll state across components
+  - Handle smooth transitions between routes when direct links are used
+  - Maintain the captive scroll behavior in specialized sections
+
 ## Performance Optimizations
 
 The theme includes several performance optimizations:
