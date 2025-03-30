@@ -1,14 +1,72 @@
-# African Face WordPress Plugin
-
-The WordPress plugin for the non-profit project africanface.org 
-
-A onepage theme that provides the following functionality:
-- Bright/dark theme switcher
-- Assembles the contents of the segments from individual WordPress pages for easier management
-- Podcast player
-- Desktop/mobile layouts
-- Interactive history timeline
-
+The WordPress theme for the non-profit project africanface.org                                                                             
+                                                                                                                                           
+A comprehensive theme that provides rich content management and display functionality for the African Face project.                        
+                                                                                                                                           
+## Core Features                                                                                                                           
+                                                                                                                                           
+- **Bright/Dark Theme Switcher**: Toggle between light and dark visual modes                                                               
+- **One-Page Architecture**: Assembles content segments from individual WordPress pages for easier management                              
+- **Responsive Design**: Optimized layouts for desktop and mobile devices                                                                  
+- **Custom Navigation**: Special menu walker class for enhanced navigation experience                                                      
+                                                                                                                                           
+## Content Management Features                                                                                                             
+                                                                                                                                           
+### Homepage Management                                                                                                                    
+- Customizable homepage sections with drag-and-drop reordering                                                                             
+- Background video support with cover image fallback                                                                                       
+- About section with customizable text and image                                                                                           
+                                                                                                                                           
+### Gallery System                                                                                                                         
+- Flexible gallery layout manager for "Stills" pages                                                                                       
+- Row-based organization with customizable image arrangements                                                                              
+- Add, remove, and reorder images within each row                                                                                          
+                                                                                                                                           
+### History Timeline                                                                                                                       
+- Interactive visualization of historical events                                                                                           
+- Custom data structure for representing complex historical information                                                                    
+- Map integration with multiple zoom levels                                                                                                
+- Multiple visualization types (arrows, dots, dot clusters)                                                                                
+                                                                                                                                           
+### Podcast System                                                                                                                         
+- Audio file management with embedded player                                                                                               
+- Chapter markers with timestamps                                                                                                          
+- Guest management with images and information                                                                                             
+- Custom meta fields for podcast details                                                                                                   
+                                                                                                                                           
+### Prospect Template                                                                                                                      
+- Carousel slider for showcasing content                                                                                                   
+- Customizable slides with images, labels, and URLs                                                                                        
+- Text content section above the carousel                                                                                                  
+                                                                                                                                           
+### Credits System                                                                                                                         
+- Team credits management                                                                                                                  
+- Default credits loaded from JSON file                                                                                                    
+- Customizable through admin interface                                                                                                     
+                                                                                                                                           
+## Admin Interfaces                                                                                                                        
+                                                                                                                                           
+### Meta Boxes                                                                                                                             
+- **Gallery Layout**: Configure image galleries for "Stills" pages                                                                         
+- **Hero Video**: Add background videos with cover images                                                                                  
+- **History Timeline**: Create and manage historical entries with visualizations                                                           
+- **Homepage Sections**: Manage homepage content sections                                                                                  
+- **Podcast Management**: Configure podcast episodes, guests, and chapters                                                                 
+- **Prospect Carousel**: Manage carousel slides and content                                                                                
+- **About Section**: Customize about text and image                                                                                        
+- **YouTube Embed**: Add YouTube videos to pages                                                                                           
+- **Credits**: Manage team credits information                                                                                             
+                                                                                                                                           
+## Templates                                                                                                                               
+- `template-homepage.php`: One-page main site template                                                                                     
+- `template-prospect.php`: Prospect page with carousel                                                                                     
+- `template-credits.php`: Team credits display                                                                                             
+                                                                                                                                           
+## REST API                                                                                                                                
+The theme exposes data through custom REST API endpoints:                                                                                  
+                                                                                                                                           
+### History Timeline                                                                                                                       
+- Endpoint: `/wp-json/afct/v1/history`                                                                                                     
+- Returns structured history timeline data           
 ## History Timeline Data Structure
 
 The history timeline feature uses a structured data format to represent historical events and visualizations:
