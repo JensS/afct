@@ -255,15 +255,21 @@
 }
 
 .prospect-slide-item.prev-slide {
-    opacity: 0.5; /* Reduced opacity for previous slide */
+    opacity: 1; /* Change from 0.5 to 1 as we'll use gradient instead */
     transform: translateX(-80%); /* Position to the left */
     z-index: 1;
+    /* Add gradient mask */
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 1) 100%);
+    mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 1) 100%);
 }
 
 .prospect-slide-item.next-slide {
-    opacity: 0.5; /* Reduced opacity for next slide */
+    opacity: 1; /* Change from 0.5 to 1 as we'll use gradient instead */
     transform: translateX(80%); /* Position to the right */
     z-index: 1;
+    /* Add gradient mask */
+    -webkit-mask-image: linear-gradient(to left, transparent 0%, rgba(0, 0, 0, 1) 100%);
+    mask-image: linear-gradient(to left, transparent 0%, rgba(0, 0, 0, 1) 100%);
 }
 
 .prospect-slide-item img {

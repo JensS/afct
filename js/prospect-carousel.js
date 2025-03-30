@@ -25,17 +25,16 @@ jQuery(document).ready(function($) {
 
     // Function to initialize the carousel
     function initializeCarousel() {
-        if (totalSlides > 2) {
-            // If we have 3+ slides, set up prev/current/next
+        if (totalSlides > 1) {
+            // Start with the first slide active
             updateSlideClasses(0);
-        } else if (totalSlides === 2) {
-            // If we have only 2 slides, show current and next
-            $slides.eq(0).addClass('active').css('opacity', 1);
-            $slides.eq(1).addClass('next-slide').css('opacity', 0.5);
         } else {
             // Just one slide, make it active
             $slides.eq(0).addClass('active').css('opacity', 1);
         }
+        
+        // Initialize button states
+        updateButtonStates();
     }
 
     // Function to update slide classes based on current index
@@ -43,17 +42,35 @@ jQuery(document).ready(function($) {
         // Remove all classes first
         $slides.removeClass('active prev-slide next-slide');
         
-        // Calculate previous and next indices with wrapping
-        const prevIndex = (index - 1 + totalSlides) % totalSlides;
-        const nextIndex = (index + 1) % totalSlides;
-        
-        // Add appropriate classes
-        $slides.eq(prevIndex).addClass('prev-slide');
+        // Add active class to current slide
         $slides.eq(index).addClass('active');
-        $slides.eq(nextIndex).addClass('next-slide');
+        
+        // Add prev-slide class only if not the first slide
+        if (index > 0) {
+            $slides.eq(index - 1).addClass('prev-slide');
+        }
+        
+        // Add next-slide class only if not the last slide
+        if (index < totalSlides - 1) {
+            $slides.eq(index + 1).addClass('next-slide');
+        }
         
         // Update current index
         currentIndex = index;
+        
+        // Update button states
+        updateButtonStates();
+    }
+    
+    // Function to update button states
+    function updateButtonStates() {
+        // Disable prev button if at first slide
+        $prevButton.prop('disabled', currentIndex === 0);
+        $prevButton.toggleClass('disabled', currentIndex === 0);
+        
+        // Disable next button if at last slide
+        $nextButton.prop('disabled', currentIndex === totalSlides - 1);
+        $nextButton.toggleClass('disabled', currentIndex === totalSlides - 1);
     }
 
     // Function to show a specific slide
@@ -66,14 +83,16 @@ jQuery(document).ready(function($) {
 
     // Event listener for the next button
     $nextButton.on('click', function() {
-        const nextIndex = (currentIndex + 1) % totalSlides;
-        showSlide(nextIndex);
+        if (currentIndex < totalSlides - 1) {
+            showSlide(currentIndex + 1);
+        }
     });
 
     // Event listener for the previous button
     $prevButton.on('click', function() {
-        const prevIndex = (currentIndex - 1 + totalSlides) % totalSlides;
-        showSlide(prevIndex);
+        if (currentIndex > 0) {
+            showSlide(currentIndex - 1);
+        }
     });
 
     // Optional: Add keyboard navigation
