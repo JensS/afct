@@ -118,7 +118,7 @@
                     left: 50%;
                     bottom: 0;
                     height: 40px;
-                    width: 2px;
+                    width: 1px;
                     background-color: var(--red);
                     transform: translateX(-50%);
                     z-index: 2;
@@ -138,37 +138,40 @@
                 .timeline-marker.century-marker {
                     height: 30px;
                     opacity: 0.8;
-                    width: 2px;
+                    width: 1px;
                 }
                 
                 .timeline-marker.decade-marker {
                     height: 20px;
                     opacity: 0.5;
+                    width: 1px;
                 }
                 
                 .timeline-marker.year-marker {
                     height: 10px;
                     opacity: 0.3;
+                    width: 1px;
                 }
                 
                 .timeline-marker.chapter-marker {
                     opacity: 1;
+                    background-color: var(--text);
+                    width: 1px;
                 }
                 
+                /* Remove the dot and replace with a taller line */
                 .timeline-marker.chapter-marker::after {
-                    content: '';
-                    position: absolute;
-                    bottom: 0;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                    background-color: var(--red);
+                    content: none;
+                }
+                
+                .timeline-marker.chapter-marker {
+                    height: 35px;
                 }
                 
                 .timeline-marker.active {
                     opacity: 1;
+                    background-color: var(--red);
+                    width: 1px;
                 }
                 
                 .marker-year {
@@ -438,6 +441,24 @@
             // Calculate the band width (make it wider than the visible area)
             const bandWidth = 3000; // px
             
+            // Get all paragraph items to ensure we have markers for all chapters
+            const paragraphItems = getParagraphItems();
+            const chapterYears = new Set(paragraphItems.map(item => item.year_start));
+            
+            // Add all chapter years to the years array if they're not already there
+            chapterYears.forEach(year => {
+                if (!years.includes(year)) {
+                    years.push(year);
+                }
+            });
+            
+            // Sort years again after adding chapter years
+            years.sort((a, b) => a - b);
+            
+            // Log all years for debugging
+            console.log("Timeline years:", years);
+            console.log("Chapter years:", Array.from(chapterYears));
+            
             years.forEach(year => {
                 // Calculate position based on year
                 let position;
@@ -481,9 +502,11 @@
                 }
                 
                 // Check if this year corresponds to a paragraph item (chapter)
-                const isParagraphYear = getParagraphItems().some(item => item.year_start === year);
+                const isParagraphYear = chapterYears.has(year);
                 if (isParagraphYear) {
                     markerClass += " chapter-marker";
+                    // Always show labels for chapter years
+                    markerLabel = year.toString();
                 }
                 
                 // Create marker element
@@ -624,7 +647,9 @@
             
             $(".timeline-item").hide();
             
+            // Ensure we're using the correct year for the timeline marker
             currentYear = item.year_start;
+            console.log("Transitioning to year:", currentYear);
             
             // Clear existing visualizations
             clearAllVisualizations();
@@ -666,6 +691,7 @@
                 }
             });
             
+            // Update the timeline marker with the correct year
             updateTimelineMarker(item.year_start);
             
             const timelineItem = $(`.timeline-item[data-id="${item.id}"]`);
@@ -815,7 +841,7 @@
             }
         }
 
-        // Update the updateTimelineMarker function to center the active year
+        // Update the updateTimelineMarker function to correctly center the active year
         function updateTimelineMarker(year) {
             // Find the marker for this year
             const marker = $(`.timeline-marker[data-year="${year}"]`);
@@ -834,6 +860,31 @@
                 // Highlight the active marker
                 $('.timeline-marker').removeClass('active');
                 marker.addClass('active');
+            } else {
+                // If no exact marker exists for this year, find the closest one
+                console.log("No marker found for year:", year);
+                
+                // Get all markers and their years
+                const markers = $('.timeline-marker');
+                let closestMarker = null;
+                let minDiff = Infinity;
+                
+                markers.each(function() {
+                    const markerYear = parseInt($(this).data('year'));
+                    const diff = Math.abs(markerYear - year);
+                    
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestMarker = $(this);
+                    }
+                });
+                
+                if (closestMarker) {
+                    const markerPosition = closestMarker.position().left;
+                    $('.timeline-band').css('transform', `translateX(calc(50% - ${markerPosition}px))`);
+                    $('.timeline-marker').removeClass('active');
+                    closestMarker.addClass('active');
+                }
             }
         }
 
