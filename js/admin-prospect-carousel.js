@@ -7,8 +7,8 @@ jQuery(document).ready(function($) {
         }
     });
     
-    // Add new carousel slide
-    $('.add-slide').on('click', function() {
+    // Add new carousel slide (using event delegation for dynamically added elements)
+    $(document).on('click', '.add-slide', function() {
         const index = $('.prospect-slide').length;
         const template = wp.template('prospect-slide');
         $('.prospect-slides').append(template({ index: index }));
