@@ -263,8 +263,8 @@
             const historyContainer = $('#the-history');
             if (historyContainer.length) {
                  // Add ARIA labels for accessibility
-                historyContainer.append('<button class="carousel-arrow prev" aria-label="Previous History Entry">&larr;</button>');
-                historyContainer.append('<button class="carousel-arrow next" aria-label="Next History Entry">&rarr;</button>');
+                historyContainer.append('<button class="carousel-arrow prev" aria-label="Previous History Entry"></button>');
+                historyContainer.append('<button class="carousel-arrow next" aria-label="Next History Entry"></button>');
             } else {
                 console.error("#the-history container not found for appending arrows.");
                 return; // Stop if container not found
