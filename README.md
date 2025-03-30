@@ -1,178 +1,119 @@
-The WordPress/Classicpress theme for the non-profit project africanface.org                                                                             
-                                                                                                                                           
-A comprehensive theme that provides rich content management and display functionality for the African Face project.                        
-                                                                                                                                           
-## Core Features                                                                                                                           
-                                                                                                                                           
-- **Bright/Dark Theme Switcher**: Toggle between light and dark visual modes                                                               
-- **One-Page Architecture**: Assembles content segments from individual WordPress pages for easier management                              
-- **Responsive Design**: Optimized layouts for desktop and mobile devices                                                                  
-- **Custom Navigation**: Special menu walker class for enhanced navigation experience                                                      
-- **Split Headlines**: Support for comma-separated headlines that display in two parts for visual interest
+# African Face Theme (AFCT)
 
-## Content Management Features                                                                                                             
-                                                                                                                                           
-### Homepage Management                                                                                                                    
-- Customizable homepage sections with drag-and-drop reordering                                                                               
-- takes primary menu pages and order as data source for onepager                                                                
+A comprehensive WordPress/ClassicPress theme for the non-profit project africanface.org that provides rich content management and display functionality.
 
-### Intro Page
--  Fullscreen Background video support with cover image fallback    
+## Architecture Overview
 
-### About Page
-- About section with customizable text and image   
+### Current Architecture
+The theme is built with a traditional WordPress architecture:
 
-### Gallery Page                                                                                                                         
-- Flexible gallery layout manager for "Stills" pages                                                                                       
-- Row-based organization with customizable image arrangements                                                                              
-- Add, remove, and reorder images within each row                                                                                          
-                                                                                                                                           
-### History Page                                                                                                                       
-- Interactive visualization of historical events                                                                                           
-- Custom data structure for representing complex historical information                                                                    
-- Map integration with multiple zoom levels                                                                                                
-- Multiple visualization types (arrows, dots, dot clusters)                                                                                
-                                                                                                                                           
-### Podcast Page                                                                                                                         
-- Audio file management with embedded player                                                                                               
-- Chapter markers with timestamps                                                                                                          
-- Guest management with images and information                                                                                             
-- Custom meta fields for podcast details                                                                                                   
-                                                                                                                                           
-### Prospect Page                                                                                                                      
-- Carousel slider for showcasing content                                                                                                   
-- Customizable slides with images, labels, and URLs                                                                                        
-- Text content section above the carousel                                                                                                  
-                                                                                                                                           
-### Credits Page                                                                                                                         
-- Team credits management                                                                                                                  
-- Default credits loaded from JSON file                                                                                                    
-- Customizable through admin interface                                                                                                     
-                                                                                                                                           
-## Admin Interfaces                                                                                                                        
-                                                                                                                                           
-### Meta Boxes                                                                                                                             
-- **Gallery Layout**: Configure image galleries for "Stills" pages                                                                         
-- **Hero Video**: Add background videos with cover images                                                                                  
-- **History Timeline**: Create and manage historical entries with visualizations                                                           
-- **Homepage Sections**: Manage homepage content sections                                                                                  
-- **Podcast Management**: Configure podcast episodes, guests, and chapters                                                                 
-- **Prospect Carousel**: Manage carousel slides and content                                                                                
-- **About Section**: Customize about text and image                                                                                        
-- **YouTube Embed**: Add YouTube videos to pages                                                                                           
-- **Credits**: Manage team credits information                                                                                             
-                                                                                                                                           
-## Templates                                                                                                                               
-- `template-homepage.php`: One-page main site template                                                                                     
-- `template-intro.php`: Intro page with fullscreen background video
-- `template-gallery.php`: Gallery/Stills page with flexible image layouts
-- `template-history.php`: Interactive history timeline with map visualizations
-- `template-podcast.php`: Podcast page with audio player and episode information
-- `template-prospect.php`: Prospect page with carousel                                                                                     
-- `template-credits.php`: Team credits display                                                                                             
-                                                                                                                                           
-## REST API                                                                                                                                
-The theme exposes data through custom REST API endpoints:                                                                                  
-                                                                                                                                           
-### History Timeline                                                                                                                       
-- Endpoint: `/wp-json/afct/v1/history`                                                                                                     
-- Returns structured history timeline data           
-
-## Additional Features
+- **PHP Templates**: Core rendering is handled by PHP template files
+- **JavaScript Enhancements**: Interactive features use vanilla JS and jQuery
+- **CSS Styling**: Responsive design with mobile-first approach
+- **WordPress Integration**: Custom meta boxes, REST API endpoints, and admin interfaces
 
 ### One-Page Architecture
-- Defined by `template-homepage.php`
-- Uses `IN_ONEPAGER` constant to manage template inclusion
-- Automatically assembles pages from menu items in the primary menu
-- Wraps each page in a section with ID based on the page slug
+The site uses a unique one-page architecture:
+- Main template (`template-homepage.php`) assembles content from individual WordPress pages
+- Pages are selected and ordered based on the primary menu configuration
+- Each page is wrapped in a section with an ID based on the page slug
+- The `IN_ONEPAGER` constant manages template inclusion to prevent duplicate headers/footers
 
-### Theme Optimization
-- Emoji removal for improved performance
-- Selective script and style loading
-- Version string generation based on file modification time for cache busting
+## Core Features
 
-### JavaScript Utilities
-- Headline positioning for visual layout
-- YouTube consent mechanism for GDPR compliance
-- Custom admin interfaces for meta boxes
+- **Theme Switcher**: Toggle between light and dark visual modes
+- **Responsive Design**: Optimized layouts for all device sizes (mobile-first approach)
+- **Custom Navigation**: Enhanced menu walker class for specialized navigation
+- **Split Headlines**: Support for comma-separated headlines that display in two parts
+- **Interactive Components**: Custom-built carousels, audio players, and visualizations
 
-### Admin Customizations
-- Simplified WordPress admin footer
-- Removal of default meta boxes for cleaner editing experience
-- Custom admin scripts for managing complex content types
+## Content Templates
 
-### Split Headlines
-- Upper and lower headline positioning for visual interest
-- Consistent implementation across all templates
+| Template | Purpose | Key Features |
+|----------|---------|-------------|
+| `template-homepage.php` | One-page main site | Assembles content from menu items |
+| `template-intro.php` | Introduction section | Fullscreen background video |
+| `template-gallery.php` | Photography display | Flexible image grid layouts |
+| `template-history.php` | Historical timeline | Interactive map visualizations |
+| `template-podcast.php` | Audio content | Custom audio player with chapters |
+| `template-prospect.php` | Future initiatives | Image carousel with CTAs |
+| `template-credits.php` | Team information | Structured credits display |
 
-### Custom JSON Data Sources
-- Credits data loaded from external JSON file
-- Fallback mechanisms for missing data
-- Structured data approach for complex content types
-## History Timeline Data Structure
+## JavaScript Components
 
-The history timeline feature uses a structured data format to represent historical events and visualizations:
+The theme includes several custom JavaScript components:
 
-### Entry Structure
-Each history entry contains:
-- `id`: Unique identifier (same as year_start)
-- `year_start`: Starting year of the event
-- `title`: Title of the event
-- `paragraph`: Description text
-- `map_zoom`: Map zoom level (south_africa, africa, europe_and_africa)
-- `visualizations`: Array of visualization objects
+- **History Timeline**: Complex D3.js visualization (`history-timeline.js`)
+- **Prospect Carousel**: Custom image slider (`prospect-carousel.js`)
+- **YouTube Consent**: GDPR-compliant video embedding (`youtube-consent.js`)
+- **Headline Positioning**: Dynamic text layout (`headline-positioning.js`)
+- **Custom Audio Player**: Chapter-based audio interface
 
-### Visualization Types
-The timeline supports three types of visualizations:
+## CSS Architecture
 
-1. **Arrow** (`type: "arrow"`):
-   - `origin`: [longitude, latitude] coordinates
-   - `destination`: [longitude, latitude] coordinates
-   - `label`: Optional text label
+- **Mobile-First Approach**: Base styles for mobile with progressive enhancement
+- **Responsive Breakpoints**:
+  - Mobile landscape: 768px+
+  - Desktop base: 1025px+
+  - Desktop L: 1281px+
+  - Desktop XL: 1441px+
+  - Desktop XXL: 1921px+
+- **Component-Based**: Modular CSS files for maintainability
+- **CSS Variables**: Theme colors and typography defined as CSS variables
 
-2. **Dot** (`type: "dot"`):
-   - `origin`: [longitude, latitude] coordinates
-   - `label`: Optional text label
+## Data Management
 
-3. **Dots** (`type: "dots"`):
-   - `origin`: [longitude, latitude] coordinates for the central point (used for initial placement and label)
-   - `label`: Optional text label
-   - `dotCoordinates`: Array of coordinate pairs for precise dot placement. If omitted, only the `origin` point is used.
-     ```json
-     "dotCoordinates": [
-       [24.0, -28.5],  // [longitude, latitude]
-       [26.0, -29.5],
-       [25.5, -30.0]
-     ]
-     ```
-
-### Example JSON Structure
-
-```json
-[
-  {
-    "id": 1500,
-    "year_start": 1500,
-    "year_end": 1550,
-    "title": "Bantu Languages",
-    "paragraph": "The spread of Bantu languages across southern Africa...",
-    "map_zoom": "africa",
-    "visualizations": [
-      {
-        "type": "dots",
-        "label": "Bantu Language Distribution",
-        "origin": [25.0, -29.0],
-        "dotCoordinates": [
-          [24.0, -28.5],
-          [26.0, -29.5],
-          [25.5, -30.0]
-        ]
-      }
-    ]
-  }
-]
-```
+### Custom Meta Boxes
+The theme uses custom meta boxes for specialized content:
+- Gallery layout configuration
+- Podcast episode management
+- History timeline entries
+- Prospect carousel slides
 
 ### REST API
-Timeline data is accessible via the REST API endpoint:
-`/wp-json/afct/v1/history`
+Custom endpoints provide structured data:
+- `/wp-json/afct/v1/history`: Timeline visualization data
+
+## React Migration Considerations
+
+### Components to Migrate
+Key components that would benefit from React implementation:
+
+1. **History Timeline Visualization**: Currently uses D3.js with jQuery
+2. **Prospect Carousel**: Currently uses jQuery for animation
+3. **Custom Audio Player**: Currently uses vanilla JS
+4. **Gallery Grid**: Currently uses static HTML generation
+
+### Data Flow Considerations
+- Current data flow relies on PHP template variables and localized JS objects
+- React implementation would need to access data via REST API endpoints
+- WordPress admin interfaces would still manage content creation
+
+### Progressive Enhancement Strategy
+A phased approach to React migration could include:
+1. Create React components that replace existing JS functionality
+2. Implement a data fetching layer using the WordPress REST API
+3. Gradually replace PHP template rendering with React components
+4. Maintain backward compatibility with existing admin interfaces
+
+## Performance Optimizations
+
+The theme includes several performance optimizations:
+- Emoji removal for reduced overhead
+- Selective script and style loading
+- Version string generation based on file modification time for cache busting
+- Minimal external dependencies
+
+## Development Workflow
+
+Current development workflow uses:
+- Node.js and npm for dependency management
+- SASS compilation for CSS
+- Manual JavaScript bundling
+- WordPress coding standards
+
+## Additional Resources
+
+- Theme documentation is maintained in this README
+- Custom data structures are documented in their respective sections
+- Admin interfaces include contextual help
