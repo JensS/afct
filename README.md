@@ -1,4 +1,4 @@
-The WordPress theme for the non-profit project africanface.org                                                                             
+The WordPress/Classicpress theme for the non-profit project africanface.org                                                                             
                                                                                                                                            
 A comprehensive theme that provides rich content management and display functionality for the African Face project.                        
                                                                                                                                            
@@ -13,33 +13,38 @@ A comprehensive theme that provides rich content management and display function
 ## Content Management Features                                                                                                             
                                                                                                                                            
 ### Homepage Management                                                                                                                    
-- Customizable homepage sections with drag-and-drop reordering                                                                             
-- Background video support with cover image fallback                                                                                       
-- About section with customizable text and image                                                                                           
-                                                                                                                                           
-### Gallery System                                                                                                                         
+- Customizable homepage sections with drag-and-drop reordering                                                                               
+- takes primary menu pages and order as data source for onepager                                                                
+
+### Intro Page
+-  Fullscreen Background video support with cover image fallback    
+
+### About Page
+- About section with customizable text and image   
+
+### Gallery Page                                                                                                                         
 - Flexible gallery layout manager for "Stills" pages                                                                                       
 - Row-based organization with customizable image arrangements                                                                              
 - Add, remove, and reorder images within each row                                                                                          
                                                                                                                                            
-### History Timeline                                                                                                                       
+### History Page                                                                                                                       
 - Interactive visualization of historical events                                                                                           
 - Custom data structure for representing complex historical information                                                                    
 - Map integration with multiple zoom levels                                                                                                
 - Multiple visualization types (arrows, dots, dot clusters)                                                                                
                                                                                                                                            
-### Podcast System                                                                                                                         
+### Podcast Page                                                                                                                         
 - Audio file management with embedded player                                                                                               
 - Chapter markers with timestamps                                                                                                          
 - Guest management with images and information                                                                                             
 - Custom meta fields for podcast details                                                                                                   
                                                                                                                                            
-### Prospect Template                                                                                                                      
+### Prospect Page                                                                                                                      
 - Carousel slider for showcasing content                                                                                                   
 - Customizable slides with images, labels, and URLs                                                                                        
 - Text content section above the carousel                                                                                                  
                                                                                                                                            
-### Credits System                                                                                                                         
+### Credits Page                                                                                                                         
 - Team credits management                                                                                                                  
 - Default credits loaded from JSON file                                                                                                    
 - Customizable through admin interface                                                                                                     
