@@ -579,8 +579,55 @@
             const timelineContent = $('#timeline-content');
             const historySection = $('#the-history');
             
-            updateVisualization(config.minYear);
-            updateTimelineMarker(config.minYear);
+            // Get the first paragraph item and show it immediately
+            const paragraphItems = getParagraphItems();
+            if (paragraphItems && paragraphItems.length > 0) {
+                // Directly show the first item without animation
+                const firstItem = paragraphItems[0];
+                
+                // First update the map zoom
+                updateMapZoom(firstItem, function() {
+                    // Then draw visualizations after zoom completes
+                    if (firstItem.visualizations && firstItem.visualizations.length > 0) {
+                        firstItem.visualizations.forEach(viz => {
+                            switch(viz.type) {
+                                case "arrow":
+                                    createArrowVisualization(viz, firstItem.year_start);
+                                    break;
+                                case "dot":
+                                    createDotVisualization(viz, firstItem.year_start);
+                                    break;
+                                case "dots":
+                                    createDotsVisualization(viz, firstItem.year_start);
+                                    break;
+                                case "arrows": // Support for multiple arrows
+                                    if (viz.arrows && Array.isArray(viz.arrows)) {
+                                        viz.arrows.forEach((arrow, i) => {
+                                            const arrowViz = {
+                                                type: "arrow",
+                                                origin: arrow.origin,
+                                                destination: arrow.destination,
+                                                label: i === 0 ? viz.label : null, // Only add label to first arrow
+                                                color: "var(--red)" // Use --red for all visualizations
+                                            };
+                                            createArrowVisualization(arrowViz, firstItem.year_start);
+                                        });
+                                    }
+                                    break;
+                            }
+                        });
+                    }
+                });
+                
+                // Show the first timeline item
+                $(`.timeline-item[data-id="${firstItem.id}"]`).show();
+                updateTimelineMarker(firstItem.year_start);
+                updateArrowStates(0, paragraphItems.length);
+            } else {
+                // Fallback to default behavior if no paragraph items
+                updateVisualization(config.minYear);
+                updateTimelineMarker(config.minYear);
+            }
             
             $(window).on('scroll', function() {
                 const historyRect = historySection[0].getBoundingClientRect();
@@ -768,7 +815,6 @@
                     .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`)
                     .attr("stroke", "var(--red)") // Always use --red
                     .attr("stroke-width", 2)
-                    .attr("stroke-dasharray", "5,5")
                     .attr("opacity", 0)
                     .transition()
                     .duration(config.animationDuration)
