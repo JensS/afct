@@ -199,6 +199,18 @@ function afct_save_prospect_slides_meta_box($post_id) {
     if ($template !== 'template-prospect.php') {
         return;
     }
+    
+    // Save the text content
+    if (isset($_POST['afct_prospect_text_meta_box_nonce']) && 
+        wp_verify_nonce($_POST['afct_prospect_text_meta_box_nonce'], 'afct_prospect_text_meta_box')) {
+        
+        if (isset($_POST['prospect_text'])) {
+            $text_content = wp_kses_post($_POST['prospect_text']);
+            update_post_meta($post_id, '_afct_prospect_text', $text_content);
+        } else {
+            delete_post_meta($post_id, '_afct_prospect_text');
+        }
+    }
 
     // Sanitize and save the carousel slides
     if (isset($_POST['prospect_slides']) && is_array($_POST['prospect_slides'])) {
@@ -236,6 +248,49 @@ add_action('save_post', 'afct_save_prospect_slides_meta_box');
 // Script enqueuing is now handled in the main afct_enqueue_admin_scripts function in functions.php
 
 /**
+ * Add a meta box for the text content above the carousel
+ */
+function afct_add_prospect_meta_boxes() {
+    add_meta_box(
+        'prospect_text_meta_box',
+        'Text Above Carousel',
+        'afct_prospect_text_meta_box_callback',
+        'page',
+        'normal',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'afct_add_prospect_meta_boxes');
+
+/**
+ * Callback function for the text content meta box
+ */
+function afct_prospect_text_meta_box_callback($post) {
+    // Add nonce for security
+    wp_nonce_field('afct_prospect_text_meta_box', 'afct_prospect_text_meta_box_nonce');
+
+    // Get existing text content
+    $text_content = get_post_meta($post->ID, '_afct_prospect_text', true);
+    ?>
+    <div class="prospect-text-content">
+        <p>Add text content to display above the carousel:</p>
+        <?php
+        wp_editor(
+            $text_content,
+            'prospect_text',
+            array(
+                'media_buttons' => true,
+                'textarea_name' => 'prospect_text',
+                'textarea_rows' => 5,
+                'teeny' => false
+            )
+        );
+        ?>
+    </div>
+    <?php
+}
+
+/**
  * Only show the prospect carousel meta box on the prospect template
  */
 function afct_show_prospect_slides_meta_box() {
@@ -244,9 +299,10 @@ function afct_show_prospect_slides_meta_box() {
     
     $template = get_post_meta($post->ID, '_wp_page_template', true);
     
-    // If not using the prospect template, remove the meta box
+    // If not using the prospect template, remove the meta boxes
     if ($template !== 'template-prospect.php') {
         remove_meta_box('prospect_slides_meta_box', 'page', 'normal');
+        remove_meta_box('prospect_text_meta_box', 'page', 'normal');
     }
 }
 add_action('do_meta_boxes', 'afct_show_prospect_slides_meta_box');

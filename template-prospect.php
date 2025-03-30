@@ -29,6 +29,16 @@ if ( ! is_array( $slides ) ) {
     </div>
 
     <div class="content-frame prospect-content">
+        <?php 
+        // Display text content above carousel if it exists
+        $text_content = get_post_meta(get_the_ID(), '_afct_prospect_text', true);
+        if (!empty($text_content)) : 
+        ?>
+            <div class="prospect-text-block">
+                <?php echo wp_kses_post($text_content); ?>
+            </div>
+        <?php endif; ?>
+
         <?php if ( ! empty( $slides ) ) : ?>
             <div id="prospect-carousel" class="prospect-carousel-container">
                 <div class="prospect-slides">
