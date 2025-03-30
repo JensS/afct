@@ -204,14 +204,27 @@ function afct_save_prospect_slides_meta_box($post_id) {
     if (isset($_POST['prospect_slides']) && is_array($_POST['prospect_slides'])) {
         $slides = array();
         
+        // For debugging
+        error_log('Saving prospect slides: ' . print_r($_POST['prospect_slides'], true));
+        
         foreach ($_POST['prospect_slides'] as $slide) {
+            // Make sure we're getting the image_id correctly
+            $image_id = isset($slide['image_id']) ? absint($slide['image_id']) : 0;
+            
+            // For debugging
+            error_log('Processing slide with image_id: ' . $image_id);
+            
             $slides[] = array(
-                'image_id' => isset($slide['image_id']) ? absint($slide['image_id']) : 0,
+                'image_id' => $image_id,
                 'label' => isset($slide['label']) ? sanitize_text_field($slide['label']) : '',
                 'url' => isset($slide['url']) ? esc_url_raw($slide['url']) : '',
             );
         }
         
+        // For debugging
+        error_log('Final slides array: ' . print_r($slides, true));
+        
+        // Update the post meta
         update_post_meta($post_id, '_afct_prospect_slides', $slides);
     } else {
         // If no slides, delete the meta

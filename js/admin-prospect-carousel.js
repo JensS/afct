@@ -24,6 +24,7 @@ jQuery(document).ready(function($) {
     $(document).on('click', '.prospect-slide-image-preview', function() {
         const $preview = $(this);
         const $input = $preview.find('input');
+        const slideIndex = $preview.closest('.prospect-slide').data('index');
         
         // Create media frame
         const frame = wp.media({
@@ -37,16 +38,18 @@ jQuery(document).ready(function($) {
         // When an image is selected in the media frame
         frame.on('select', function() {
             const attachment = frame.state().get('selection').first().toJSON();
+            const imageId = attachment.id;
             
-            // Set the image ID in the hidden input
-            $input.val(attachment.id);
+            // Store the current input name
+            const inputName = $input.attr('name');
             
-            // Update the preview
-            if (attachment.sizes && attachment.sizes.medium) {
-                $preview.html('<img src="' + attachment.sizes.medium.url + '" alt="Slide image">');
-            } else {
-                $preview.html('<img src="' + attachment.url + '" alt="Slide image">');
-            }
+            // Update the preview with the new image
+            $preview.html('<img src="' + (attachment.sizes && attachment.sizes.medium ? attachment.sizes.medium.url : attachment.url) + '" alt="Slide image">');
+            
+            // Re-add the hidden input with the image ID
+            $preview.append('<input type="hidden" name="' + inputName + '" value="' + imageId + '">');
+            
+            console.log('Updated slide ' + slideIndex + ' with image ID: ' + imageId);
         });
         
         // Open the media frame
