@@ -334,6 +334,7 @@ require_once get_template_directory() . '/inc/admin-herovideo.php';
 require_once get_template_directory() . '/inc/admin-podcasts.php';
 require_once get_template_directory() . '/inc/admin-history.php';
 require_once get_template_directory() . '/inc/rest-api-history.php';
+require_once get_template_directory() . '/inc/admin-prospect.php';
 
 /**
  * Split page title into two parts for the two-part headline display
