@@ -100,7 +100,8 @@ function afct_scripts() {
 	wp_enqueue_script('d3', get_template_directory_uri() . '/js/d3.min.js', array(), '7.9', true);
 	wp_enqueue_script('topojson',  get_template_directory_uri() . '/js/topojson.min.js', array('d3'), '3.0', true);
 	
-
+    wp_enqueue_script('afct-prospect-carousel', get_template_directory_uri() . '/js/prospect-carousel.js', array('jquery'), afct_get_version_string('/js/prospect-carousel.js'), true); // Load in footer
+   
 
     wp_enqueue_script('afct', get_template_directory_uri() . '/js/afct.js', array('jquery',"d3","topojson"), afct_get_version_string('/js/afct.js'), false);
 	wp_localize_script('afct', 'afctSettings', array(
@@ -109,10 +110,7 @@ function afct_scripts() {
 		"historyNonce" => wp_create_nonce('wp_rest')
 	));
 
-    // Conditionally enqueue Prospect carousel script
-    if ( is_page_template('template-prospect.php') ) {
-        wp_enqueue_script('afct-prospect-carousel', get_template_directory_uri() . '/js/prospect-carousel.js', array('jquery'), afct_get_version_string('/js/prospect-carousel.js'), true); // Load in footer
-    }
+   
 
 }
 add_action('wp_enqueue_scripts', 'afct_scripts');
@@ -250,7 +248,6 @@ require_once get_template_directory() . '/inc/admin-homepage.php';
 function afct_enqueue_admin_scripts() {
     global $typenow;
 	global $post;
-    if ($typenow == 'page') {
         wp_enqueue_media();
         // Enqueue jQuery UI Sortable and Dialog
         wp_enqueue_script('jquery-ui-sortable');
@@ -259,16 +256,13 @@ function afct_enqueue_admin_scripts() {
         // Enqueue jQuery UI styles
         wp_enqueue_style('jquery-ui-styles', get_template_directory_uri() . '/css/jquery-ui.css');
         
-        // Enqueue D3.js and Topojson for map previews
-        wp_enqueue_script('d3', get_template_directory_uri() . '/js/d3.min.js', array(), '7.9', true);
-        wp_enqueue_script('topojson', get_template_directory_uri() . '/js/topojson.min.js', array('d3'), '3.0', true);
-    }
-
-	// Check if we are on the History page template edit screen                                                                                                                           
-        // *** IMPORTANT: Replace 'template-history.php' with the actual filename of your history page template ***                                                                           
+	// Check if we are on the History page template edit screen                                                                                                                                
         $template_file = $post ? get_post_meta($post->ID, '_wp_page_template', true) : '';                                                                                                    
         if ($post && $template_file === 'template-history.php') {                                                                                                                             
-                                                                                                                                                                                              
+                                                     
+        wp_enqueue_script('d3', get_template_directory_uri() . '/js/d3.min.js', array(), '7.9', true);
+        wp_enqueue_script('topojson', get_template_directory_uri() . '/js/topojson.min.js', array('d3'), '3.0', true);
+
             // Enqueue History Admin CSS                                                                                                                                                      
             wp_enqueue_style(                                                                                                                                                                 
                 'afct-admin-history-style',                                                                                                                                                   
