@@ -196,9 +196,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const cookieConsent = document.querySelector('.cookie-consent');
     const acceptButton = cookieConsent?.querySelector('.button-primary');
     if (cookieConsent && acceptButton) {
-        if (!localStorage.getItem('cookiesAccepted')) {
+        // Check localStorage first and set display accordingly
+        if (localStorage.getItem('cookiesAccepted')) {
+            cookieConsent.style.display = 'none';
+        } else {
             cookieConsent.style.display = 'block';
         }
+        
         acceptButton.addEventListener('click', function() {
             cookieConsent.style.display = 'none';
             localStorage.setItem('cookiesAccepted', 'true');
