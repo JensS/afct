@@ -231,33 +231,7 @@ function afct_save_prospect_slides_meta_box($post_id) {
 }
 add_action('save_post', 'afct_save_prospect_slides_meta_box');
 
-/**
- * Enqueue scripts for the prospect carousel admin
- */
-function afct_enqueue_prospect_carousel_admin_scripts($hook) {
-    global $post;
-    
-    // Only load on post.php and post-new.php
-    if (!in_array($hook, array('post.php', 'post-new.php')) || !$post) {
-        return;
-    }
-    
-    // Check if we're editing a page with the prospect template
-    $template = get_post_meta($post->ID, '_wp_page_template', true);
-    if ($template !== 'template-prospect.php') {
-        return;
-    }
-    
-    // Enqueue the script
-    wp_enqueue_script(
-        'afct-prospect-carousel-admin',
-        get_template_directory_uri() . '/js/admin-prospect-carousel.js',
-        array('jquery', 'jquery-ui-sortable', 'wp-util'),
-        filemtime(get_template_directory() . '/js/admin-prospect-carousel.js'),
-        true
-    );
-}
-add_action('admin_enqueue_scripts', 'afct_enqueue_prospect_carousel_admin_scripts');
+// Script enqueuing is now handled in the main afct_enqueue_admin_scripts function in functions.php
 
 /**
  * Only show the prospect carousel meta box on the prospect template

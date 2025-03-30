@@ -247,18 +247,29 @@ require_once get_template_directory() . '/inc/admin-homepage.php';
 
 function afct_enqueue_admin_scripts() {
     global $typenow;
-	global $post;
-        wp_enqueue_media();
-        // Enqueue jQuery UI Sortable and Dialog
-        wp_enqueue_script('jquery-ui-sortable');
-        wp_enqueue_script('jquery-ui-dialog');
-
-        // Enqueue jQuery UI styles
-        wp_enqueue_style('jquery-ui-styles', get_template_directory_uri() . '/css/jquery-ui.css');
-        
-	// Check if we are on the History page template edit screen                                                                                                                                
-        $template_file = $post ? get_post_meta($post->ID, '_wp_page_template', true) : '';                                                                                                    
-        if ($post && $template_file === 'template-history.php') {                                                                                                                             
+    global $post;
+    
+    // Always enqueue these scripts for admin
+    wp_enqueue_media();
+    wp_enqueue_script('jquery-ui-sortable');
+    wp_enqueue_script('jquery-ui-dialog');
+    wp_enqueue_style('jquery-ui-styles', get_template_directory_uri() . '/css/jquery-ui.css');
+    
+    // Always enqueue the prospect carousel admin script on post/page edit screens
+    $current_screen = get_current_screen();
+    if (is_admin() && $current_screen && in_array($current_screen->base, array('post', 'page'))) {
+        wp_enqueue_script(
+            'afct-prospect-carousel-admin',
+            get_template_directory_uri() . '/js/admin-prospect-carousel.js',
+            array('jquery', 'jquery-ui-sortable', 'wp-util'),
+            filemtime(get_template_directory() . '/js/admin-prospect-carousel.js'),
+            true
+        );
+    }
+    
+    // Check if we are on the History page template edit screen
+    $template_file = $post ? get_post_meta($post->ID, '_wp_page_template', true) : '';
+    if ($post && $template_file === 'template-history.php') {
                                                      
         wp_enqueue_script('d3', get_template_directory_uri() . '/js/d3.min.js', array(), '7.9', true);
         wp_enqueue_script('topojson', get_template_directory_uri() . '/js/topojson.min.js', array('d3'), '3.0', true);
