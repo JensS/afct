@@ -17,7 +17,7 @@
         <div class="global-container">
             <div class="utility-links">
                 <p>©<?php echo date('Y'); ?></p>
-                <p><a href="<?php echo esc_url(home_url('/privacy-policy')); ?>">Imprint & Privacy Policy</a></p>
+                <p><a href="<?php echo esc_url(home_url('/imprint')); ?>">Imprint & Privacy Policy</a></p>
                 <p>A project by <a href="https://www.jenssage.com">Jens Sage</a></p>
             </div>
             <div class="footer-logo">
@@ -27,10 +27,6 @@
         </div>
     </div>
 </section>
-<?php
-include("template-imprint.php");
-?>
-
 <div id="cookie-consent" class="cookie-consent">
     <div class="cookie-content">
         <p>We use cookies for analytics. <a href="<?php echo esc_url(home_url('/imprint')); ?>">Learn more</a></p>

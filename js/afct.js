@@ -1,5 +1,9 @@
+
 jQuery(document).ready(function($) {
 	"use strict";
+
+    gsap.registerPlugin(ScrollTrigger);
+
 
     const themeToggleBtn = $('.theme-toggle');
     const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');

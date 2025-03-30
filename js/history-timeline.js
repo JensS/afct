@@ -1,17 +1,19 @@
 /**
  * South African History Timeline Visualization
+ * Enhanced with GSAP animations
  */
 
 (function($) {
     $(document).ready(function() {
+        // Register GSAP plugins
+        gsap.registerPlugin(ScrollTrigger);
+
         // Configuration
         const config = {
             mapWidth: 800,
             mapHeight: 600,
-            minYear: 1000, // Updated to match the earliest year in history.json
+            minYear: 1000,
             maxYear: 2025,
-            animationDuration: 400,
-            zoomTransitionDuration: 750,
             colors: {
                 migration: "var(--red)",
                 languageSupression: "var(--red)",
@@ -23,7 +25,6 @@
         let currentYear = config.minYear;
         let map;
         let projection;
-        let activeKeyframes = [];
         let isAnimating = false;
         let cachedParagraphItems = null;
 
@@ -45,26 +46,20 @@
                 .translate([config.mapWidth / 2, config.mapHeight / 2]);
             
             initMap();
-            
-            // Add styles for the new timeline markers UI
             addTimelineMarkerStyles();
             
-            // Add this line to ensure the welcome message is shown after map initialization
-            setTimeout(function() {
+            // Show welcome message with GSAP animation
+            gsap.delayedCall(0.5, () => {
                 showWelcomeMessage();
-                // Set default map zoom for welcome screen
-                updateMapZoom({map_zoom: "africa"}, function() {
-                    // Callback after zoom is complete
-                });
-                // Update arrow states - only enable next arrow
+                updateMapZoom({map_zoom: "africa"}, () => {});
                 updateArrowStates(-1, getParagraphItems().length);
-            }, 500); // Small delay to ensure map is ready
+            });
             
             initTimelineContent();
             initScrollHandler();
         }
-        
-        // Function to add CSS for the new timeline markers UI
+
+        // Create timeline markers UI styles
         function addTimelineMarkerStyles() {
             const styleElement = document.createElement('style');
             styleElement.textContent = `
@@ -90,7 +85,6 @@
                     height: 40px;
                     bottom: 0;
                     transform: translateX(50%);
-                    transition: transform 0.5s ease;
                     white-space: nowrap;
                 }
                 
@@ -138,40 +132,27 @@
                 .timeline-marker.century-marker {
                     height: 30px;
                     opacity: 0.8;
-                    width: 1px;
                 }
                 
                 .timeline-marker.decade-marker {
                     height: 20px;
                     opacity: 0.5;
-                    width: 1px;
                 }
                 
                 .timeline-marker.year-marker {
                     height: 10px;
                     opacity: 0.3;
-                    width: 1px;
-                }
-                
-                .timeline-marker.chapter-marker {
-                    opacity: 1;
-                    background-color: var(--text);
-                    width: 1px;
-                }
-                
-                /* Remove the dot and replace with a taller line */
-                .timeline-marker.chapter-marker::after {
-                    content: none;
                 }
                 
                 .timeline-marker.chapter-marker {
                     height: 35px;
+                    opacity: 1;
+                    background-color: var(--text);
                 }
                 
                 .timeline-marker.active {
                     opacity: 1;
                     background-color: var(--red);
-                    width: 1px;
                 }
                 
                 .marker-year {
@@ -184,51 +165,18 @@
                     white-space: nowrap;
                     margin-bottom: 5px;
                 }
-                
-                .timeline-marker:hover {
-                    opacity: 1;
-                }
-                
-                /* New animation styles */
-                @keyframes pulseOpacity {
-                    0% { opacity: 0.3; }
-                    50% { opacity: 0.8; }
-                    100% { opacity: 0.3; }
-                }
-                
-                @keyframes flowDots {
-                    0% { stroke-dashoffset: 24; }
-                    100% { stroke-dashoffset: 0; }
-                }
-                
-                /* Apply animations to visualization elements */
-                .event-marker, .language-bubble, .origin-marker, .destination-marker {
-                    animation: pulseOpacity 3s ease-in-out infinite;
-                }
-                
-                .migration-line {
-                    stroke-dasharray: 4, 4;
-                    animation: flowDots 3s linear infinite;
-                }
-                
-                /* Add destination-marker to the animation class list */
-                .destination-marker {
-                    animation: pulseOpacity 3s ease-in-out infinite;
-                }
             `;
             document.head.appendChild(styleElement);
         }
-        
-        // Add welcome message function to display on map initialization
+
+        // Show welcome message with GSAP animation
         function showWelcomeMessage() {
-            // Clear any existing visualizations
             clearAllVisualizations();
             
-            // Get the map container and add welcome text
             const layer = map.select("#event-layer");
             
-            // Add a title
-            layer.append("text")
+            // Add title with GSAP animation
+            const title = layer.append("text")
                 .attr("class", "welcome-title")
                 .attr("x", config.mapWidth / 2)
                 .attr("y", config.mapHeight / 2 - 40)
@@ -237,13 +185,16 @@
                 .attr("font-weight", "bold")
                 .attr("fill", "var(--text)")
                 .text("South African History Timeline")
-                .attr("opacity", 0)
-                .transition()
-                .duration(config.animationDuration)
-                .attr("opacity", 1);
+                .attr("opacity", 0);
+
+            gsap.to(title.node(), {
+                opacity: 1,
+                duration: 0.75,
+                ease: "power2.inOut"
+            });
             
-            // Add instructions
-            layer.append("text")
+            // Add instructions with GSAP animation
+            const instructions = layer.append("text")
                 .attr("class", "welcome-instructions")
                 .attr("x", config.mapWidth / 2)
                 .attr("y", config.mapHeight / 2 + 10)
@@ -251,13 +202,17 @@
                 .attr("font-size", "16px")
                 .attr("fill", "var(--text)")
                 .text("Use the arrows to navigate through history")
-                .attr("opacity", 0)
-                .transition()
-                .duration(config.animationDuration)
-                .attr("opacity", 1);
+                .attr("opacity", 0);
+
+            gsap.to(instructions.node(), {
+                opacity: 1,
+                duration: 0.75,
+                delay: 0.25,
+                ease: "power2.inOut"
+            });
             
-            // Add start instruction
-            layer.append("text")
+            // Add start instruction with GSAP animation
+            const startInstructions = layer.append("text")
                 .attr("class", "welcome-start")
                 .attr("x", config.mapWidth / 2)
                 .attr("y", config.mapHeight / 2 + 40)
@@ -265,75 +220,62 @@
                 .attr("font-size", "16px")
                 .attr("fill", "var(--red)")
                 .text("Click the right arrow to begin →")
-                .attr("opacity", 0)
-                .transition()
-                .duration(config.animationDuration)
-                .attr("opacity", 1);
+                .attr("opacity", 0);
+
+            gsap.to(startInstructions.node(), {
+                opacity: 1,
+                duration: 0.75,
+                delay: 0.5,
+                ease: "power2.inOut"
+            });
         }
 
-        console.log(afctSettings.historyDataUrl);
-        // Load history data from visualization-data element or WordPress REST API
+        // Load history data
         function loadHistoryData() {
-            // Try to get data from the visualization-data element first
             const visualizationDataEl = document.getElementById('visualization-data');
-            if (visualizationDataEl && visualizationDataEl.dataset.historyEntries) {
+            if (visualizationDataEl?.dataset.historyEntries) {
                 try {
                     historyData = JSON.parse(visualizationDataEl.dataset.historyEntries);
                     if (Array.isArray(historyData)) {
-                        // Don't cache paragraph items
                         cachedParagraphItems = null;
                         init();
                         return;
                     }
                 } catch (e) {
-                    console.error("Error parsing history entries from data attribute:", e);
+                    console.error("Error parsing history entries:", e);
                 }
             }
             
-            // Always make a fresh AJAX request (no caching)
             $.ajax({
                 url: afctSettings.historyDataUrl,
                 method: 'GET',
-                cache: false, // Disable caching
+                cache: false,
                 beforeSend: function(xhr) {
-                    if (typeof afctSettings.historyNonce !== 'undefined') {
+                    if (afctSettings.historyNonce) {
                         xhr.setRequestHeader('X-WP-Nonce', afctSettings.historyNonce);
                     }
                 },
                 success: function(data) {
                     if (!Array.isArray(data)) {
-                        console.error("History data is not an array:", data);
+                        console.error("Invalid history data format");
                         return;
                     }
                     
-                    // Validate and filter out invalid items
                     historyData = data.filter(item => {
-                        if (!item || typeof item !== 'object') {
-                            console.error("Invalid history item:", item);
-                            return false;
-                        }
-                        if (!item.year_start) {
-                            console.error("History item missing year_start:", item);
-                            return false;
-                        }
-                        if (item.visualisation === "paragraph" && (!item.history_paragraph || !item.history_paragraph.title)) {
-                            console.error("Paragraph item missing required fields:", item);
-                            return false;
-                        }
+                        if (!item?.year_start) return false;
+                        if (item.visualisation === "paragraph" && (!item.history_paragraph?.title)) return false;
                         return true;
                     });
                     
                     if (historyData.length === 0) {
-                        console.error("No valid history items found in data");
+                        console.error("No valid history items found");
                         return;
                     }
                     
-                    // Don't cache paragraph items
                     cachedParagraphItems = null;
-                    
                     init();
                 },
-                error: function(jqxhr, textStatus, error) {
+                error: function(error) {
                     console.error("Failed to load history data:", error);
                 }
             });
@@ -352,7 +294,7 @@
             // Create dot patterns
             const defs = svg.append("defs");
             
-            // Regular dot pattern for countries
+            // Country pattern
             defs.append("pattern")
                 .attr("id", "countryPattern")
                 .attr("patternUnits", "userSpaceOnUse")
@@ -364,39 +306,38 @@
                 .attr("r", 0.5)
                 .attr("fill", "var(--text)");
             
-            // Denser dot pattern for South Africa
+            // South Africa pattern
             defs.append("pattern")
                 .attr("id", "southAfricaPattern")
                 .attr("patternUnits", "userSpaceOnUse")
-                .attr("width", 3) // Smaller spacing for denser pattern
+                .attr("width", 3)
                 .attr("height", 3)
                 .append("circle")
                 .attr("cx", 1.5)
                 .attr("cy", 1.5)
-                .attr("r", 0.6) // Slightly larger dots
+                .attr("r", 0.6)
                 .attr("fill", "var(--text)");
             
-            // Load and render Africa topojson
+            // Load and render map
             d3.json(afctSettings.templateUrl + "/js/countries-110m.json")
                 .then(function(data) {
                     const path = d3.geoPath().projection(projection);
                     
-                    // Draw Africa map with dot patterns
                     svg.append("g")
                         .selectAll("path")
                         .data(topojson.feature(data, data.objects.countries).features)
                         .enter()
                         .append("path")
                         .attr("d", path)
-                        .attr("fill", d => d.id === 710 ? "url(#southAfricaPattern)" : "url(#countryPattern)") // Use patterns
+                        .attr("fill", d => d.id === 710 ? "url(#southAfricaPattern)" : "url(#countryPattern)")
                         .attr("stroke", "var(--background)")
-                        .attr("stroke-width", 1) // Thinner stroke
+                        .attr("stroke-width", 1)
                         .attr("class", d => "country country-" + d.id)
-                        .attr("opacity", d => d.id === 710 ? 0.8 : 0.5); // Adjust opacity
+                        .attr("opacity", d => d.id === 710 ? 0.8 : 0.5);
                     
                     createAnimationLayers();
                 })
-                .catch(error => console.error("Error loading map data:", error));
+                .catch(error => console.error("Error loading map:", error));
         }
 
         // Create animation layers
@@ -405,7 +346,7 @@
             map.append("g").attr("id", "language-layer");
             map.append("g").attr("id", "event-layer");
         }
-        
+
         // Initialize timeline content
         function initTimelineContent() {
             const timelineContent = $("#timeline-content");
@@ -418,14 +359,10 @@
             
             updateArrowStates(0, paragraphItems.length);
         }
-        
+
         // Create timeline markers
         function createTimelineMarkers(timelineMarkers) {
-            // Clear existing markers
-            timelineMarkers.empty();
-            
-            // Create the container with fade effects
-            timelineMarkers.html(`
+            timelineMarkers.empty().html(`
                 <div class="timeline-band-container">
                     <div class="timeline-fade left"></div>
                     <div class="timeline-band"></div>
@@ -435,207 +372,124 @@
             `);
             
             const timelineBand = timelineMarkers.find('.timeline-band');
-            
-            // Get all years from history data
             const years = getAllHistoryYears();
-            
-            // Create the timeline band with markers
             createTimelineBandMarkers(timelineBand, years);
         }
 
-        // Function to get all years from history data
+        // Get all years for timeline
         function getAllHistoryYears() {
-            // Get all paragraph items to ensure we have markers for all chapters
             const paragraphItems = getParagraphItems();
-            
-            // Create a set of significant years from both paragraph items and map animations
             const years = new Set();
             
-            // Add years from paragraph items (chapters) first
             paragraphItems.forEach(item => {
                 years.add(item.year_start);
                 if (item.year_end && item.year_end !== item.year_start) years.add(item.year_end);
             });
             
-            // Add years from map animations
             historyData.filter(item => item.visualisation === "map").forEach(item => {
                 years.add(item.year_start);
                 if (item.year_end && item.year_end !== item.year_start) years.add(item.year_end);
             });
             
-            // Add century markers
             const minYear = Math.floor(config.minYear / 100) * 100;
             const maxYear = Math.ceil(config.maxYear / 100) * 100;
             
-            for (let year = minYear; year <= maxYear; year += 100) {
-                years.add(year);
-            }
-            
-            // Add decade markers for recent history (1900 onwards)
-            for (let year = 1900; year <= maxYear; year += 10) {
-                years.add(year);
-            }
-            
-            // Add individual years for 1950 onwards
-            for (let year = 1950; year <= maxYear; year += 1) {
-                years.add(year);
-            }
+            for (let year = minYear; year <= maxYear; year += 100) years.add(year);
+            for (let year = 1900; year <= maxYear; year += 10) years.add(year);
+            for (let year = 1950; year <= maxYear; year += 1) years.add(year);
             
             return Array.from(years).sort((a, b) => a - b);
         }
 
-        // Function to create timeline band markers
+        // Create timeline band markers
         function createTimelineBandMarkers(timelineBand, years) {
-            const minYear = config.minYear;
-            const maxYear = config.maxYear;
-            const totalRange = maxYear - minYear;
+            const bandWidth = 3000;
+            const chapterYears = new Set(getParagraphItems().map(item => item.year_start));
             
-            // Calculate the band width (make it wider than the visible area)
-            const bandWidth = 3000; // px
-            
-            // Get all paragraph items to ensure we have markers for all chapters
-            const paragraphItems = getParagraphItems();
-            const chapterYears = new Set(paragraphItems.map(item => item.year_start));
-            
-            // Add all chapter years to the years array if they're not already there
-            chapterYears.forEach(year => {
-                if (!years.includes(year)) {
-                    years.push(year);
-                }
-            });
-            
-            // Sort years again after adding chapter years
             years.sort((a, b) => a - b);
             
-            // Log all years for debugging
-            console.log("Timeline years:", years);
-            console.log("Chapter years:", Array.from(chapterYears));
-            
             years.forEach(year => {
-                // Calculate position based on year
                 let position;
                 
-                // Apply different scaling for different time periods
                 if (year < 1900) {
-                    // Normal scaling for years before 1900
-                    const normalizedPos = (year - minYear) / (1900 - minYear);
-                    position = normalizedPos * (bandWidth * 0.5); // Use 50% of band width for pre-1900
+                    const normalizedPos = (year - config.minYear) / (1900 - config.minYear);
+                    position = normalizedPos * (bandWidth * 0.5);
                 } else if (year < 1950) {
-                    // Slightly expanded scaling for 1900-1950
                     const normalizedPos = (year - 1900) / 50;
-                    position = (bandWidth * 0.5) + (normalizedPos * (bandWidth * 0.2)); // Use 20% of band width for 1900-1950
+                    position = (bandWidth * 0.5) + (normalizedPos * (bandWidth * 0.2));
                 } else {
-                    // Expanded scaling for 1950 onwards
-                    const normalizedPos = (year - 1950) / (maxYear - 1950);
-                    position = (bandWidth * 0.7) + (normalizedPos * (bandWidth * 0.3)); // Use 30% of band width for post-1950
+                    const normalizedPos = (year - 1950) / (config.maxYear - 1950);
+                    position = (bandWidth * 0.7) + (normalizedPos * (bandWidth * 0.3));
                 }
                 
-                // Determine marker type
                 let markerClass = "timeline-marker";
                 let markerLabel = "";
                 
                 if (year % 100 === 0) {
-                    // Century marker
                     markerClass += " century-marker";
                     markerLabel = year.toString();
                 } else if (year % 10 === 0 && year >= 1900) {
-                    // Decade marker for recent history
                     markerClass += " decade-marker";
-                    if (year % 50 === 0) {
-                        markerLabel = year.toString();
-                    }
+                    if (year % 50 === 0) markerLabel = year.toString();
                 } else if (year >= 1950) {
-                    // Year marker for very recent history
                     markerClass += " year-marker";
-                    // Only show labels for every 5 years to avoid crowding
-                    if (year % 5 === 0) {
-                        markerLabel = year.toString();
-                    }
+                    if (year % 5 === 0) markerLabel = year.toString();
                 }
                 
-                // Check if this year corresponds to a paragraph item (chapter)
-                const isParagraphYear = chapterYears.has(year);
-                if (isParagraphYear) {
+                if (chapterYears.has(year)) {
                     markerClass += " chapter-marker";
-                    // Always show labels for chapter years
                     markerLabel = year.toString();
                 }
                 
-                // Create marker element
-                const marker = $(`<div class="${markerClass}" data-year="${year}" style="left: ${position}px;">
-                    ${markerLabel ? `<span class="marker-year">${markerLabel}</span>` : ''}
-                </div>`);
-                
-                timelineBand.append(marker);
+                timelineBand.append(`
+                    <div class="${markerClass}" data-year="${year}" style="left: ${position}px;">
+                        ${markerLabel ? `<span class="marker-year">${markerLabel}</span>` : ''}
+                    </div>
+                `);
             });
         }
 
         // Create timeline items
         function createTimelineItems(timelineContent, paragraphItems) {
-            if (!Array.isArray(paragraphItems)) {
-                console.error('Invalid paragraphItems:', paragraphItems);
-                return;
-            }
-            
             timelineContent.find('.timeline-item').remove();
             
             paragraphItems.forEach(item => {
-                // Validate item has all required fields
-                if (!item || !item.id || !item.year_start || !item.title) {
-                    console.error('Invalid timeline item:', item);
-                    return;
-                }
+                if (!item?.id || !item.year_start || !item.title) return;
                 
-                try {
-                    const timelineItem = $(`
-                        <div class="timeline-item" 
-                             data-id="${item.id}" 
-                             data-year-start="${item.year_start}">
-                            <div class="content-wrapper">
-                                <div class="year">
-                                    ${item.year_start}
-                                    ${(item.year_end && item.year_end !== item.year_start) ? ` - ${item.year_end}` : ''}
-                                </div>
-                                <h3>${item.title}</h3>
-                                <p>${item.paragraph}</p>
+                const timelineItem = $(`
+                    <div class="timeline-item" data-id="${item.id}" data-year-start="${item.year_start}">
+                        <div class="content-wrapper">
+                            <div class="year">
+                                ${item.year_start}${(item.year_end && item.year_end !== item.year_start) ? ` - ${item.year_end}` : ''}
                             </div>
+                            <h3>${item.title}</h3>
+                            <p>${item.paragraph}</p>
                         </div>
-                    `);
-                    
-                    timelineContent.append(timelineItem);
-                } catch (error) {
-                    console.error('Error creating timeline item:', error, item);
-                }
+                    </div>
+                `);
+                
+                timelineContent.append(timelineItem);
             });
         }
 
-        // Add navigation arrows using shared classes
+        // Add navigation arrows
         function addNavigationArrows(timelineContent, paragraphItems) {
-            // Remove any existing arrows first
-            $('#the-history .carousel-arrow.prev, #the-history .carousel-arrow.next').remove();
-
-            // Append new arrows using shared classes, potentially wrapped or positioned specifically for history
-            // We add them outside timelineContent, perhaps directly to #the-history or body
-            // Let's append them relative to the #the-history container for better control
             const historyContainer = $('#the-history');
-            if (historyContainer.length) {
-                 // Add ARIA labels for accessibility
-                historyContainer.append('<button class="carousel-arrow prev" aria-label="Previous History Entry"></button>');
-                historyContainer.append('<button class="carousel-arrow next" aria-label="Next History Entry"></button>');
-            } else {
-                console.error("#the-history container not found for appending arrows.");
-                return; // Stop if container not found
+            if (!historyContainer.length) {
+                console.error("#the-history container not found");
+                return;
             }
-
-            // Add event handlers for navigation arrows using the new shared classes, scoped to history
+            
+            $('#the-history .carousel-arrow.prev, #the-history .carousel-arrow.next').remove();
+            historyContainer.append('<button class="carousel-arrow prev" aria-label="Previous History Entry"></button>');
+            historyContainer.append('<button class="carousel-arrow next" aria-label="Next History Entry"></button>');
+            
             $('#the-history').off('click', '.carousel-arrow.prev').on('click', '.carousel-arrow.prev', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
-                
                 if ($(this).hasClass('disabled') || isAnimating) return;
                 
                 const visibleItem = $('.timeline-item:visible');
-                if (visibleItem.length === 0) {
+                if (!visibleItem.length) {
                     transitionToItem(paragraphItems[0], 0, paragraphItems.length);
                     return;
                 }
@@ -644,185 +498,331 @@
                 const currentIndex = paragraphItems.findIndex(item => item.id === currentId);
                 
                 if (currentIndex > 0) {
-                    const prevItem = paragraphItems[currentIndex - 1];
-                    transitionToItem(prevItem, currentIndex - 1, paragraphItems.length);
+                    transitionToItem(paragraphItems[currentIndex - 1], currentIndex - 1, paragraphItems.length);
                 }
             });
-
-            // Use event delegation on the container for the next arrow
+            
             $('#the-history').off('click', '.carousel-arrow.next').on('click', '.carousel-arrow.next', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
-                
                 if ($(this).hasClass('disabled') || isAnimating) return;
                 
                 const visibleItem = $('.timeline-item:visible');
                 const paragraphItems = getParagraphItems();
                 
-                // If no item is visible, we're in the welcome state
-                if (visibleItem.length === 0) {
-                    // Clear welcome message
+                if (!visibleItem.length) {
                     clearAllVisualizations();
-                    // Show the first item
                     transitionToItem(paragraphItems[0], 0, paragraphItems.length);
                     return;
                 }
                 
-                // Normal navigation logic
                 const currentId = parseInt(visibleItem.attr('data-id'));
                 const currentIndex = paragraphItems.findIndex(item => item.id === currentId);
                 
                 if (currentIndex < paragraphItems.length - 1) {
-                    const nextItem = paragraphItems[currentIndex + 1];
-                    transitionToItem(nextItem, currentIndex + 1, paragraphItems.length);
+                    transitionToItem(paragraphItems[currentIndex + 1], currentIndex + 1, paragraphItems.length);
                 }
             });
-
-            // Ensure arrows are interactive (redundant if using buttons, but good practice)
-            $('#the-history .carousel-arrow').css('pointer-events', 'auto');
         }
 
-        // Function to handle item transitions
+        // Transition to a specific item
         function transitionToItem(item, currentIndex, totalItems) {
-            if (isAnimating || !item) return;
+            if (isAnimating || !item?.year_start || !item.id) return;
             
-            // Validate the item has required properties
-            if (!item.year_start || !item.id) {
-                console.error('Invalid timeline item:', item);
+            isAnimating = true;
+            currentYear = item.year_start;
+            
+            clearAllVisualizations();
+            
+            const visualizationsToShow = item.visualizations || [];
+            
+            updateMapZoom(item, () => {
+                visualizationsToShow.forEach(viz => {
+                    switch(viz.type) {
+                        case "arrow":
+                            createArrowVisualization(viz);
+                            break;
+                        case "dot":
+                            createDotVisualization(viz);
+                            break;
+                        case "dots":
+                            createDotsVisualization(viz);
+                            break;
+                        case "arrows":
+                            if (viz.arrows?.length) {
+                                viz.arrows.forEach((arrow, i) => {
+                                    createArrowVisualization({
+                                        type: "arrow",
+                                        origin: arrow.origin,
+                                        destination: arrow.destination,
+                                        label: i === 0 ? viz.label : null
+                                    });
+                                });
+                            }
+                            break;
+                    }
+                });
+            });
+            
+            updateTimelineMarker(item.year_start);
+            
+            const timelineItem = $(`.timeline-item[data-id="${item.id}"]`);
+            if (!timelineItem.length) {
+                console.error('Timeline item not found:', item.id);
+                isAnimating = false;
                 return;
             }
             
-            // Debug visualization data
-            debugVisualization(item);
-            
-            isAnimating = true;
-            
-            $(".timeline-item").hide();
-            
-            // Ensure we're using the correct year for the timeline marker
-            currentYear = item.year_start;
-            console.log("Transitioning to year:", currentYear);
-            
-            // Clear existing visualizations
-            clearAllVisualizations();
-            
-            // Store the visualizations to be drawn after zoom completes
-            const visualizationsToShow = item.visualizations || [];
-            
-            // First update the map zoom and wait for it to complete
-            updateMapZoom(item, function() {
-                // Draw visualizations only after zoom completes
-                if (visualizationsToShow.length > 0) {
-                    visualizationsToShow.forEach(viz => {
-                        switch(viz.type) {
-                            case "arrow":
-                                createArrowVisualization(viz, item.year_start);
-                                break;
-                            case "dot":
-                                createDotVisualization(viz, item.year_start);
-                                break;
-                            case "dots":
-                                createDotsVisualization(viz, item.year_start);
-                                break;
-                            case "arrows": // Support for multiple arrows
-                                if (viz.arrows && Array.isArray(viz.arrows)) {
-                                    viz.arrows.forEach((arrow, i) => {
-                                        const arrowViz = {
-                                            type: "arrow",
-                                            origin: arrow.origin,
-                                            destination: arrow.destination,
-                                            label: i === 0 ? viz.label : null, // Only add label to first arrow
-                                            color: "var(--red)" // Use --red for all visualizations
-                                        };
-                                        createArrowVisualization(arrowViz, item.year_start);
-                                    });
-                                }
-                                break;
+            gsap.to(".timeline-item", {
+                autoAlpha: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    $(".timeline-item").hide();
+                    timelineItem.show();
+                    gsap.to(timelineItem, {
+                        autoAlpha: 1,
+                        duration: 0.3,
+                        onComplete: () => {
+                            isAnimating = false;
                         }
                     });
                 }
             });
             
-            // Update the timeline marker with the correct year
-            updateTimelineMarker(item.year_start);
-            
-            const timelineItem = $(`.timeline-item[data-id="${item.id}"]`);
-            if (timelineItem.length === 0) {
-                console.error('Timeline item element not found for id:', item.id);
-                isAnimating = false;
-                return;
-            }
-            
-            timelineItem.fadeIn(config.animationDuration, function() {
-                isAnimating = false;
-            });
-            
             updateArrowStates(currentIndex, totalItems);
         }
-        
-        // Function to clear all visualizations
+
+        // Clear all visualizations
         function clearAllVisualizations() {
-            const layers = ["#migration-layer", "#language-layer", "#event-layer"];
-            layers.forEach(layer => {
-                map.select(layer).selectAll("*").remove();
+            ["#migration-layer", "#language-layer", "#event-layer"].forEach(layer => {
+                const elements = map.select(layer).selectAll("*");
+                gsap.to(elements.nodes(), {
+                    opacity: 0,
+                    duration: 0.3,
+                    stagger: 0.05,
+                    onComplete: () => elements.remove()
+                });
             });
         }
 
-        // Update visualization based on year
-        function updateVisualization(year) {
-            if (isAnimating) return;
+        // Create arrow visualization
+        function createArrowVisualization(viz) {
+            if (!viz.origin || !viz.destination) return;
             
-            $("#year-display").text(year);
+            const layer = map.select("#migration-layer");
+            const originPos = projection(viz.origin);
+            const destPos = projection(viz.destination);
             
-            // Clear existing visualizations
-            clearAllVisualizations();
+            // Create line with GSAP animation
+            const line = layer.append("path")
+                .attr("class", "migration-line")
+                .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`)
+                .attr("stroke", "var(--red)")
+                .attr("stroke-width", 2)
+                .attr("stroke-dasharray", "4, 4")
+                .attr("fill", "none")
+                .attr("opacity", 0);
             
-            // Find the item for this year
-            const itemsForYear = historyData.filter(item => item.year_start === year);
+            gsap.to(line.node(), {
+                opacity: 1,
+                duration: 0.5,
+                ease: "power2.inOut"
+            });
             
-            if (itemsForYear.length > 0) {
-                const item = itemsForYear[0];
+            // Create origin marker
+            const originMarker = layer.append("circle")
+                .attr("class", "origin-marker")
+                .attr("cx", originPos[0])
+                .attr("cy", originPos[1])
+                .attr("r", 5)
+                .attr("fill", "var(--red)")
+                .attr("opacity", 0);
+            
+            gsap.to(originMarker.node(), {
+                opacity: 1,
+                duration: 0.5,
+                delay: 0.2,
+                ease: "power2.inOut"
+            });
+            
+            // Create destination marker
+            const destMarker = layer.append("circle")
+                .attr("class", "destination-marker")
+                .attr("cx", destPos[0])
+                .attr("cy", destPos[1])
+                .attr("r", 5)
+                .attr("fill", "var(--red)")
+                .attr("opacity", 0);
+            
+            gsap.to(destMarker.node(), {
+                opacity: 1,
+                duration: 0.5,
+                delay: 0.4,
+                ease: "power2.inOut"
+            });
+            
+            // Add label if provided
+            if (viz.label) {
+                const label = layer.append("text")
+                    .attr("class", "migration-label")
+                    .attr("x", (originPos[0] + destPos[0]) / 2)
+                    .attr("y", (originPos[1] + destPos[1]) / 2 - 10)
+                    .attr("text-anchor", "middle")
+                    .attr("fill", "var(--red)")
+                    .text(viz.label)
+                    .attr("opacity", 0);
                 
-                // Store the visualizations to be drawn after zoom completes
-                const visualizationsToShow = item.visualizations || [];
-                
-                // Update map zoom and wait for it to complete
-                updateMapZoom(item, function() {
-                    // Draw visualizations only after zoom completes
-                    if (visualizationsToShow.length > 0) {
-                        visualizationsToShow.forEach(viz => {
-                            switch(viz.type) {
-                                case "arrow":
-                                    createArrowVisualization(viz, item.year_start);
-                                    break;
-                                case "dot":
-                                    createDotVisualization(viz, item.year_start);
-                                    break;
-                                case "dots":
-                                    createDotsVisualization(viz, item.year_start);
-                                    break;
-                                case "arrows":
-                                    if (viz.arrows && Array.isArray(viz.arrows)) {
-                                        viz.arrows.forEach((arrow, i) => {
-                                            const arrowViz = {
-                                                type: "arrow",
-                                                origin: arrow.origin,
-                                                destination: arrow.destination,
-                                                label: i === 0 ? viz.label : null, // Only add label to first arrow
-                                                color: "var(--red)" // Use --red for all visualizations
-                                            };
-                                            createArrowVisualization(arrowViz, item.year_start);
-                                        });
-                                    }
-                                    break;
-                            }
-                        });
-                    }
-                    
-                    // Update country highlights if needed
-                    updateCountryHighlights([item]);
+                gsap.to(label.node(), {
+                    opacity: 1,
+                    duration: 0.5,
+                    delay: 0.6,
+                    ease: "power2.inOut"
                 });
             }
+        }
+
+        // Create dot visualization
+        function createDotVisualization(viz) {
+            if (!viz.origin) return;
+            
+            const layer = map.select("#event-layer");
+            const pos = projection(viz.origin);
+            
+            // Create dot with GSAP animation
+            const dot = layer.append("circle")
+                .attr("class", "event-marker")
+                .attr("cx", pos[0])
+                .attr("cy", pos[1])
+                .attr("r", 8)
+                .attr("fill", "var(--red)")
+                .attr("opacity", 0);
+            
+            gsap.to(dot.node(), {
+                opacity: 1,
+                scale: 1.2,
+                duration: 0.5,
+                ease: "power2.inOut",
+                yoyo: true,
+                repeat: -1
+            });
+            
+            // Add label if provided
+            if (viz.label) {
+                const label = layer.append("text")
+                    .attr("class", "event-label")
+                    .attr("x", pos[0])
+                    .attr("y", pos[1] + 20)
+                    .attr("text-anchor", "middle")
+                    .attr("fill", "var(--red)")
+                    .text(viz.label)
+                    .attr("opacity", 0);
+                
+                gsap.to(label.node(), {
+                    opacity: 1,
+                    duration: 0.5,
+                    delay: 0.2,
+                    ease: "power2.inOut"
+                });
+            }
+        }
+
+        // Create dots visualization
+        function createDotsVisualization(viz) {
+            if (!viz.origin) return;
+            
+            const layer = map.select("#language-layer");
+            const pos = projection(viz.origin);
+            
+            // Create central dot
+            const centralDot = layer.append("circle")
+                .attr("class", "language-bubble")
+                .attr("cx", pos[0])
+                .attr("cy", pos[1])
+                .attr("r", 15)
+                .attr("fill", "var(--red)")
+                .attr("opacity", 0);
+            
+            gsap.to(centralDot.node(), {
+                opacity: 0.8,
+                scale: 1.2,
+                duration: 1,
+                ease: "power2.inOut",
+                yoyo: true,
+                repeat: -1
+            });
+            
+            // Create additional dots if coordinates provided
+            if (viz.dotCoordinates?.length) {
+                viz.dotCoordinates.forEach((coord, i) => {
+                    if (!Array.isArray(coord) || coord.length < 2) return;
+                    
+                    const dotPos = projection(coord);
+                    const dot = layer.append("circle")
+                        .attr("class", "language-bubble")
+                        .attr("cx", dotPos[0])
+                        .attr("cy", dotPos[1])
+                        .attr("r", 8)
+                        .attr("fill", "var(--red)")
+                        .attr("opacity", 0);
+                    
+                    gsap.to(dot.node(), {
+                        opacity: 0.8,
+                        scale: 1.2,
+                        duration: 1,
+                        delay: i * 0.2,
+                        ease: "power2.inOut",
+                        yoyo: true,
+                        repeat: -1
+                    });
+                    
+                    if (viz.labels?.[i]) {
+                        const label = layer.append("text")
+                            .attr("class", "language-label")
+                            .attr("x", dotPos[0])
+                            .attr("y", dotPos[1] + 20)
+                            .attr("text-anchor", "middle")
+                            .attr("fill", "var(--red)")
+                            .text(viz.labels[i])
+                            .attr("opacity", 0);
+                        
+                        gsap.to(label.node(), {
+                            opacity: 1,
+                            duration: 0.5,
+                            delay: (i * 0.2) + 0.2,
+                            ease: "power2.inOut"
+                        });
+                    }
+                });
+            }
+            
+            // Add main label if provided
+            if (viz.label) {
+                const label = layer.append("text")
+                    .attr("class", "language-label")
+                    .attr("x", pos[0])
+                    .attr("y", pos[1] - 25)
+                    .attr("text-anchor", "middle")
+                    .attr("fill", "var(--red)")
+                    .text(viz.label)
+                    .attr("opacity", 0);
+                
+                gsap.to(label.node(), {
+                    opacity: 1,
+                    duration: 0.5,
+                    ease: "power2.inOut"
+                });
+            }
+        }
+
+        // Update map zoom
+        function updateMapZoom(item, callback) {
+            let mapZoom = item.map_zoom || "europe_and_africa";
+            
+            const zoomSettings = {
+                europe_and_africa: { center: [20, 30], scale: config.mapWidth / 4 },
+                africa: { center: [25, 0], scale: config.mapWidth / 2 },
+                south_africa: { center: [25, -25], scale: config.mapWidth * 1.2 },
+                southern_africa: { center: [25, -25], scale: config.mapWidth * 0.8 },
+                world: { center: [20, 10], scale: config.mapWidth / 6 }
             
             updateTimelineContent(year);
             updateTimelineMarker(year);

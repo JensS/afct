@@ -12,6 +12,11 @@ The theme is built with a traditional WordPress architecture:
 - **CSS Styling**: Responsive design with mobile-first approach
 - **WordPress Integration**: Custom meta boxes, REST API endpoints, and admin interfaces
 
+### Migration to React
+
+we are currently transitioning the theme to be react based. the frontpage uses the react page template. its important to keep the look of the page the same.
+
+
 ### One-Page Architecture
 The site uses a unique one-page architecture:
 - Main template (`template-homepage.php`) assembles content from individual WordPress pages
