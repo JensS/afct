@@ -164,52 +164,22 @@
     pointer-events: auto; /* Ensure it's clickable */
 }
 
-.nav-arrow {
-    font-size: 36px;
-    cursor: pointer;
-    padding: 15px;
-    color: var(--red);
-    font-weight: bold;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    position: fixed;
-    top: 66%; /* Position in the lower third of the screen to match timeline-item */
-    transform: translateY(-50%);
-    background: transparent;
-    border-radius: 4px;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 35;
-    pointer-events: auto;
+/*
+ * Removed old .nav-arrow, .prev-arrow, .next-arrow styles.
+ * These are now handled by the shared .carousel-arrow styles in components.css
+ */
+
+/* Adjust positioning for history arrows if needed, overriding shared styles */
+#the-history .carousel-arrow.prev {
+    left: 10%; /* Example: Different position for history */
+    /* Override other shared styles if necessary */
+    /* background-color: rgba(0, 0, 0, 0.6); */
 }
 
-.nav-arrow.disabled {
-    opacity: 0.3;
-    cursor: default;
-    pointer-events: none;
+#the-history .carousel-arrow.next {
+    right: 10%; /* Example: Different position for history */
 }
 
-.prev-arrow {
-    left: 20%;
-    position: fixed;
-    top: 50%;
-    font-size: 80px;
-    transform: translateY(-50%);
-}
-
-.next-arrow {
-    right: 20%;
-    position: fixed;
-    top: 50%;
-    font-size: 80px;
-    transform: translateY(-50%);
-}
-
-.nav-arrow:hover {
-    transform: scale(1.2);
-}
 
 .timeline-item .year {
     font-weight: bold;

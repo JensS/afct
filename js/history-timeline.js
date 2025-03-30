@@ -252,16 +252,26 @@
             });
         }
 
-        // Add navigation arrows
+        // Add navigation arrows using shared classes
         function addNavigationArrows(timelineContent, paragraphItems) {
-            timelineContent.find('.nav-arrow').remove();
-            
-            timelineContent
-                .append('<div class="nav-arrow prev-arrow">&larr;</div>')
-                .append('<div class="nav-arrow next-arrow">&rarr;</div>');
-            
-            // Add event handlers for navigation arrows
-            $('.prev-arrow').off('click').on('click', function(e) {
+            // Remove any existing arrows first
+            $('#the-history .carousel-arrow.prev, #the-history .carousel-arrow.next').remove();
+
+            // Append new arrows using shared classes, potentially wrapped or positioned specifically for history
+            // We add them outside timelineContent, perhaps directly to #the-history or body
+            // Let's append them relative to the #the-history container for better control
+            const historyContainer = $('#the-history');
+            if (historyContainer.length) {
+                 // Add ARIA labels for accessibility
+                historyContainer.append('<button class="carousel-arrow prev" aria-label="Previous History Entry">&larr;</button>');
+                historyContainer.append('<button class="carousel-arrow next" aria-label="Next History Entry">&rarr;</button>');
+            } else {
+                console.error("#the-history container not found for appending arrows.");
+                return; // Stop if container not found
+            }
+
+            // Add event handlers for navigation arrows using the new shared classes, scoped to history
+            $('#the-history').off('click', '.carousel-arrow.prev').on('click', '.carousel-arrow.prev', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -281,8 +291,9 @@
                     transitionToItem(prevItem, currentIndex - 1, paragraphItems.length);
                 }
             });
-            
-            $('.next-arrow').off('click').on('click', function(e) {
+
+            // Use event delegation on the container for the next arrow
+            $('#the-history').off('click', '.carousel-arrow.next').on('click', '.carousel-arrow.next', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -302,8 +313,9 @@
                     transitionToItem(nextItem, currentIndex + 1, paragraphItems.length);
                 }
             });
-            
-            $('.nav-arrow').css('pointer-events', 'auto');
+
+            // Ensure arrows are interactive (redundant if using buttons, but good practice)
+            $('#the-history .carousel-arrow').css('pointer-events', 'auto');
         }
 
         // Function to handle item transitions
@@ -549,10 +561,15 @@
             }
         }
 
-        // Update arrow states
+        // Update arrow states using shared classes, scoped to history
         function updateArrowStates(currentIndex, totalItems) {
-            $('.prev-arrow').toggleClass('disabled', currentIndex === 0);
-            $('.next-arrow').toggleClass('disabled', currentIndex === totalItems - 1);
+            // Use prop('disabled', true/false) for buttons for better accessibility/semantics
+            $('#the-history .carousel-arrow.prev').prop('disabled', currentIndex === 0);
+            $('#the-history .carousel-arrow.next').prop('disabled', currentIndex >= totalItems - 1); // Use >= for safety
+
+            // Also toggle class if needed for styling overrides not covered by :disabled pseudo-class
+             $('#the-history .carousel-arrow.prev').toggleClass('disabled', currentIndex === 0);
+             $('#the-history .carousel-arrow.next').toggleClass('disabled', currentIndex >= totalItems - 1);
         }
 
         // Initialize scroll handler

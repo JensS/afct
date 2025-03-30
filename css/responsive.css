@@ -55,7 +55,22 @@
 }
 
 
+/*--------------------------------------------------------------
+# Responsive Adjustments
+--------------------------------------------------------------*/
 
+/* Smaller Desktop / Larger Tablet */
+@media screen and (max-width: 1280px) {
+    .carousel-arrow.prev {
+        left: 3%;
+    }
+    .carousel-arrow.next {
+        right: 3%;
+    }
+}
+
+
+/* Tablet Portrait */
 @media screen and (max-width: 991px) {
 	.global-container, .global-container.hero-container {
 		padding: 1rem;
@@ -154,8 +169,36 @@
 		right: 0%;
 	}
 
+    /* Adjust carousel arrows for smaller screens */
+    .carousel-arrow {
+        width: 60px;
+        height: 60px;
+        font-size: 30px;
+        line-height: 60px;
+    }
+    .carousel-arrow.prev {
+        left: 2%;
+    }
+    .carousel-arrow.next {
+        right: 2%;
+    }
+
+    /* History arrows might need specific adjustments */
+    #the-history .carousel-arrow.prev {
+        left: 5%; /* Readjust if needed */
+    }
+    #the-history .carousel-arrow.next {
+        right: 5%; /* Readjust if needed */
+    }
+
+    /* Prospect carousel adjustments */
+    .prospect-carousel-container {
+        width: 90%; /* Wider on smaller screens */
+    }
+
 }
 
+/* Mobile Landscape & Portrait */
 @media screen and (max-width: 479px) {
 
 	.global-container.hero-container {

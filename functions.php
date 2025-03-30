@@ -109,6 +109,11 @@ function afct_scripts() {
 		"historyNonce" => wp_create_nonce('wp_rest')
 	));
 
+    // Conditionally enqueue Prospect carousel script
+    if ( is_page_template('template-prospect.php') ) {
+        wp_enqueue_script('afct-prospect-carousel', get_template_directory_uri() . '/js/prospect-carousel.js', array('jquery'), afct_get_version_string('/js/prospect-carousel.js'), true); // Load in footer
+    }
+
 }
 add_action('wp_enqueue_scripts', 'afct_scripts');
 
