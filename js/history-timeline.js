@@ -188,6 +188,28 @@
                 .timeline-marker:hover {
                     opacity: 1;
                 }
+                
+                /* New animation styles */
+                @keyframes pulseOpacity {
+                    0% { opacity: 0.3; }
+                    50% { opacity: 0.8; }
+                    100% { opacity: 0.3; }
+                }
+                
+                @keyframes flowDots {
+                    0% { stroke-dashoffset: 24; }
+                    100% { stroke-dashoffset: 0; }
+                }
+                
+                /* Apply animations to visualization elements */
+                .event-marker, .language-bubble, .origin-marker {
+                    animation: pulseOpacity 3s ease-in-out infinite;
+                }
+                
+                .migration-line {
+                    stroke-dasharray: 4, 4;
+                    animation: flowDots 3s linear infinite;
+                }
             `;
             document.head.appendChild(styleElement);
         }
@@ -327,18 +349,18 @@
                 .then(function(data) {
                     const path = d3.geoPath().projection(projection);
                     
-                    // Draw Africa map
+                    // Draw Africa map with --text color
                     svg.append("g")
                         .selectAll("path")
                         .data(topojson.feature(data, data.objects.countries).features)
                         .enter()
                         .append("path")
                         .attr("d", path)
-                        .attr("fill", config.colors.migration)
+                        .attr("fill", "var(--text)") // Use --text color for countries
                         .attr("stroke", "var(--background)")
-                        .attr("stroke-width", 2)
+                        .attr("stroke-width", 1) // Thinner stroke
                         .attr("class", d => "country country-" + d.id)
-                        .attr("opacity", d => d.id === 710 ? 1 : 0.3);
+                        .attr("opacity", d => d.id === 710 ? 0.8 : 0.3); // Slightly more transparent
                     
                     // South Africa highlight is handled dynamically through the visualization system
                         
@@ -1096,6 +1118,7 @@
                 const originPos = projection(viz.origin);
                 const destPos = projection(viz.destination);
                 
+                // Create the animated dotted line
                 layer.append("path")
                     .attr("class", `migration-line ${id}`)
                     .attr("data-origin-x", viz.origin[0])
@@ -1103,25 +1126,18 @@
                     .attr("data-dest-x", viz.destination[0])
                     .attr("data-dest-y", viz.destination[1])
                     .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`)
-                    .attr("stroke", "var(--red)") // Always use --red
+                    .attr("stroke", "var(--text)") // Use --text color
                     .attr("stroke-width", 2)
-                    .attr("opacity", 0)
-                    .transition()
-                    .duration(config.animationDuration)
-                    .attr("opacity", 0.8);
+                    .attr("fill", "none");
                 
-                // Add origin marker
+                // Add origin marker (pulsing dot)
                 layer.append("circle")
                     .attr("class", `origin-marker ${id}`)
                     .attr("cx", originPos[0])
                     .attr("cy", originPos[1])
                     .attr("r", 5)
-                    .attr("fill", "var(--red)") // Always use --red
-                    .attr("stroke", "var(--background)")
-                    .attr("opacity", 0)
-                    .transition()
-                    .duration(config.animationDuration)
-                    .attr("opacity", 1);
+                    .attr("fill", "var(--text)") // Use --text color
+                    .attr("stroke", "none"); // No border
                 
                 // Add label if provided
                 if (viz.label) {
@@ -1130,12 +1146,8 @@
                         .attr("x", (originPos[0] + destPos[0]) / 2)
                         .attr("y", (originPos[1] + destPos[1]) / 2 - 10)
                         .attr("text-anchor", "middle")
-                        .attr("fill", "var(--text)") // Use --text CSS variable
-                        .text(viz.label)
-                        .attr("opacity", 0)
-                        .transition()
-                        .duration(config.animationDuration)
-                        .attr("opacity", 1);
+                        .attr("fill", "var(--text)") // Use --text color
+                        .text(viz.label);
                 }
             }
         }
@@ -1161,6 +1173,7 @@
             if (viz.origin) {
                 const pos = projection(viz.origin);
                 
+                // Create pulsing dot
                 layer.append("circle")
                     .attr("class", `event-marker ${id}`)
                     .attr("data-x", viz.origin[0])
@@ -1168,12 +1181,8 @@
                     .attr("cx", pos[0])
                     .attr("cy", pos[1])
                     .attr("r", 8)
-                    .attr("fill", "var(--red)") // Always use --red
-                    .attr("stroke", "var(--background)")
-                    .attr("opacity", 0)
-                    .transition()
-                    .duration(config.animationDuration)
-                    .attr("opacity", 0.8);
+                    .attr("fill", "var(--text)") // Use --text color
+                    .attr("stroke", "none"); // No border
                 
                 if (viz.label) {
                     layer.append("text")
@@ -1184,12 +1193,8 @@
                         .attr("x", pos[0])
                         .attr("y", pos[1] + 20)
                         .attr("text-anchor", "middle")
-                        .attr("fill", "var(--text)") // Use --text CSS variable
-                        .text(viz.label)
-                        .attr("opacity", 0)
-                        .transition()
-                        .duration(config.animationDuration)
-                        .attr("opacity", 1);
+                        .attr("fill", "var(--text)") // Use --text color
+                        .text(viz.label);
                 }
             }
         }
@@ -1201,7 +1206,7 @@
             if (viz.origin) {
                 const pos = projection(viz.origin);
                 
-                // Create a central bubble
+                // Create a central bubble (pulsing)
                 layer.append("circle")
                     .attr("class", `language-bubble ${id}`)
                     .attr("data-x", viz.origin[0])
@@ -1209,12 +1214,8 @@
                     .attr("cx", pos[0])
                     .attr("cy", pos[1])
                     .attr("r", 15)
-                    .attr("fill", "var(--red)") // Always use --red
-                    .attr("stroke", "var(--background)")
-                    .attr("opacity", 0)
-                    .transition()
-                    .duration(config.animationDuration)
-                    .attr("opacity", 0.7);
+                    .attr("fill", "var(--text)") // Use --text color
+                    .attr("stroke", "none"); // No border
                 
                 // Add dot coordinates if available
                 if (viz.dotCoordinates && viz.dotCoordinates.length > 0) {
@@ -1226,7 +1227,7 @@
                         
                         const dotPos = projection(coord);
                         
-                        // Add sequential delay for fade-in animation
+                        // Add pulsing dots with sequential appearance
                         layer.append("circle")
                             .attr("class", `language-bubble ${id}`)
                             .attr("data-x", coord[0])
@@ -1234,13 +1235,9 @@
                             .attr("cx", dotPos[0])
                             .attr("cy", dotPos[1])
                             .attr("r", 8)
-                            .attr("fill", "var(--red)") // Always use --red
-                            .attr("stroke", "var(--background)")
-                            .attr("opacity", 0)
-                            .transition()
-                            .duration(config.animationDuration)
-                            .delay(i * 200) // Increased delay between dots
-                            .attr("opacity", 0.7);
+                            .attr("fill", "var(--text)") // Use --text color
+                            .attr("stroke", "none") // No border
+                            .style("animation-delay", `${i * 0.2}s`); // Stagger the animation
                         
                         // If we have labels in the visualization and they match the number of dots, add labels
                         if (viz.labels && viz.labels[i]) {
@@ -1252,13 +1249,8 @@
                                 .attr("x", dotPos[0])
                                 .attr("y", dotPos[1] + 20)
                                 .attr("text-anchor", "middle")
-                                .attr("fill", "var(--text)")
-                                .text(viz.labels[i])
-                                .attr("opacity", 0)
-                                .transition()
-                                .duration(config.animationDuration)
-                                .delay(i * 200) // Match the dot delay
-                                .attr("opacity", 1);
+                                .attr("fill", "var(--text)") // Use --text color
+                                .text(viz.labels[i]);
                         }
                     });
                 }
@@ -1270,31 +1262,23 @@
                         const x = pos[0] + radius * Math.cos(angle);
                         const y = pos[1] + radius * Math.sin(angle);
                         
+                        // Add pulsing dots in a circle
                         layer.append("circle")
                             .attr("class", `language-bubble ${id}`)
                             .attr("cx", x)
                             .attr("cy", y)
                             .attr("r", 8)
-                            .attr("fill", "var(--red)") // Always use --red
-                            .attr("stroke", "var(--background)")
-                            .attr("opacity", 0)
-                            .transition()
-                            .duration(config.animationDuration)
-                            .delay(i * 200) // Increased delay
-                            .attr("opacity", 0.7);
+                            .attr("fill", "var(--text)") // Use --text color
+                            .attr("stroke", "none") // No border
+                            .style("animation-delay", `${i * 0.2}s`); // Stagger the animation
                         
                         layer.append("text")
                             .attr("class", `language-label ${id}`)
                             .attr("x", x)
                             .attr("y", y + 20)
                             .attr("text-anchor", "middle")
-                            .attr("fill", "var(--text)") // Use --text CSS variable
-                            .text(label)
-                            .attr("opacity", 0)
-                            .transition()
-                            .duration(config.animationDuration)
-                            .delay(i * 200) // Match the dot delay
-                            .attr("opacity", 1);
+                            .attr("fill", "var(--text)") // Use --text color
+                            .text(label);
                     });
                 }
                 
@@ -1306,12 +1290,8 @@
                         .attr("x", pos[0])
                         .attr("y", pos[1] - 25)
                         .attr("text-anchor", "middle")
-                        .attr("fill", "var(--text)")
-                        .text(viz.label)
-                        .attr("opacity", 0)
-                        .transition()
-                        .duration(config.animationDuration)
-                        .attr("opacity", 1);
+                        .attr("fill", "var(--text)") // Use --text color
+                        .text(viz.label);
                 }
             }
         }
