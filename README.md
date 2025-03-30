@@ -64,6 +64,10 @@ A comprehensive theme that provides rich content management and display function
                                                                                                                                            
 ## Templates                                                                                                                               
 - `template-homepage.php`: One-page main site template                                                                                     
+- `template-intro.php`: Intro page with fullscreen background video
+- `template-gallery.php`: Gallery/Stills page with flexible image layouts
+- `template-history.php`: Interactive history timeline with map visualizations
+- `template-podcast.php`: Podcast page with audio player and episode information
 - `template-prospect.php`: Prospect page with carousel                                                                                     
 - `template-credits.php`: Team credits display                                                                                             
                                                                                                                                            
