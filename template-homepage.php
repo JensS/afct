@@ -14,7 +14,7 @@ if (count($menu_items)) {
         global $post;
         $post = get_post($post->object_id);
       
-        echo '<section id="section-' . $post->post_name . '">';
+        echo '<section id="section-' . $post->post_name . '"  data-scroll-section>';
         $template_file = get_page_template_slug($post);
         
         if ($template_file) {

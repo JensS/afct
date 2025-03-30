@@ -5,8 +5,6 @@
 
 (function($) {
     $(document).ready(function() {
-        // Register GSAP plugins
-        gsap.registerPlugin(ScrollTrigger);
 
         // Configuration
         const config = {
@@ -68,17 +66,6 @@
             
             // Hide all timeline items initially
             $(".timeline-item").hide();
-            
-            $(window).on('scroll', function() {
-                const historyRect = historySection[0].getBoundingClientRect();
-                const isHistoryVisible = 
-                    historyRect.top < window.innerHeight && 
-                    historyRect.bottom > 0;
-                
-                timelineMarkers.toggle(isHistoryVisible);
-                timelineInfo.toggle(isHistoryVisible);
-                timelineContent.toggle(isHistoryVisible);
-            }).trigger('scroll');
             
             // Add click handlers to timeline markers
             $(document).off('click', '.timeline-marker').on('click', '.timeline-marker', function() {
@@ -301,17 +288,29 @@
         // Load history data
         function loadHistoryData() {
             const visualizationDataEl = document.getElementById('visualization-data');
+            console.log('Visualization data element:', visualizationDataEl);
+            
             if (visualizationDataEl?.dataset.historyEntries) {
                 try {
-                    historyData = JSON.parse(visualizationDataEl.dataset.historyEntries);
+                    const rawData = visualizationDataEl.dataset.historyEntries;
+                    console.log('Raw history data:', rawData);
+                    
+                    historyData = JSON.parse(rawData);
+                    console.log('Parsed history data:', historyData);
+                    
                     if (Array.isArray(historyData)) {
                         cachedParagraphItems = null;
                         init();
                         return;
+                    } else {
+                        console.error("History data is not an array:", historyData);
                     }
                 } catch (e) {
                     console.error("Error parsing history entries:", e);
+                    console.error("Raw data causing error:", visualizationDataEl.dataset.historyEntries);
                 }
+            } else {
+                console.error("visualization-data element or historyEntries dataset not found");
             }
             
             $.ajax({
@@ -757,73 +756,6 @@
             updateAnimationPositions(t);
         }
 
-        // Transition to a specific item
-        function transitionToItem(item, currentIndex, totalItems) {
-            if (isAnimating || !item?.year_start || !item.id) return;
-
-            isAnimating = true;
-            currentYear = item.year_start;
-
-            clearAllVisualizations();
-
-            const visualizationsToShow = item.visualizations || [];
-
-            updateMapZoom(item, () => {
-                visualizationsToShow.forEach(viz => {
-                    switch(viz.type) {
-                        case "arrow":
-                            createArrowVisualization(viz);
-                            break;
-                        case "dot":
-                            createDotVisualization(viz);
-                            break;
-                        case "dots":
-                            createDotsVisualization(viz);
-                            break;
-                        case "arrows":
-                            if (viz.arrows?.length) {
-                                viz.arrows.forEach((arrow, i) => {
-                                    createArrowVisualization({
-                                        type: "arrow",
-                                        origin: arrow.origin,
-                                        destination: arrow.destination,
-                                        label: i === 0 ? viz.label : null
-                                    });
-                                });
-                            }
-                            break;
-                    }
-                });
-            });
-
-            updateTimelineMarker(item.year_start);
-
-            const timelineItem = $(`.timeline-item[data-id="${item.id}"]`);
-            if (!timelineItem.length) {
-                console.error('Timeline item not found:', item.id);
-                isAnimating = false;
-                return;
-            }
-
-            gsap.to(".timeline-item", {
-                autoAlpha: 0,
-                duration: 0.3,
-                onComplete: () => {
-                    $(".timeline-item").hide();
-                    timelineItem.show();
-                    gsap.to(timelineItem, {
-                        autoAlpha: 1,
-                        duration: 0.3,
-                        onComplete: () => {
-                            isAnimating = false;
-                        }
-                    });
-                }
-            });
-
-            updateArrowStates(currentIndex, totalItems);
-        }
-
         // Clear all visualizations
         function clearAllVisualizations() {
             ["#migration-layer", "#language-layer", "#event-layer"].forEach(layer => {
@@ -1072,18 +1004,6 @@
             }
         }
 
-        // Update map zoom
-        function updateMapZoom(item, callback) {
-            let mapZoom = item.map_zoom || "europe_and_africa";
-            
-            const zoomSettings = {
-                europe_and_africa: { center: [20, 30], scale: config.mapWidth / 4 },
-                africa: { center: [25, 0], scale: config.mapWidth / 2 },
-                south_africa: { center: [25, -25], scale: config.mapWidth * 1.2 },
-                southern_africa: { center: [25, -25], scale: config.mapWidth * 0.8 },
-                world: { center: [20, 10], scale: config.mapWidth / 6 }
-            
-        }
 
         // Update timeline content based on year
         function updateTimelineContent(year) {

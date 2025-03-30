@@ -137,7 +137,7 @@
     transform: translateY(-50%);
     z-index: 30; /* Higher z-index to appear above map */
     pointer-events: none;
-    display: none; /* Hidden by default, shown when in history section */
+    display: block; /* Always show in history section */
 }
 
 .timeline-item {

@@ -1,10 +1,25 @@
 
+let locoScroll;
+let historyGsapAnimation;
+
 jQuery(document).ready(function($) {
 	"use strict";
 
     gsap.registerPlugin(ScrollTrigger);
 
+    locoScroll = new LocomotiveScroll({
+        el: document.querySelector('[data-scroll-container]'),
+        smooth: true
+    });
+    locoScroll.on("scroll", ScrollTrigger.update);
 
+    locoScroll.on('scroll', (args) => {
+        if(typeof args.currentElements['history'] === 'object') {
+            let progress = args.currentElements['history'].progress;
+            //historyGsapAnimation.progress(progress);
+        }
+    });
+    
     const themeToggleBtn = $('.theme-toggle');
     const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
    
@@ -77,15 +92,13 @@ jQuery(document).ready(function($) {
 
     
     
-    // Smooth scroll for anchor links
-    $('.scroll-link').click(function(e) {
+    // Smooth scroll for anchor links using Locomotive Scroll
+    $('.scroll-link, .nav-link').click(function(e) {
         e.preventDefault();
         
-        const target = $($(this).attr('href'));
-        if (target.length) {
-            $('html, body').animate({
-                scrollTop: target.offset().top
-            }, 1000);
+        const target = $(this).attr('href');
+        if (target) {
+            locoScroll.scrollTo(target);
             
             // Close sidebar if open
             $('.sidebar').removeClass('shown');
@@ -94,105 +107,6 @@ jQuery(document).ready(function($) {
     });
 });
 
-/**
- * Parallax Scrolling System
- * 
- * This implementation uses Intersection Observer to efficiently track elements in viewport
- * and applies parallax scrolling effects based on CSS custom properties.
- * 
- * Required CSS:
- * - Elements must have class 'sticky' or 'sticky-in-view'
- * - Elements must be inside a container with class 'sticky-container'
- * - Elements must have --speed CSS variable defined (e.g. --speed: 0.5)
- */
-document.addEventListener('scroll', () => {
-    /**
-     * Updates the transform of an element based on scroll position
-     * @param {HTMLElement} el - The element to transform
-     * @returns {void}
-     */
-    const updateTransform = (el) => {
-        const scrollDistance = window.scrollY;
-        const speedValue = getComputedStyle(el).getPropertyValue('--speed').trim();
-        
-        // Default to 0.5 if speed is not set or invalid
-        let speed = parseFloat(speedValue) || 0.5;
-        
-        // Calculate the translation based on scroll distance and speed
-        let translateY = scrollDistance * speed;
-        
-        // Get the container boundaries
-        const container = el.closest('.sticky-container');
-        if (!container) {
-            console.warn('Sticky element must be inside a .sticky-container:', el);
-            return;
-        }
-        
-        const containerRect = container.getBoundingClientRect();
-        const maxTranslateY = containerRect.height - el.offsetHeight;
-
-        // Constrain the translation within container bounds
-        translateY = Math.max(0, Math.min(translateY, maxTranslateY));
-        
-        // Apply the transform
-        el.style.transform = `translateY(${translateY}px)`;
-    };
-    
-    // Intersection Observer configuration
-    const observerOptions = {
-        root: null, // Use viewport as root
-        threshold: 0.1, // Trigger when at least 10% is visible
-        rootMargin: "50px 0px" // Add 50px margin top/bottom for earlier detection
-    };
-    
-    /**
-     * Callback for Intersection Observer
-     * Handles visibility changes and optimizes performance with willChange
-     */
-    const parallaxCallback = (entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                updateTransform(entry.target);
-                entry.target.style.willChange = 'transform';
-            } else {
-                entry.target.style.willChange = 'auto';
-            }
-        });
-    };
-    
-    // Create and setup the observer
-    const observer = new IntersectionObserver(parallaxCallback, observerOptions);
-    
-    // Observe all sticky elements
-    document.querySelectorAll('.sticky').forEach(el => {
-        observer.observe(el);
-    });
-    
-    // Handle elements that should update while in view
-    const debouncedScroll = debounce(() => {
-        document.querySelectorAll('.sticky-in-view').forEach(updateTransform);
-    }, 5); // 5ms debounce for better performance
-    
-    window.addEventListener('scroll', debouncedScroll, { passive: true });
-});
-
-/**
- * Debounce function to limit the rate at which a function is called
- * @param {Function} func - The function to debounce
- * @param {number} wait - The debounce delay in milliseconds
- * @returns {Function} - Debounced function
- */
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
 
 document.addEventListener('DOMContentLoaded', function() {
    

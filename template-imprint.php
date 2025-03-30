@@ -20,8 +20,7 @@
         <h1><?php echo esc_html($headline_parts['lower']); ?></h1>
     </div>
     <div class="global-container">
-        <div class="content imprint-content">
-            <div class="imprint-section">
+            <div class="imprint-section" data-scroll data-scroll-speed="2"  >
                 <h3>Information according to § 5 TMG (Telemediengesetz):</h3>
                 
                 <div class="imprint-info">
@@ -52,7 +51,6 @@
                     <h4>Copyright:</h4>
                     <p>All content and works on this website are subject to copyright law. Any duplication, processing, distribution, or any form of commercialization of such material beyond the scope of the copyright law shall require the prior written consent of the author or authors.</p>
                 </div>
-            </div>
         </div>
     </div>
 </section>

@@ -24,7 +24,7 @@ if(!defined("IN_ONEPAGER"))
             <div>
                 <h2 class="align-center">Explore the photography stills captured by Steve Marais.</h2>
             </div>
-            <div class="gallery-grid">
+            <div class="gallery-grid" >
                 <?php
                 $gallery_data = get_post_meta(get_the_ID(), '_afct_gallery_layout', true);
                 
@@ -39,7 +39,8 @@ if(!defined("IN_ONEPAGER"))
                                     <?php if ($column_type === 'image' && !empty($column['image_id'])) : ?>
                                         <img src="<?php echo esc_url(wp_get_attachment_image_url($column['image_id'], 'full')); ?>"
                                              alt="<?php echo esc_attr(get_post_meta($column['image_id'], '_wp_attachment_image_alt', true)); ?>"
-                                             loading="lazy">
+                                             loading="lazy"
+                                             data-scroll data-scroll-speed="2">
                                     <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>

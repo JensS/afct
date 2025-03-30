@@ -99,10 +99,14 @@ function afct_scripts() {
     wp_enqueue_script('youtube-consent', get_template_directory_uri() . '/js/youtube-consent.js', array(), afct_get_version_string('/js/youtube-consent.js'), true);
 	wp_enqueue_script('d3', get_template_directory_uri() . '/js/d3.min.js', array(), '7.9', true);
 	wp_enqueue_script('topojson',  get_template_directory_uri() . '/js/topojson.min.js', array('d3'), '3.0', true);
+	wp_enqueue_script('locomotive-scroll',  get_template_directory_uri() . '/js/locomotive-scroll.min.js');
 	
     wp_enqueue_script('afct-prospect-carousel', get_template_directory_uri() . '/js/prospect-carousel.js', array('jquery'), afct_get_version_string('/js/prospect-carousel.js'), true); // Load in footer
    
     wp_enqueue_style('afct', get_stylesheet_uri(), array(), afct_get_version_string('/style.css'));
+
+    wp_enqueue_style('locomotive-scroll', get_template_directory_uri() . '/css/locomotive-scroll.css');
+
 
     wp_enqueue_script('afct', get_template_directory_uri() . '/js/afct.js', array('jquery',"d3","topojson"), afct_get_version_string('/js/afct.js'), false);
 	wp_localize_script('afct', 'afctSettings', array(

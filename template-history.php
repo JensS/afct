@@ -19,7 +19,7 @@
         <h1><?php echo esc_html($headline_parts['lower']); ?></h1>
     </div>
     <div class="img-sections-wrap">
-        <div id="visualization-container">
+        <div id="visualization-container" data-scroll data-scroll-id="history" data-scroll-speed="0">
             <div id="map-container"></div>
             
             <div id="visualization-data" class="hidden" 
