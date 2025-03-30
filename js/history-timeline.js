@@ -620,7 +620,11 @@
                 .attr("stroke-width", 2)
                 .attr("stroke-dasharray", "4, 4")
                 .attr("fill", "none")
-                .attr("opacity", 0);
+                .attr("opacity", 0)
+                .attr("data-origin-x", viz.origin[0])
+                .attr("data-origin-y", viz.origin[1])
+                .attr("data-dest-x", viz.destination[0])
+                .attr("data-dest-y", viz.destination[1]);
             
             gsap.to(line.node(), {
                 opacity: 1,
@@ -635,7 +639,9 @@
                 .attr("cy", originPos[1])
                 .attr("r", 5)
                 .attr("fill", "var(--red)")
-                .attr("opacity", 0);
+                .attr("opacity", 0)
+                .attr("data-x", viz.origin[0])
+                .attr("data-y", viz.origin[1]);
             
             gsap.to(originMarker.node(), {
                 opacity: 1,
@@ -651,7 +657,9 @@
                 .attr("cy", destPos[1])
                 .attr("r", 5)
                 .attr("fill", "var(--red)")
-                .attr("opacity", 0);
+                .attr("opacity", 0)
+                .attr("data-x", viz.destination[0])
+                .attr("data-y", viz.destination[1]);
             
             gsap.to(destMarker.node(), {
                 opacity: 1,
@@ -669,7 +677,10 @@
                     .attr("text-anchor", "middle")
                     .attr("fill", "var(--red)")
                     .text(viz.label)
-                    .attr("opacity", 0);
+                    .attr("opacity", 0)
+                    .attr("data-x", (viz.origin[0] + viz.destination[0]) / 2)
+                    .attr("data-y", (viz.origin[1] + viz.destination[1]) / 2)
+                    .attr("data-offset", -10);
                 
                 gsap.to(label.node(), {
                     opacity: 1,
@@ -694,7 +705,9 @@
                 .attr("cy", pos[1])
                 .attr("r", 8)
                 .attr("fill", "var(--red)")
-                .attr("opacity", 0);
+                .attr("opacity", 0)
+                .attr("data-x", viz.origin[0])
+                .attr("data-y", viz.origin[1]);
             
             gsap.to(dot.node(), {
                 opacity: 1,
@@ -714,7 +727,10 @@
                     .attr("text-anchor", "middle")
                     .attr("fill", "var(--red)")
                     .text(viz.label)
-                    .attr("opacity", 0);
+                    .attr("opacity", 0)
+                    .attr("data-x", viz.origin[0])
+                    .attr("data-y", viz.origin[1])
+                    .attr("data-offset", 20);
                 
                 gsap.to(label.node(), {
                     opacity: 1,
@@ -739,7 +755,9 @@
                 .attr("cy", pos[1])
                 .attr("r", 15)
                 .attr("fill", "var(--red)")
-                .attr("opacity", 0);
+                .attr("opacity", 0)
+                .attr("data-x", viz.origin[0])
+                .attr("data-y", viz.origin[1]);
             
             gsap.to(centralDot.node(), {
                 opacity: 0.8,
@@ -762,7 +780,9 @@
                         .attr("cy", dotPos[1])
                         .attr("r", 8)
                         .attr("fill", "var(--red)")
-                        .attr("opacity", 0);
+                        .attr("opacity", 0)
+                        .attr("data-x", coord[0])
+                        .attr("data-y", coord[1]);
                     
                     gsap.to(dot.node(), {
                         opacity: 0.8,
@@ -782,7 +802,10 @@
                             .attr("text-anchor", "middle")
                             .attr("fill", "var(--red)")
                             .text(viz.labels[i])
-                            .attr("opacity", 0);
+                            .attr("opacity", 0)
+                            .attr("data-x", coord[0])
+                            .attr("data-y", coord[1])
+                            .attr("data-offset", 20);
                         
                         gsap.to(label.node(), {
                             opacity: 1,
@@ -803,7 +826,10 @@
                     .attr("text-anchor", "middle")
                     .attr("fill", "var(--red)")
                     .text(viz.label)
-                    .attr("opacity", 0);
+                    .attr("opacity", 0)
+                    .attr("data-x", viz.origin[0])
+                    .attr("data-y", viz.origin[1])
+                    .attr("data-offset", -25);
                 
                 gsap.to(label.node(), {
                     opacity: 1,
@@ -824,8 +850,6 @@
                 southern_africa: { center: [25, -25], scale: config.mapWidth * 0.8 },
                 world: { center: [20, 10], scale: config.mapWidth / 6 }
             
-            updateTimelineContent(year);
-            updateTimelineMarker(year);
         }
 
         // Update timeline content based on year
@@ -1010,39 +1034,22 @@
 
         // Update map zoom
         function updateMapZoom(item, callback) {
-            let mapZoom = "europe_and_africa"; // Default zoom level
+            let mapZoom = item.map_zoom || "europe_and_africa";
             
-            // Get the map_zoom directly from the item
-            if (item.map_zoom) {
-                mapZoom = item.map_zoom;
-            }
+            const zoomSettings = {
+                europe_and_africa: { center: [20, 30], scale: config.mapWidth / 4 },
+                africa: { center: [25, 0], scale: config.mapWidth / 2 },
+                south_africa: { center: [25, -25], scale: config.mapWidth * 1.2 },
+                southern_africa: { center: [25, -25], scale: config.mapWidth * 0.8 },
+                world: { center: [20, 10], scale: config.mapWidth / 6 }
+            };
             
-            let center, scale;
-            switch(mapZoom) {
-                case "europe_and_africa":
-                    center = [20, 30];
-                    scale = config.mapWidth / 4;
-                    break;
-                case "africa":
-                    center = [25, 0];
-                    scale = config.mapWidth / 2;
-                    break;
-                case "south_africa":
-                    // Move South Africa view higher up to avoid text overlay
-                    center = [25, -25]; // Changed from -28 to -25 to move it up
-                    scale = config.mapWidth * 1.2;
-                    break;
-                case "southern_africa": // Add support for southern_africa zoom level from the data
-                    center = [25, -25];
-                    scale = config.mapWidth * 0.8;
-                    break;
-                case "world": // Add support for world zoom level from the data
-                    center = [20, 10];
-                    scale = config.mapWidth / 6;
-                    break;
-                default:
-                    center = [20, 20];
-                    scale = config.mapWidth / 3;
+            // Get zoom settings or use defaults
+            const settings = zoomSettings[mapZoom] || zoomSettings.europe_and_africa;
+            
+            // Add transition duration to config if not exists
+            if (!config.zoomTransitionDuration) {
+                config.zoomTransitionDuration = 1000; // 1 second transition
             }
             
             const t = d3.transition().duration(config.zoomTransitionDuration);
@@ -1051,7 +1058,7 @@
                 scale: projection.scale()
             };
             
-            projection.center(center).scale(scale);
+            projection.center(settings.center).scale(settings.scale);
             
             map.selectAll("path")
                 .transition(t)
@@ -1059,7 +1066,7 @@
                     const d = d3.select(this).attr("d");
                     const interpolate = d3.interpolate(
                         [oldProjection.center, oldProjection.scale],
-                        [center, scale]
+                        [settings.center, settings.scale]
                     );
                     return function(t) {
                         const i = interpolate(t);
@@ -1075,6 +1082,7 @@
                 });
             
             updateAnimationPositions(t);
+        }
         }
 
         // Update animation positions
