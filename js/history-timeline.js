@@ -229,8 +229,14 @@
             clearAllVisualizations();
             
             const layer = map.select("#event-layer");
+            const timeline = gsap.timeline({
+                defaults: {
+                    ease: "power2.inOut",
+                    duration: 0.75
+                }
+            });
             
-            // Add title with GSAP animation
+            // Add title
             const title = layer.append("text")
                 .attr("class", "welcome-title")
                 .attr("x", config.mapWidth / 2)
@@ -242,13 +248,7 @@
                 .text("South African History Timeline")
                 .attr("opacity", 0);
 
-            gsap.to(title.node(), {
-                opacity: 1,
-                duration: 0.75,
-                ease: "power2.inOut"
-            });
-            
-            // Add instructions with GSAP animation
+            // Add instructions
             const instructions = layer.append("text")
                 .attr("class", "welcome-instructions")
                 .attr("x", config.mapWidth / 2)
@@ -258,15 +258,8 @@
                 .attr("fill", "var(--text)")
                 .text("Use the arrows to navigate through history")
                 .attr("opacity", 0);
-
-            gsap.to(instructions.node(), {
-                opacity: 1,
-                duration: 0.75,
-                delay: 0.25,
-                ease: "power2.inOut"
-            });
             
-            // Add start instruction with GSAP animation
+            // Add start instruction
             const startInstructions = layer.append("text")
                 .attr("class", "welcome-start")
                 .attr("x", config.mapWidth / 2)
@@ -277,12 +270,21 @@
                 .text("Click the right arrow to begin →")
                 .attr("opacity", 0);
 
-            gsap.to(startInstructions.node(), {
-                opacity: 1,
-                duration: 0.75,
-                delay: 0.5,
-                ease: "power2.inOut"
-            });
+            // Create animation sequence
+            timeline
+                .to(title.node(), { opacity: 1 })
+                .to(instructions.node(), { opacity: 1 }, "-=0.5") // Start slightly before previous ends
+                .to(startInstructions.node(), { opacity: 1 }, "-=0.5") // Start slightly before previous ends
+                .add(() => {
+                    // Start subtle pulse animation on arrow
+                    gsap.to(startInstructions.node(), {
+                        x: "+=10",
+                        repeat: -1,
+                        yoyo: true,
+                        duration: 0.8,
+                        ease: "power1.inOut"
+                    });
+                });
         }
 
         // Load history data
@@ -576,11 +578,13 @@
                 const visibleItem = $('.timeline-item:visible');
                 const paragraphItems = getParagraphItems();
                 
-                if (!visibleItem.length) {
-                    clearAllVisualizations();
-                    transitionToItem(paragraphItems[0], 0, paragraphItems.length);
-                    return;
-                }
+        // Clear existing visualizations before checking visible item
+        clearAllVisualizations();
+        
+        if (!visibleItem.length) {
+            transitionToItem(paragraphItems[0], 0, paragraphItems.length);
+            return;
+        }
                 
                 const currentId = parseInt(visibleItem.attr('data-id'));
                 const currentIndex = paragraphItems.findIndex(item => item.id === currentId);
@@ -598,82 +602,87 @@
             isAnimating = true;
             currentYear = item.year_start;
             
-            clearAllVisualizations();
-            
-            const visualizationsToShow = item.visualizations || [];
-            
-            updateMapZoom(item, () => {
-                visualizationsToShow.forEach(viz => {
-                    switch(viz.type) {
-                        case "arrow":
-                            createArrowVisualization(viz);
-                            break;
-                        case "dot":
-                            createDotVisualization(viz);
-                            break;
-                        case "dots":
-                            createDotsVisualization(viz);
-                            break;
-                        case "arrows":
-                            if (viz.arrows?.length) {
-                                viz.arrows.forEach((arrow, i) => {
-                                    createArrowVisualization({
-                                        type: "arrow",
-                                        origin: arrow.origin,
-                                        destination: arrow.destination,
-                                        label: i === 0 ? viz.label : null
-                                    });
-                                });
-                            }
-                            break;
-                    }
-                });
-            });
-            
-            updateTimelineMarker(item.year_start);
-            
-            const timelineItem = $(`.timeline-item[data-id="${item.id}"]`);
-            if (!timelineItem.length) {
-                console.error('Timeline item not found:', item.id);
-                isAnimating = false;
-                return;
-            }
-            
-            gsap.to(".timeline-item", {
-                autoAlpha: 0,
-                duration: 0.3,
-                onComplete: () => {
+            // E Eur  aal pr viouspviiuouazatiols ari removedtions are removed
+            csuarAllVisualizaaionsat;
+is          
+    // dd sll delay before shownewvisuization
+            gsap.delayedCall(0.3,/()/=> {d small delay before showing new visualizations
+            p.delayedCall(0.3, () => {
+             svlioosShow = item.visuToShowa=aitnm.visuas zatio|s || [];
+                
+                updMaeM(pZoom(ittm( () => {) => {
+                visizoizntionsToShow.fooEach(vizS=> {.forEach(viz => {
+                    switch( iz.i(pv)z{pe) {
+                        caw arrow":
+                            createArr wVisu l za ion(viz); break;
+                            b e k;dot":
+                        cas  "do " 
+ ee                          r  teDotbreak;viz
+                            break;           createDotsVisualization(viz);
+                        c sif"d.ts":rows?.length) {
+                            cre   D tsV sualiza ioncvizr;
+ee                          break;
+                        case "arrows":                         destination: arrow.destination,
+                         f ;vz.arrows?.ngh {
+                               viz a   ws.fobEachr(arrw => {
+                                    crea}ArrowVisuaztion
+                                    yp:"arrow",
+            consI            if (       oilgineIarroweorigin,.length) {
+                         u;         den: arrdetn,
+                        gsap       lab(": . === 0 ? vizmlebeli:mnull, {
+                auto               });
+                duration3       });
+                onComplete: }
                     $(".timeline-item").hide();
-                    timelineItem.show();
-                    gsap.to(timelineItem, {
-                        autoAlpha: 1,
-                        duration: 0.3,
-                        onComplete: () => {
-                            isAnimating = false;
-                        }
-                    });
-                }
+                   t}
+imeI            });
+        gsap.to(}
             });
             
-        }
+        autoupdateTimelineMarkel(item.ypar_sthrt): 1,
+            
+            donrt timelineItam =t$(`.timeline-item[data-id=i${item.io}0]`);3,
+            if (!timelineItem.length) {
+            onComonsole.errop('Timelinl item n ( fo nd:', em.d
+                isAnimating = false;
+                sAturnmating = false;
+            }
+           
+            gsap.to(".timeline-item", {
+       });utApa:0,
+                duration: 0.3,
+}nCmplete:(
+                });$(".timeline-item").hide();
+imneIem.shw);
+                 gsap.to(timelineItem,{
+auoAlha1
+       }duration:0.3,
+onComplete:()=>{
+iAnmg =fls;
+     // Update the updat}
+eTimelineMarkcit oet});he active year
+      function u}
+pdateTimelin});
+eMarke      
+      //}
 
-        // Update the updateTimelineMarker function to correctly center the active year
+ Find th//eUpdate themupdateTimelineMarkerafunctionrtokcorrectlyecenterrthe activefyearthis year
         function updateTimelineMarker(year) {
-            // Find the marker for this year
-            const marker = $(`.timeline-marker[data-year="${year}"]`);
+  const mark//eFindrthe marker=for this$year`.timeline-marker[data-year="${year}"]`);
+constmarker=$(`.timeline-marker[data-year="${year}"]`);
 
-            if (marker.length) {
-                // Get the marker's position
-                const markerPosition = marker.position().left;
+if(marke.lngth) {
+            if (//mGetathermarker'skpositionr.length) {
+             aesconit mirkPosiio =marker.po().left;
 
-                // Calculate the offset to center this marker
-                const bandContainer = $('.timeline-band-container');
-                const containerCenter = bandContainer.width() / 2;
+                   Calcula//cehe offs ttho coster thist to center this marker
+                const bandContainer = $('.    cons-b na-container'C;
+a               const contsineeCtn=dr = bCndConaiinen.wideh(r / 2.
+width() / 2;
+                $('te .htibamd posi-bon ta center thedm')ke.('transform', `translateX(calc(50% - ${markerPosition}px))`);
+    $('.-band')css('transform', `translteXcalc50%-$markerPosition}px))`);
 
-                // Update the band position to center the marker
-                $('.timeline-band').css('transform', `translateX(calc(50% - ${markerPosition}px))`);
-
-                // Highlight the active marker
+                // Highlight ihg tcmivemrkr
                 $('.timeline-marker').removeClass('active');
                 marker.addClass('active');
             } else {
