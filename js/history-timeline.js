@@ -623,20 +623,42 @@
 
         // Clear all visualizations - Returns a GSAP tween
         function clearAllVisualizations() {
-            ["#migration-layer", "#language-layer", "#event-layer"].forEach(layer => {
-                const elements = map.select(layer).selectAll("*");
-                gsap.to(elements.nodes(), {
-                    opacity: 0,
-                    duration: 0.3,
-                    stagger: 0.05,
-                    onComplete: () => elements.remove()
+            const layers = ["#migration-layer", "#language-layer", "#event-layer"];
+            const elementsToRemove = [];
+            layers.forEach(layer => {
+                // Select all direct children of the layer group to avoid selecting the group itself
+                map.select(layer).selectAll(":scope > *").each(function() {
+                    // Exclude welcome message elements if they should persist differently
+                    if (!d3.select(this).classed('welcome-title') &&
+                        !d3.select(this).classed('welcome-instructions') &&
+                        !d3.select(this).classed('welcome-start')) {
+                        elementsToRemove.push(this);
+                    }
                 });
+            });
+
+            if (elementsToRemove.length === 0) {
+                // Return an empty tween if nothing to remove
+                return gsap.to({}, { duration: 0 });
+            }
+
+            // Return a tween that fades out and removes elements
+            return gsap.to(elementsToRemove, {
+                opacity: 0,
+                duration: 0.3, // Short fade-out duration
+                stagger: 0.02,
+                ease: 'power1.in',
+                onComplete: () => {
+                    elementsToRemove.forEach(el => el.remove());
+                }
             });
         }
 
-        // Create arrow visualization
+
+        // Create arrow visualization - Returns created DOM nodes
         function createArrowVisualization(viz) {
-            if (!viz.origin || !viz.destination) return;
+            const elements = { line: null, originMarker: null, destMarker: null, label: null };
+            if (!viz.origin || !viz.destination) return elements;
             
             const layer = map.select("#migration-layer");
             const originPos = projection(viz.origin);
@@ -654,51 +676,34 @@
                 .attr("data-origin-x", viz.origin[0])
                 .attr("data-origin-y", viz.origin[1])
                 .attr("data-dest-x", viz.destination[0])
-                .attr("data-dest-y", viz.destination[1]);
-            
-            gsap.to(line.node(), {
-                opacity: 1,
-                duration: 0.5,
-                ease: "power2.inOut"
-            });
-            
-            // Create origin marker
+                .attr("data-dest-y", viz.destination[1])
+                .node(); // Get the DOM node
+
+            // Create origin marker (initially invisible)
             const originMarker = layer.append("circle")
                 .attr("class", "origin-marker")
                 .attr("cx", originPos[0])
                 .attr("cy", originPos[1])
                 .attr("r", 5)
                 .attr("fill", "var(--red)")
-                .attr("opacity", 0)
+                .attr("opacity", 0) // Start invisible
                 .attr("data-x", viz.origin[0])
-                .attr("data-y", viz.origin[1]);
-            
-            gsap.to(originMarker.node(), {
-                opacity: 1,
-                duration: 0.5,
-                delay: 0.2,
-                ease: "power2.inOut"
-            });
-            
-            // Create destination marker
+                .attr("data-y", viz.origin[1])
+                .node();
+
+            // Create destination marker (initially invisible)
             const destMarker = layer.append("circle")
                 .attr("class", "destination-marker")
                 .attr("cx", destPos[0])
                 .attr("cy", destPos[1])
                 .attr("r", 5)
                 .attr("fill", "var(--red)")
-                .attr("opacity", 0)
+                .attr("opacity", 0) // Start invisible
                 .attr("data-x", viz.destination[0])
-                .attr("data-y", viz.destination[1]);
-            
-            gsap.to(destMarker.node(), {
-                opacity: 1,
-                duration: 0.5,
-                delay: 0.4,
-                ease: "power2.inOut"
-            });
-            
-            // Add label if provided
+                .attr("data-y", viz.destination[1])
+                .node();
+
+            // Add label if provided (initially invisible)
             if (viz.label) {
                 const label = layer.append("text")
                     .attr("class", "migration-label")
@@ -710,20 +715,17 @@
                     .attr("opacity", 0)
                     .attr("data-x", (viz.origin[0] + viz.destination[0]) / 2)
                     .attr("data-y", (viz.origin[1] + viz.destination[1]) / 2)
-                    .attr("data-offset", -10);
-                
-                gsap.to(label.node(), {
-                    opacity: 1,
-                    duration: 0.5,
-                    delay: 0.6,
-                    ease: "power2.inOut"
-                });
+                    .attr("data-offset", -10)
+                    .node();
             }
+            return elements; // Return the DOM nodes
         }
 
-        // Create dot visualization
+
+        // Create dot visualization - Returns created DOM nodes
         function createDotVisualization(viz) {
-            if (!viz.origin) return;
+            const elements = { dot: null, label: null };
+            if (!viz.origin) return elements;
             
             const layer = map.select("#event-layer");
             const pos = projection(viz.origin);
@@ -735,20 +737,12 @@
                 .attr("cy", pos[1])
                 .attr("r", 8)
                 .attr("fill", "var(--red)")
-                .attr("opacity", 0)
+                .attr("opacity", 0) // Start invisible
                 .attr("data-x", viz.origin[0])
-                .attr("data-y", viz.origin[1]);
-            
-            gsap.to(dot.node(), {
-                opacity: 1,
-                scale: 1.2,
-                duration: 0.5,
-                ease: "power2.inOut",
-                yoyo: true,
-                repeat: -1
-            });
-            
-            // Add label if provided
+                .attr("data-y", viz.origin[1])
+                .node();
+
+            // Add label if provided (initially invisible)
             if (viz.label) {
                 const label = layer.append("text")
                     .attr("class", "event-label")
@@ -760,20 +754,17 @@
                     .attr("opacity", 0)
                     .attr("data-x", viz.origin[0])
                     .attr("data-y", viz.origin[1])
-                    .attr("data-offset", 20);
-                
-                gsap.to(label.node(), {
-                    opacity: 1,
-                    duration: 0.5,
-                    delay: 0.2,
-                    ease: "power2.inOut"
-                });
+                    .attr("data-offset", 20)
+                    .node();
             }
+            return elements;
         }
 
-        // Create dots visualization
+
+        // Create dots visualization - Returns created DOM nodes
         function createDotsVisualization(viz) {
-            if (!viz.origin) return;
+            const elements = { centralDot: null, dots: [], labels: [], mainLabel: null };
+            if (!viz.origin) return elements;
             
             const layer = map.select("#language-layer");
             const pos = projection(viz.origin);
@@ -785,19 +776,11 @@
                 .attr("cy", pos[1])
                 .attr("r", 15)
                 .attr("fill", "var(--red)")
-                .attr("opacity", 0)
+                .attr("opacity", 0) // Start invisible
                 .attr("data-x", viz.origin[0])
-                .attr("data-y", viz.origin[1]);
-            
-            gsap.to(centralDot.node(), {
-                opacity: 0.8,
-                scale: 1.2,
-                duration: 1,
-                ease: "power2.inOut",
-                yoyo: true,
-                repeat: -1
-            });
-            
+                .attr("data-y", viz.origin[1])
+                .node();
+
             // Create additional dots if coordinates provided
             if (viz.dotCoordinates?.length) {
                 viz.dotCoordinates.forEach((coord, i) => {
@@ -810,20 +793,12 @@
                         .attr("cy", dotPos[1])
                         .attr("r", 8)
                         .attr("fill", "var(--red)")
-                        .attr("opacity", 0)
+                        .attr("opacity", 0) // Start invisible
                         .attr("data-x", coord[0])
-                        .attr("data-y", coord[1]);
-                    
-                    gsap.to(dot.node(), {
-                        opacity: 0.8,
-                        scale: 1.2,
-                        duration: 1,
-                        delay: i * 0.2,
-                        ease: "power2.inOut",
-                        yoyo: true,
-                        repeat: -1
-                    });
-                    
+                        .attr("data-y", coord[1])
+                        .node();
+                    elements.dots.push(dot);
+
                     if (viz.labels?.[i]) {
                         const label = layer.append("text")
                             .attr("class", "language-label")
@@ -835,19 +810,51 @@
                             .attr("opacity", 0)
                             .attr("data-x", coord[0])
                             .attr("data-y", coord[1])
-                            .attr("data-offset", 20);
-                        
-                        gsap.to(label.node(), {
-                            opacity: 1,
-                            duration: 0.5,
-                            delay: (i * 0.2) + 0.2,
-                            ease: "power2.inOut"
-                        });
+                            .attr("data-offset", 20)
+                            .node();
+                        elements.labels.push(label);
                     }
                 });
             }
-            
-            // Add main label if provided
+            // Handle case where only labels are provided (circular layout) - Adapt if needed
+            else if (viz.labels?.length) {
+                 viz.labels.forEach((label, i) => {
+                    const angle = (2 * Math.PI * i) / viz.labels.length;
+                    const radius = 40; // Adjust radius as needed
+                    const x = pos[0] + radius * Math.cos(angle);
+                    const y = pos[1] + radius * Math.sin(angle);
+                    const coord = projection.invert([x,y]); // Estimate lat/lon for data attributes
+
+                    const dot = layer.append("circle")
+                        .attr("class", "language-bubble")
+                        .attr("cx", x)
+                        .attr("cy", y)
+                        .attr("r", 8)
+                        .attr("fill", "var(--red)")
+                        .attr("opacity", 0)
+                        .attr("data-x", coord ? coord[0] : viz.origin[0]) // Use estimated or fallback
+                        .attr("data-y", coord ? coord[1] : viz.origin[1])
+                        .node();
+                    elements.dots.push(dot);
+
+                    const textLabel = layer.append("text")
+                        .attr("class", "language-label")
+                        .attr("x", x)
+                        .attr("y", y + 20)
+                        .attr("text-anchor", "middle")
+                        .attr("fill", "var(--red)")
+                        .text(label)
+                        .attr("opacity", 0)
+                        .attr("data-x", coord ? coord[0] : viz.origin[0])
+                        .attr("data-y", coord ? coord[1] : viz.origin[1])
+                        .attr("data-offset", 20)
+                        .node();
+                    elements.labels.push(textLabel);
+                 });
+            }
+
+
+            // Add main label if provided (initially invisible)
             if (viz.label) {
                 const label = layer.append("text")
                     .attr("class", "language-label")
@@ -859,601 +866,263 @@
                     .attr("opacity", 0)
                     .attr("data-x", viz.origin[0])
                     .attr("data-y", viz.origin[1])
-                    .attr("data-offset", -25);
-                
-                gsap.to(label.node(), {
-                    opacity: 1,
-                    duration: 0.5,
-                    ease: "power2.inOut"
-                });
+                    .attr("data-offset", -25)
+                    .node();
             }
+            return elements;
         }
 
 
-        // Update timeline content based on year
-        function updateTimelineContent(year) {
-            if (isAnimating) return;
-            
-            const paragraphItems = getParagraphItems();
-            const visibleItem = $(".timeline-item:visible");
-            
-            let currentVisibleIndex = -1;
-            if (visibleItem.length) {
-                const currentId = parseInt(visibleItem.attr('data-id'));
-                currentVisibleIndex = paragraphItems.findIndex(item => item.id === currentId);
-            }
-            
-            const itemsForYear = paragraphItems.reduce((acc, item, index) => {
-                if (year >= item.year_start) {
-                    acc.push(index);
-                }
-                return acc;
-            }, []);
-            
-            let targetIndex;
-            if (itemsForYear.length) {
-                const currentInYearIndex = itemsForYear.indexOf(currentVisibleIndex);
-                if (currentInYearIndex === -1 || currentInYearIndex === itemsForYear.length - 1) {
-                    targetIndex = itemsForYear[0];
-                } else {
-                    targetIndex = itemsForYear[currentInYearIndex + 1];
-                }
-            } else {
-                const closestItem = paragraphItems.reduce((closest, item, index) => {
-                    const diff = Math.abs(year - item.year_start);
-                    
-                    if (closest === null || diff < closest.diff) {
-                        return { index, diff: diff };
-                    }
-                    return closest;
-                }, null);
-                
-                targetIndex = closestItem ? closestItem.index : 0; // Default to first item if no match found
-            }
-            
-            // Validate paragraphItems and targetIndex
-            if (!paragraphItems || paragraphItems.length === 0) {
-                console.error('No paragraph items available');
-                return;
-            }
-            
-            if (typeof targetIndex !== 'number' || targetIndex < 0 || targetIndex >= paragraphItems.length) {
-                console.error('Invalid target index:', targetIndex);
-                return;
-            }
-            
-            const targetItem = paragraphItems[targetIndex];
-            if (!targetItem) {
-                console.error('Target item not found at index:', targetIndex);
-                return;
-            }
-            
-            const currentVisibleId = visibleItem.length ? parseInt(visibleItem.attr('data-id')) : null;
-            
-            if (!visibleItem.length || targetItem.id !== currentVisibleId) {
-                transitionToItem(targetItem, targetIndex, paragraphItems.length);
-            }
-        }
-
-        // Update animation positions
-        function updateAnimationPositions(transition) {
+        // Update animation positions (called during map zoom tween's onUpdate)
+        function updateAnimationPositions() { // Removed 'transition' parameter
             const layers = ["migration-layer", "language-layer", "event-layer"];
             layers.forEach(layer => {
                 map.select(`#${layer}`).selectAll("*").each(function() {
                     const element = d3.select(this);
-                    
-                    if (element.classed("migration-line")) {
-                        const originPos = projection([
-                            parseFloat(element.attr("data-origin-x")),
-                            parseFloat(element.attr("data-origin-y"))
-                        ]);
-                        const destPos = projection([
-                            parseFloat(element.attr("data-dest-x")),
-                            parseFloat(element.attr("data-dest-y"))
-                        ]);
-                        
-                        element.transition(transition)
-                            .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`);
-                    } else if (element.classed("language-bubble") || element.classed("event-marker")) {
-                        const pos = projection([
-                            parseFloat(element.attr("data-x")),
-                            parseFloat(element.attr("data-y"))
-                        ]);
-                        
-                        element.transition(transition)
-                            .attr("cx", pos[0])
-                            .attr("cy", pos[1]);
-                    } else if (element.classed("language-label") || element.classed("event-label")) {
-                        const pos = projection([
-                            parseFloat(element.attr("data-x")),
-                            parseFloat(element.attr("data-y"))
-                        ]);
-                        
-                        element.transition(transition)
-                            .attr("x", pos[0])
-                            .attr("y", pos[1] + parseFloat(element.attr("data-offset") || "0"));
-                    }
-                });
-            });
-        }
+                    const nodeName = element.node().nodeName.toLowerCase();
+                    const classList = element.attr("class") || "";
 
-        // Update country highlights
-        function updateCountryHighlights(activeKeyframes) {
-            map.selectAll(".country")
-                .transition()
-                .duration(300)
-                .attr("opacity", d => d.id === 710 ? 1 : 0.3);
-            
-            activeKeyframes.forEach(keyframe => {
-                if (keyframe.highlight_country) {
-                    const countryCode = getCountryCode(keyframe.highlight_country);
-                    if (countryCode) {
-                        map.select(`.country-${countryCode}`)
-                            .transition()
-                            .duration(300)
-                            .attr("opacity", 1);
-                    }
-                }
-            });
-        }
+                    try {
+                        const dataX = parseFloat(element.attr("data-x"));
+                        const dataY = parseFloat(element.attr("data-y"));
 
-        // Create new visualization functions
-        function createArrowVisualization(viz, yearStart) {
-            const id = `arrow-${yearStart}-${Math.random().toString(36).substr(2, 5)}`;
-            const layer = map.select("#migration-layer");
-            
-            if (viz.origin && viz.destination) {
-                const originPos = projection(viz.origin);
-                const destPos = projection(viz.destination);
-                
-                // Create the animated dotted line
-                layer.append("path")
-                    .attr("class", `migration-line ${id}`)
-                    .attr("data-origin-x", viz.origin[0])
-                    .attr("data-origin-y", viz.origin[1])
-                    .attr("data-dest-x", viz.destination[0])
-                    .attr("data-dest-y", viz.destination[1])
-                    .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`)
-                    .attr("stroke", "var(--red)") // Use --red color
-                    .attr("stroke-width", 2)
-                    .attr("stroke-dasharray", "4, 4") // Ensure dotted line is visible
-                    .attr("fill", "none");
-                
-                // Add origin marker (pulsing dot)
-                layer.append("circle")
-                    .attr("class", `origin-marker ${id}`)
-                    .attr("cx", originPos[0])
-                    .attr("cy", originPos[1])
-                    .attr("r", 5)
-                    .attr("fill", "var(--red)") // Use --red color
-                    .attr("stroke", "none"); // No border
-                
-                // Add destination marker (pulsing dot)
-                layer.append("circle")
-                    .attr("class", `destination-marker ${id}`)
-                    .attr("cx", destPos[0])
-                    .attr("cy", destPos[1])
-                    .attr("r", 5)
-                    .attr("fill", "var(--red)") // Use --red color
-                    .attr("stroke", "none"); // No border
-                
-                // Add label if provided
-                if (viz.label) {
-                    layer.append("text")
-                        .attr("class", `migration-label ${id}`)
-                        .attr("x", (originPos[0] + destPos[0]) / 2)
-                        .attr("y", (originPos[1] + destPos[1]) / 2 - 10)
-                        .attr("text-anchor", "middle")
-                        .attr("fill", "var(--red)") // Use --red color
-                        .text(viz.label);
-                }
-            }
-        }
+                        if (!isNaN(dataX) && !isNaN(dataY)) {
+                            const pos = projection([dataX, dataY]);
 
-        // Debug function to help diagnose visualization issues
-        function debugVisualization(item) {
-            console.log("Visualizing item:", item);
-            if (item.visualizations) {
-                console.log("Visualizations:", item.visualizations);
-                item.visualizations.forEach((viz, i) => {
-                    console.log(`Visualization ${i}:`, viz);
-                    if (viz.type === "dots" && viz.dotCoordinates) {
-                        console.log("Dot coordinates:", viz.dotCoordinates);
-                    }
-                });
-            }
-        }
+                            if (nodeName === 'circle' && (classList.includes("origin-marker") || classList.includes("destination-marker") || classList.includes("event-marker") || classList.includes("language-bubble"))) {
+                                element.attr("cx", pos[0]).attr("cy", pos[1]);
+                            } else if (nodeName === 'text' && (classList.includes("migration-label") || classList.includes("event-label") || classList.includes("language-label"))) {
+                                const offset = parseFloat(element.attr("data-offset") || "0");
+                                element.attr("x", pos[0]).attr("y", pos[1] + offset);
+                            }
+                        } else if (nodeName === 'path' && classList.includes("migration-line")) {
+                            const originX = parseFloat(element.attr("data-origin-x"));
+                            const originY = parseFloat(element.attr("data-origin-y"));
+                            const destX = parseFloat(element.attr("data-dest-x"));
+                            const destY = parseFloat(element.attr("data-dest-y"));
 
-        function createDotVisualization(viz, yearStart) {
-            const id = `dot-${yearStart}-${Math.random().toString(36).substr(2, 5)}`;
-            const layer = map.select("#event-layer");
-            
-            if (viz.origin) {
-                const pos = projection(viz.origin);
-                
-                // Create pulsing dot
-                layer.append("circle")
-                    .attr("class", `event-marker ${id}`)
-                    .attr("data-x", viz.origin[0])
-                    .attr("data-y", viz.origin[1])
-                    .attr("cx", pos[0])
-                    .attr("cy", pos[1])
-                    .attr("r", 8)
-                    .attr("fill", "var(--red)") // Use --red color
-                    .attr("stroke", "none"); // No border
-                
-                if (viz.label) {
-                    layer.append("text")
-                        .attr("class", `event-label ${id}`)
-                        .attr("data-x", viz.origin[0])
-                        .attr("data-y", viz.origin[1])
-                        .attr("data-offset", 20)
-                        .attr("x", pos[0])
-                        .attr("y", pos[1] + 20)
-                        .attr("text-anchor", "middle")
-                        .attr("fill", "var(--red)") // Use --red color
-                        .text(viz.label);
-                }
-            }
-        }
-
-        function createDotsVisualization(viz, yearStart) {
-            const id = `dots-${yearStart}-${Math.random().toString(36).substr(2, 5)}`;
-            const layer = map.select("#language-layer");
-            
-            if (viz.origin) {
-                const pos = projection(viz.origin);
-                
-                // Create a central bubble (pulsing)
-                layer.append("circle")
-                    .attr("class", `language-bubble ${id}`)
-                    .attr("data-x", viz.origin[0])
-                    .attr("data-y", viz.origin[1])
-                    .attr("cx", pos[0])
-                    .attr("cy", pos[1])
-                    .attr("r", 15)
-                    .attr("fill", "var(--red)") // Use --red color
-                    .attr("stroke", "none"); // No border
-                
-                // Add dot coordinates if available
-                if (viz.dotCoordinates && viz.dotCoordinates.length > 0) {
-                    viz.dotCoordinates.forEach((coord, i) => {
-                        if (!coord || !Array.isArray(coord) || coord.length < 2) {
-                            console.error("Invalid dot coordinate:", coord);
-                            return;
+                            if (!isNaN(originX) && !isNaN(originY) && !isNaN(destX) && !isNaN(destY)) {
+                                const originPos = projection([originX, originY]);
+                                const destPos = projection([destX, destY]);
+                                element.attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`);
+                            }
                         }
-                        
-                        const dotPos = projection(coord);
-                        
-                        // Add pulsing dots with sequential appearance
-                        layer.append("circle")
-                            .attr("class", `language-bubble ${id}`)
-                            .attr("data-x", coord[0])
-                            .attr("data-y", coord[1])
-                            .attr("cx", dotPos[0])
-                            .attr("cy", dotPos[1])
-                            .attr("r", 8)
-                            .attr("fill", "var(--red)") // Use --red color
-                            .attr("stroke", "none") // No border
-                            .style("animation-delay", `${i * 0.2}s`); // Stagger the animation
-                        
-                        // If we have labels in the visualization and they match the number of dots, add labels
-                        if (viz.labels && viz.labels[i]) {
-                            layer.append("text")
-                                .attr("class", `language-label ${id}`)
-                                .attr("data-x", coord[0])
-                                .attr("data-y", coord[1])
-                                .attr("data-offset", 20)
-                                .attr("x", dotPos[0])
-                                .attr("y", dotPos[1] + 20)
-                                .attr("text-anchor", "middle")
-                                .attr("fill", "var(--red)") // Use --red color
-                                .text(viz.labels[i]);
-                        }
-                    });
-                }
-                // If no dot coordinates but we have labels, create dots in a circle around origin
-                else if (viz.labels && viz.labels.length > 0) {
-                    viz.labels.forEach((label, i) => {
-                        const angle = (2 * Math.PI * i) / viz.labels.length;
-                        const radius = 40;
-                        const x = pos[0] + radius * Math.cos(angle);
-                        const y = pos[1] + radius * Math.sin(angle);
-                        
-                        // Add pulsing dots in a circle
-                        layer.append("circle")
-                            .attr("class", `language-bubble ${id}`)
-                            .attr("cx", x)
-                            .attr("cy", y)
-                            .attr("r", 8)
-                            .attr("fill", "var(--red)") // Use --red color
-                            .attr("stroke", "none") // No border
-                            .style("animation-delay", `${i * 0.2}s`); // Stagger the animation
-                        
-                        layer.append("text")
-                            .attr("class", `language-label ${id}`)
-                            .attr("x", x)
-                            .attr("y", y + 20)
-                            .attr("text-anchor", "middle")
-                            .attr("fill", "var(--red)") // Use --red color
-                            .text(label);
-                    });
-                }
-                
-                if (viz.label) {
-                    layer.append("text")
-                        .attr("class", `language-label ${id}`)
-                        .attr("data-x", viz.origin[0])
-                        .attr("data-y", viz.origin[1])
-                        .attr("x", pos[0])
-                        .attr("y", pos[1] - 25)
-                        .attr("text-anchor", "middle")
-                        .attr("fill", "var(--red)") // Use --red color
-                        .text(viz.label);
-                }
-            }
-        }
-
-        // Add migration markers and labels
-        function addMigrationMarkers(layer, id, originPos, destPos, label) {
-            layer.append("circle")
-                .attr("class", `origin-marker ${id}`)
-                .attr("cx", originPos[0])
-                .attr("cy", originPos[1])
-                .attr("r", 5)
-                .attr("fill", config.colors.migration)
-                .attr("stroke", "var(--background)")
-                .attr("opacity", 0)
-                .transition()
-                .duration(config.animationDuration)
-                .attr("opacity", 1);
-            
-            if (label) {
-                layer.append("text")
-                    .attr("class", `migration-label ${id}`)
-                    .attr("x", (originPos[0] + destPos[0]) / 2)
-                    .attr("y", (originPos[1] + destPos[1]) / 2 - 10)
-                    .attr("text-anchor", "middle")
-                    .attr("fill", "var(--text)")
-                    .text(label)
-                    .attr("opacity", 0)
-                    .transition()
-                    .duration(config.animationDuration)
-                    .attr("opacity", 1);
-            }
-        }
-
-        // Create multiple migrations
-        function createMultipleMigrations(layer, id, animation) {
-            animation.originPoints.forEach((origin, i) => {
-                const originPos = projection(origin);
-                
-                layer.append("circle")
-                    .attr("class", `origin-marker ${id}`)
-                    .attr("cx", originPos[0])
-                    .attr("cy", originPos[1])
-                    .attr("r", 4)
-                    .attr("fill", config.colors.migration)
-                    .attr("stroke", "var(--background)")
-                    .attr("opacity", 0)
-                    .transition()
-                    .duration(config.animationDuration)
-                    .attr("opacity", 1);
-                
-                animation.destinationPoints.forEach((dest, j) => {
-                    const destPos = projection(dest);
-                    
-                    layer.append("path")
-                        .attr("class", `migration-line ${id}`)
-                        .attr("data-origin-x", origin[0])
-                        .attr("data-origin-y", origin[1])
-                        .attr("data-dest-x", dest[0])
-                        .attr("data-dest-y", dest[1])
-                        .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`)
-                        .attr("stroke", config.colors.migration)
-                        .attr("stroke-width", 1.5)
-                        .attr("stroke-dasharray", "3,3")
-                        .attr("opacity", 0)
-                        .transition()
-                        .duration(config.animationDuration)
-                        .delay(j * 100)
-                        .attr("opacity", 0.6);
-                });
-            });
-            
-            if (animation.label) {
-                layer.append("text")
-                    .attr("class", `migration-label ${id}`)
-                    .attr("x", config.mapWidth / 2)
-                    .attr("y", 30)
-                    .attr("text-anchor", "middle")
-                    .attr("fill", "var(--text)")
-                    .text(animation.label)
-                    .attr("opacity", 0)
-                    .transition()
-                    .duration(config.animationDuration)
-                    .attr("opacity", 1);
-            }
-        }
-
-        // Create language animation
-        function createLanguageAnimation(animation, yearStart) {
-            const id = `language-${yearStart}`;
-            const layer = map.select("#language-layer");
-            
-            if (animation.languages) {
-                animation.languages.forEach((lang, i) => {
-                    const pos = projection(lang.position);
-                    
-                    layer.append("circle")
-                        .attr("class", `language-bubble ${id}`)
-                        .attr("data-x", lang.position[0])
-                        .attr("data-y", lang.position[1])
-                        .attr("cx", pos[0])
-                        .attr("cy", pos[1])
-                        .attr("r", lang.size || 10)
-                        .attr("fill", config.colors[animation.type] || config.colors.migration)
-                        .attr("stroke", "var(--background)")
-                        .attr("opacity", 0)
-                        .classed("transitioning", true)
-                        .transition()
-                        .duration(config.animationDuration)
-                        .attr("opacity", 0.7);
-                    
-                    if (lang.name) {
-                        layer.append("text")
-                            .attr("class", `language-label ${id}`)
-                            .attr("data-x", lang.position[0])
-                            .attr("data-y", lang.position[1])
-                            .attr("data-offset", 20)
-                            .attr("x", pos[0])
-                            .attr("y", pos[1] + 20)
-                            .attr("text-anchor", "middle")
-                            .attr("fill", "var(--text)")
-                            .text(lang.name)
-                            .attr("opacity", 0)
-                            .classed("transitioning", true)
-                            .transition()
-                            .duration(config.animationDuration)
-                            .attr("opacity", 1);
+                    } catch (e) {
+                        console.warn("Error updating position for element:", element.node(), e);
                     }
                 });
-            }
-            
-            if (animation.label) {
-                layer.append("text")
-                    .attr("class", `language-label ${id}`)
-                    .attr("x", config.mapWidth / 2)
-                    .attr("y", 30)
-                    .attr("text-anchor", "middle")
-                    .attr("fill", "var(--text)")
-                    .text(animation.label)
-                    .attr("opacity", 0)
-                    .transition()
-                    .duration(config.animationDuration)
-                    .attr("opacity", 1);
-            }
+            });
         }
-        
-        // Create event animation
-        function createEventAnimation(animation, yearStart) {
-            const id = `event-${yearStart}`;
-            const layer = map.select("#event-layer");
-            
-            if (animation.position) {
-                const pos = projection(animation.position);
-                
-                layer.append("circle")
-                    .attr("class", `event-marker ${id}`)
-                    .attr("data-x", animation.position[0])
-                    .attr("data-y", animation.position[1])
-                    .attr("cx", pos[0])
-                    .attr("cy", pos[1])
-                    .attr("r", 8)
-                    .attr("fill", "#ff9800")
-                    .attr("stroke", "var(--background)")
-                    .attr("opacity", 0)
-                    .transition()
-                    .duration(config.animationDuration)
-                    .attr("opacity", 0.8);
-                
-                if (animation.label) {
-                    layer.append("text")
-                        .attr("class", `event-label ${id}`)
-                        .attr("data-x", animation.position[0])
-                        .attr("data-y", animation.position[1])
-                        .attr("data-offset", 20)
-                        .attr("x", pos[0])
-                        .attr("y", pos[1] + 20)
-                        .attr("text-anchor", "middle")
-                        .attr("fill", "var(--text)")
-                        .text(animation.label)
-                        .attr("opacity", 0)
-                        .transition()
-                        .duration(config.animationDuration)
-                        .attr("opacity", 1);
+
+        // Creates and animates visualizations for a given item onto the masterTimeline
+        function renderVisualizationsForItem(item, timeline, position) {
+            const visualizationsToShow = item.visualizations || [];
+            let allElementsToAnimate = [];
+            let pulseElements = []; // Elements that should pulse
+
+            visualizationsToShow.forEach(viz => {
+                let createdElements = {};
+                switch (viz.type) {
+                    case "arrow":
+                    case "arrows": // Handle potential plural type
+                        if (Array.isArray(viz.arrows)) {
+                             viz.arrows.forEach(arrowViz => {
+                                 createdElements = createArrowVisualization(arrowViz);
+                                 Object.values(createdElements).forEach(el => { if (el) allElementsToAnimate.push(el); });
+                             });
+                         } else { // Handle single arrow case (original structure)
+                             createdElements = createArrowVisualization(viz);
+                             Object.values(createdElements).forEach(el => { if (el) allElementsToAnimate.push(el); });
+                         }
+                        break;
+                    case "dot":
+                        createdElements = createDotVisualization(viz);
+                        Object.values(createdElements).forEach(el => {
+                            if (el) {
+                                allElementsToAnimate.push(el);
+                                // Add dot to pulse list
+                                if (el.nodeName.toLowerCase() === 'circle') pulseElements.push(el);
+                            }
+                        });
+                        break;
+                    case "dots":
+                        createdElements = createDotsVisualization(viz);
+                        // Add central dot, other dots, labels, main label if they exist
+                        if (createdElements.centralDot) {
+                            allElementsToAnimate.push(createdElements.centralDot);
+                            pulseElements.push(createdElements.centralDot); // Pulse central dot
+                        }
+                        allElementsToAnimate.push(...createdElements.dots.filter(el => el));
+                        pulseElements.push(...createdElements.dots.filter(el => el)); // Pulse other dots
+                        allElementsToAnimate.push(...createdElements.labels.filter(el => el));
+                        if (createdElements.mainLabel) allElementsToAnimate.push(createdElements.mainLabel);
+                        break;
+                    default:
+                        console.warn("Unknown visualization type:", viz.type);
+                }
+            });
+
+            // Add fade-in animation for all created elements to the timeline
+            if (allElementsToAnimate.length > 0) {
+                timeline.to(allElementsToAnimate, {
+                    opacity: 1,
+                    duration: 0.6,
+                    stagger: 0.05, // Stagger the appearance slightly
+                    ease: 'power2.out'
+                }, position); // Add at the specified position relative to label
+
+                // Add pulsing animation for specific elements (dots) after they fade in
+                if (pulseElements.length > 0) {
+                    timeline.to(pulseElements, {
+                        scale: 1.2, // Pulse scale effect
+                        duration: 0.8,
+                        ease: "power1.inOut",
+                        yoyo: true,
+                        repeat: -1, // Repeat indefinitely while the item is active
+                        stagger: 0.1
+                    }, ">-0.4"); // Start pulsing slightly after fade-in completes
                 }
             }
         }
-        
-        // Deactivate keyframe
-        function deactivateKeyframe(item) {
-            if (item.visualizations) {
-                item.visualizations.forEach(viz => {
-                    const idPrefix = `${viz.type}-${item.year_start}`;
-                    
-                    map.selectAll(`[class*="${idPrefix}"]`)
-                        .transition()
-                        .duration(config.animationDuration / 2)
-                        .attr("opacity", 0)
-                        .remove();
-                });
+
+
+        // Build the master GSAP timeline
+        function buildMasterTimeline() {
+            const paragraphItems = getParagraphItems();
+            if (!paragraphItems || paragraphItems.length === 0) {
+                console.error("Cannot build timeline: No paragraph items.");
+                return;
             }
+
+            masterTimeline.clear(); // Clear any previous timeline
+
+            // --- Initial State (Welcome Message) ---
+            masterTimeline.addLabel("welcome");
+            const welcomeElements = showWelcomeMessage(); // Create welcome elements
+            // Add initial map zoom for welcome screen
+            masterTimeline.add(updateMapZoom({ map_zoom: "africa" }), "<"); // Start zoom immediately at welcome label
+            // Animate welcome message elements in
+            masterTimeline.to([welcomeElements.title, welcomeElements.instructions, welcomeElements.startInstructions], {
+                opacity: 1,
+                duration: 0.75,
+                stagger: 0.2,
+                ease: "power2.out"
+            }, ">-=0.5"); // Stagger in after map zoom starts
+            // Add pulsing arrow animation
+            masterTimeline.to(welcomeElements.startInstructions, {
+                x: "+=10", // Move right
+                repeat: -1, // Repeat indefinitely
+                yoyo: true, // Go back and forth
+                duration: 0.8,
+                ease: "power1.inOut"
+            }, ">-0.5"); // Start pulsing near the end of the text fade-in
+
+
+            // --- Transitions Between Items ---
+            let previousItemElement = null; // Keep track of the previous text element
+
+            paragraphItems.forEach((item, index) => {
+                const itemLabel = `entry_${item.id}`;
+                const itemElement = $(`.timeline-item[data-id="${item.id}"]`);
+                const itemYear = item.year_start;
+
+                // --- Add Label for this item ---
+                // Position the label. Add a slight delay after welcome or previous item.
+                masterTimeline.addLabel(itemLabel, index === 0 ? ">+0.5" : ">+0.3");
+
+                // --- Animations STARTING at itemLabel ---
+
+                // 1. Fade out previous item's text (or welcome message)
+                const elementToFadeOut = index === 0
+                    ? [welcomeElements.title, welcomeElements.instructions, welcomeElements.startInstructions]
+                    : (previousItemElement ? previousItemElement.get(0) : null); // Get DOM node
+
+                if (elementToFadeOut) {
+                    // Stop pulsing animation on welcome arrow before fading out
+                    if (index === 0) gsap.killTweensOf(welcomeElements.startInstructions);
+
+                    masterTimeline.to(elementToFadeOut, {
+                        autoAlpha: 0, // Fades out and sets visibility: hidden
+                        duration: 0.4,
+                        // Remove welcome elements after fade out if desired
+                        // onComplete: index === 0 ? () => d3.selectAll(".welcome-title, .welcome-instructions, .welcome-start").remove() : null
+                    }, itemLabel); // Start fade out exactly at the item label
+                }
+
+                // 2. Clear previous visualizations
+                // Add the clearing tween slightly after the label
+                masterTimeline.add(clearAllVisualizations(), itemLabel + "+=0.1");
+
+                // 3. Animate Map Zoom
+                // Add the zoom tween, starting slightly after the label
+                masterTimeline.add(updateMapZoom(item), itemLabel + "+=0.1");
+
+                // 4. Animate Timeline Band centering
+                // Use a .call to get the value, then tween the band
+                masterTimeline.call(() => {
+                    const targetX = updateTimelineMarker(itemYear); // Update active class and get target X
+                    gsap.to('.timeline-band', { // Animate the band using the calculated value
+                        x: targetX,
+                        duration: 0.8,
+                        ease: 'power2.inOut'
+                    });
+                }, null, itemLabel + "+=0.1"); // Call slightly after label
+
+
+                // --- Animations STARTING LATER (relative to itemLabel or previous tween) ---
+
+                // 5. Fade In Current Item's Text
+                if (itemElement.length) {
+                    // Ensure item is visible before fading in (autoAlpha handles display and opacity)
+                    masterTimeline.set(itemElement.get(0), { display: 'block', autoAlpha: 0 }); // Ensure it's block for autoAlpha
+                    masterTimeline.to(itemElement.get(0), {
+                        autoAlpha: 1,
+                        duration: 0.5
+                    }, ">-0.3"); // Overlap slightly with map zoom/band animation end
+                }
+
+                // 6. Render and Animate New Visualizations
+                // Use .call() to trigger the rendering function, which adds its own animations to the timeline
+                // Start rendering slightly before text is fully visible
+                masterTimeline.call(renderVisualizationsForItem, [item, masterTimeline, ">-0.2"], ">-0.2");
+
+                // Store current item element for the next iteration's fade-out
+                previousItemElement = itemElement;
+            });
+
+            // --- Final State ---
+            // Add a final label to mark the end of the last item's animations
+            masterTimeline.addLabel("end", ">+0.5"); // Add a bit of padding at the end
+
+            console.log("Master Timeline Built:", masterTimeline.labels);
         }
-        
-        // Helper function to get country code
-        function getCountryCode(countryName) {
-            const countryMap = {
-                "South Africa": 710,
-                "Namibia": 516,
-                "Botswana": 72,
-                "Zimbabwe": 716,
-                "Mozambique": 508,
-                "Lesotho": 426,
-                "Swaziland": 748,
-                "Angola": 24,
-                "Zambia": 894,
-                "Malawi": 454,
-                "Tanzania": 834,
-                "Democratic Republic of the Congo": 180,
-                "Congo": 178,
-                "Kenya": 404,
-                "Uganda": 800,
-                "Rwanda": 646,
-                "Burundi": 108,
-                "Ethiopia": 231,
-                "Somalia": 706,
-                "Sudan": 736,
-                "South Sudan": 728,
-                "Central African Republic": 140,
-                "Chad": 148,
-                "Niger": 562,
-                "Nigeria": 566,
-                "Cameroon": 120,
-                "Ghana": 288,
-                "Ivory Coast": 384,
-                "Guinea": 324,
-                "Senegal": 686,
-                "Mali": 466,
-                "Burkina Faso": 854,
-                "Benin": 204,
-                "Togo": 768,
-                "Liberia": 430,
-                "Sierra Leone": 694,
-                "Guinea-Bissau": 624,
-                "Gambia": 270,
-                "Mauritania": 478,
-                "Western Sahara": 732,
-                "Morocco": 504,
-                "Algeria": 12,
-                "Tunisia": 788,
-                "Libya": 434,
-                "Egypt": 818,
-                "Eritrea": 232,
-                "Djibouti": 262,
-                "Madagascar": 450,
-                "Comoros": 174,
-                "Mauritius": 480,
-                "Seychelles": 690,
-                "Cape Verde": 132,
-                "Sao Tome and Principe": 678,
-                "Equatorial Guinea": 226,
-                "Gabon": 266
-            };
-            
-            return countryMap[countryName];
+
+
+        // Update navigation arrow states based on masterTimeline progress/state
+        function updateTimelineArrowStates() {
+            if (!masterTimeline) return;
+
+            const currentTime = masterTimeline.time();
+            const totalDuration = masterTimeline.duration();
+            const labels = masterTimeline.labels;
+            const welcomeTime = labels["welcome"] ?? 0; // Time of the welcome label
+            const endTime = labels["end"] ?? totalDuration; // Time of the end label
+
+            // Use a small tolerance for floating point comparisons
+            const tolerance = 0.01;
+
+            // Previous arrow logic: Disabled if at or before the 'welcome' label time
+            const disablePrev = currentTime <= welcomeTime + tolerance;
+            $('#the-history .carousel-arrow.prev').prop('disabled', disablePrev).toggleClass('disabled', disablePrev);
+
+            // Next arrow logic: Disabled if at or after the 'end' label time
+            const disableNext = currentTime >= endTime - tolerance;
+            $('#the-history .carousel-arrow.next').prop('disabled', disableNext).toggleClass('disabled', disableNext);
+
+            // Log state for debugging if needed
+            // console.log(`Timeline state: time=${currentTime.toFixed(2)}, duration=${totalDuration.toFixed(2)}, disablePrev=${disablePrev}, disableNext=${disableNext}`);
         }
-        
+
         // Load history data
         loadHistoryData();
     });
