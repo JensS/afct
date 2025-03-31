@@ -23,7 +23,7 @@
         let currentYear = config.minYear;
         let map;
         let projection;
-        let isAnimating = false;
+        let masterTimeline; // GSAP master timeline
         let cachedParagraphItems = null;
 
         // Helper function to get paragraph items with cache
@@ -59,39 +59,30 @@
 
         // Initialize scroll handler
         function initScrollHandler() {
-            const timelineInfo = $('#timeline-info');
-            const timelineMarkers = $('.timeline-markers');
-            const timelineContent = $('#timeline-content');
-            const historySection = $('#the-history');
-            
-            // Hide all timeline items initially
-            $(".timeline-item").hide();
-            
             // Add click handlers to timeline markers
             $(document).off('click', '.timeline-marker').on('click', '.timeline-marker', function() {
-                if (isAnimating) return;
-                
+                if (masterTimeline && masterTimeline.isActive()) return; // Check if timeline is animating
+
                 const year = parseInt($(this).data('year'));
-                currentYear = year;
-                
-                // Find paragraph items for this year
                 const paragraphItems = getParagraphItems();
-                const itemsForYear = paragraphItems.filter(item => 
-                    item.year_start === year
-                );
-                
-                // If there's a paragraph item for this year, transition to it
-                if (itemsForYear.length > 0) {
-                    const targetItem = itemsForYear[0];
-                    const targetIndex = paragraphItems.findIndex(item => item.id === targetItem.id);
-                    transitionToItem(targetItem, targetIndex, paragraphItems.length);
+
+                // Find the first paragraph item associated with this year
+                const targetItem = paragraphItems.find(item => item.year_start === year);
+
+                if (targetItem) {
+                    const targetLabel = `entry_${targetItem.id}`;
+                    console.log(`Marker click: Tweening to ${targetLabel}`);
+                    // Use tweenTo for smooth animation to the specific point
+                    masterTimeline.tweenTo(targetLabel, { duration: 1.5, ease: 'power1.inOut', overwrite: true });
                 } else {
-                    // Otherwise just update the visualization
-                    clearAllVisualizations();
-                    updateVisualization(year);
+                    // Optional: Handle clicks on years with no associated paragraph item
+                    // Just center the marker visually for now
+                    console.log(`No paragraph item found for year ${year}, centering marker.`);
+                    updateTimelineMarker(year); // Just center the marker visually
                 }
             });
         }
+
 
         // Initialize the visualization
         function init() {
@@ -102,17 +93,25 @@
             
             initMap();
             addTimelineMarkerStyles();
-            
-            // Show welcome message with GSAP animation
-            gsap.delayedCall(0.5, () => {
-                showWelcomeMessage();
-                updateMapZoom({map_zoom: "africa"}, () => {});
-                updateArrowStates(-1, getParagraphItems().length);
+
+            // Initialize and build the master timeline
+            masterTimeline = gsap.timeline({
+                paused: true,
+                onUpdate: updateTimelineArrowStates, // Update arrows during tweening
+                onComplete: updateTimelineArrowStates, // Update arrows on completion
+                onReverseComplete: updateTimelineArrowStates // Update arrows on reverse completion
             });
-            
+            buildMasterTimeline(); // Build the timeline structure
+
+            // Initialize UI elements after timeline structure is ready
             initTimelineContent();
             initScrollHandler();
+
+            // Set initial state (show welcome) without auto-playing the timeline
+            masterTimeline.seek("welcome"); // Go to the start without animating
+            updateTimelineArrowStates(); // Set initial arrow state for welcome screen
         }
+
 
         // Create timeline markers UI styles
         function addTimelineMarkerStyles() {
@@ -224,20 +223,16 @@
             document.head.appendChild(styleElement);
         }
 
-        // Show welcome message with GSAP animation
+        // Show welcome message - Creates elements, returns nodes for timeline animation
         function showWelcomeMessage() {
-            clearAllVisualizations();
-            
+            // Clear any previous non-timeline visualizations if necessary
+            // clearAllVisualizations(); // This might be redundant if timeline handles clearing
+
             const layer = map.select("#event-layer");
-            const timeline = gsap.timeline({
-                defaults: {
-                    ease: "power2.inOut",
-                    duration: 0.75
-                }
-            });
-            
+            const elements = {};
+
             // Add title
-            const title = layer.append("text")
+            elements.title = layer.append("text")
                 .attr("class", "welcome-title")
                 .attr("x", config.mapWidth / 2)
                 .attr("y", config.mapHeight / 2 - 40)
@@ -246,10 +241,11 @@
                 .attr("font-weight", "bold")
                 .attr("fill", "var(--text)")
                 .text("South African History Timeline")
-                .attr("opacity", 0);
+                .attr("opacity", 0) // Start invisible
+                .node();
 
             // Add instructions
-            const instructions = layer.append("text")
+            elements.instructions = layer.append("text")
                 .attr("class", "welcome-instructions")
                 .attr("x", config.mapWidth / 2)
                 .attr("y", config.mapHeight / 2 + 10)
@@ -257,10 +253,11 @@
                 .attr("font-size", "16px")
                 .attr("fill", "var(--text)")
                 .text("Use the arrows to navigate through history")
-                .attr("opacity", 0);
-            
+                .attr("opacity", 0) // Start invisible
+                .node();
+
             // Add start instruction
-            const startInstructions = layer.append("text")
+            elements.startInstructions = layer.append("text")
                 .attr("class", "welcome-start")
                 .attr("x", config.mapWidth / 2)
                 .attr("y", config.mapHeight / 2 + 40)
@@ -268,24 +265,12 @@
                 .attr("font-size", "16px")
                 .attr("fill", "var(--red)")
                 .text("Click the right arrow to begin →")
-                .attr("opacity", 0);
+                .attr("opacity", 0) // Start invisible
+                .node();
 
-            // Create animation sequence
-            timeline
-                .to(title.node(), { opacity: 1 })
-                .to(instructions.node(), { opacity: 1 }, "-=0.5") // Start slightly before previous ends
-                .to(startInstructions.node(), { opacity: 1 }, "-=0.5") // Start slightly before previous ends
-                .add(() => {
-                    // Start subtle pulse animation on arrow
-                    gsap.to(startInstructions.node(), {
-                        x: "+=10",
-                        repeat: -1,
-                        yoyo: true,
-                        duration: 0.8,
-                        ease: "power1.inOut"
-                    });
-                });
+            return elements; // Return the DOM nodes
         }
+
 
         // Load history data
         function loadHistoryData() {
@@ -425,8 +410,7 @@
             createTimelineMarkers(timelineMarkers);
             createTimelineItems(timelineContent, paragraphItems);
             addNavigationArrows(timelineContent, paragraphItems);
-            
-            updateArrowStates(0, paragraphItems.length);
+            // Arrow states are now managed by updateTimelineArrowStates and the timeline
         }
 
         // Create timeline markers
@@ -552,171 +536,50 @@
             $('#the-history .carousel-arrow.prev, #the-history .carousel-arrow.next').remove();
             historyContainer.append('<button class="carousel-arrow prev" aria-label="Previous History Entry"></button>');
             historyContainer.append('<button class="carousel-arrow next" aria-label="Next History Entry"></button>');
-            
             $('#the-history').off('click', '.carousel-arrow.prev').on('click', '.carousel-arrow.prev', function(e) {
                 e.preventDefault();
-                if ($(this).hasClass('disabled') || isAnimating) return;
-                
-                const visibleItem = $('.timeline-item:visible');
-                if (!visibleItem.length) {
-                    transitionToItem(paragraphItems[0], 0, paragraphItems.length);
-                    return;
-                }
-                
-                const currentId = parseInt(visibleItem.attr('data-id'));
-                const currentIndex = paragraphItems.findIndex(item => item.id === currentId);
-                
-                if (currentIndex > 0) {
-                    transitionToItem(paragraphItems[currentIndex - 1], currentIndex - 1, paragraphItems.length);
-                }
+                if ($(this).hasClass('disabled') || (masterTimeline && masterTimeline.isActive())) return;
+
+                console.log("Prev arrow clicked");
+                // Reverse the timeline by one step (tween backwards to previous label)
+                masterTimeline.reverse();
             });
-            
+
             $('#the-history').off('click', '.carousel-arrow.next').on('click', '.carousel-arrow.next', function(e) {
                 e.preventDefault();
-                if ($(this).hasClass('disabled') || isAnimating) return;
-                
-                const visibleItem = $('.timeline-item:visible');
-                const paragraphItems = getParagraphItems();
-                
-        // Clear existing visualizations before checking visible item
-        clearAllVisualizations();
-        
-        if (!visibleItem.length) {
-            transitionToItem(paragraphItems[0], 0, paragraphItems.length);
-            return;
-        }
-                
-                const currentId = parseInt(visibleItem.attr('data-id'));
-                const currentIndex = paragraphItems.findIndex(item => item.id === currentId);
-                
-                if (currentIndex < paragraphItems.length - 1) {
-                    transitionToItem(paragraphItems[currentIndex + 1], currentIndex + 1, paragraphItems.length);
-                }
+                if ($(this).hasClass('disabled') || (masterTimeline && masterTimeline.isActive())) return;
+
+                console.log("Next arrow clicked");
+                // Play the timeline forward by one step (tween forwards to next label)
+                masterTimeline.play();
             });
         }
 
-        // Transition to a specific item
-        function transitionToItem(item, currentIndex, totalItems) {
-            if (isAnimating || !item?.year_start || !item.id) return;
-            
-            isAnimating = true;
-            currentYear = item.year_start;
-            
-            // E Eur  aal pr viouspviiuouazatiols ari removedtions are removed
-            csuarAllVisualizaaionsat;
-is          
-    // dd sll delay before shownewvisuization
-            gsap.delayedCall(0.3,/()/=> {d small delay before showing new visualizations
-            p.delayedCall(0.3, () => {
-             svlioosShow = item.visuToShowa=aitnm.visuas zatio|s || [];
-                
-                updMaeM(pZoom(ittm( () => {) => {
-                visizoizntionsToShow.fooEach(vizS=> {.forEach(viz => {
-                    switch( iz.i(pv)z{pe) {
-                        caw arrow":
-                            createArr wVisu l za ion(viz); break;
-                            b e k;dot":
-                        cas  "do " 
- ee                          r  teDotbreak;viz
-                            break;           createDotsVisualization(viz);
-                        c sif"d.ts":rows?.length) {
-                            cre   D tsV sualiza ioncvizr;
-ee                          break;
-                        case "arrows":                         destination: arrow.destination,
-                         f ;vz.arrows?.ngh {
-                               viz a   ws.fobEachr(arrw => {
-                                    crea}ArrowVisuaztion
-                                    yp:"arrow",
-            consI            if (       oilgineIarroweorigin,.length) {
-                         u;         den: arrdetn,
-                        gsap       lab(": . === 0 ? vizmlebeli:mnull, {
-                auto               });
-                duration3       });
-                onComplete: }
-                    $(".timeline-item").hide();
-                   t}
-imeI            });
-        gsap.to(}
-            });
-            
-        autoupdateTimelineMarkel(item.ypar_sthrt): 1,
-            
-            donrt timelineItam =t$(`.timeline-item[data-id=i${item.io}0]`);3,
-            if (!timelineItem.length) {
-            onComonsole.errop('Timelinl item n ( fo nd:', em.d
-                isAnimating = false;
-                sAturnmating = false;
-            }
-           
-            gsap.to(".timeline-item", {
-       });utApa:0,
-                duration: 0.3,
-}nCmplete:(
-                });$(".timeline-item").hide();
-imneIem.shw);
-                 gsap.to(timelineItem,{
-auoAlha1
-       }duration:0.3,
-onComplete:()=>{
-iAnmg =fls;
-     // Update the updat}
-eTimelineMarkcit oet});he active year
-      function u}
-pdateTimelin});
-eMarke      
-      //}
-
- Find th//eUpdate themupdateTimelineMarkerafunctionrtokcorrectlyecenterrthe activefyearthis year
+        // Update the timeline marker - Calculates target position and updates active class
         function updateTimelineMarker(year) {
-  const mark//eFindrthe marker=for this$year`.timeline-marker[data-year="${year}"]`);
-constmarker=$(`.timeline-marker[data-year="${year}"]`);
+            const marker = $(`.timeline-marker[data-year="${year}"]`);
+            let targetTranslateX = '50%'; // Default fallback if marker not found
 
-if(marke.lngth) {
-            if (//mGetathermarker'skpositionr.length) {
-             aesconit mirkPosiio =marker.po().left;
+            $('.timeline-marker').removeClass('active'); // Deactivate all first
 
-                   Calcula//cehe offs ttho coster thist to center this marker
-                const bandContainer = $('.    cons-b na-container'C;
-a               const contsineeCtn=dr = bCndConaiinen.wideh(r / 2.
-width() / 2;
-                $('te .htibamd posi-bon ta center thedm')ke.('transform', `translateX(calc(50% - ${markerPosition}px))`);
-    $('.-band')css('transform', `translteXcalc50%-$markerPosition}px))`);
-
-                // Highlight ihg tcmivemrkr
-                $('.timeline-marker').removeClass('active');
-                marker.addClass('active');
+            if (marker.length) {
+                const markerPosition = marker.position().left;
+                const bandContainer = $('.timeline-band-container');
+                const containerCenter = bandContainer.width() / 2;
+                targetTranslateX = `${containerCenter - markerPosition}px`;
+                marker.addClass('active'); // Activate the specific marker
             } else {
-                // If no exact marker exists for this year, find the closest one
-                console.log("No marker found for year:", year);
-
-                // Get all markers and their years
-                const markers = $('.timeline-marker');
-                let closestMarker = null;
-                let minDiff = Infinity;
-
-                markers.each(function() {
-                    const markerYear = parseInt($(this).data('year'));
-                    const diff = Math.abs(markerYear - year);
-
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        closestMarker = $(this);
-                    }
-                });
-
-                if (closestMarker) {
-                    const markerPosition = closestMarker.position().left;
-                    $('.timeline-band').css('transform', `translateX(calc(50% - ${markerPosition}px))`);
-                    $('.timeline-marker').removeClass('active');
-                    closestMarker.addClass('active');
-                }
+                console.warn("No marker found for year:", year, "- centering might be approximate.");
+                // Optionally find closest marker if exact year not present
+                // ... (logic from previous version could be added here if needed) ...
             }
+            return targetTranslateX; // Return the calculated value
         }
 
-        // Update map zoom
-        function updateMapZoom(item, callback) {
-            let mapZoom = item.map_zoom || "europe_and_africa";
 
+        // Update map zoom - Returns a GSAP tween
+        function updateMapZoom(item) {
+            let mapZoom = item.map_zoom || "europe_and_africa";
             const zoomSettings = {
                 europe_and_africa: { center: [20, 30], scale: config.mapWidth / 4 },
                 africa: { center: [25, 0], scale: config.mapWidth / 2 },
@@ -724,48 +587,41 @@ width() / 2;
                 southern_africa: { center: [25, -25], scale: config.mapWidth * 0.8 },
                 world: { center: [20, 10], scale: config.mapWidth / 6 }
             };
-
-            // Get zoom settings or use defaults
             const settings = zoomSettings[mapZoom] || zoomSettings.europe_and_africa;
+            const duration = 1.0; // Zoom duration
 
-            // Add transition duration to config if not exists
-            if (!config.zoomTransitionDuration) {
-                config.zoomTransitionDuration = 1000; // 1 second transition
-            }
-
-            const t = d3.transition().duration(config.zoomTransitionDuration);
-            const oldProjection = {
-                center: projection.center(),
-                scale: projection.scale()
+            // Create a proxy object to tween
+            let projectionProxy = {
+                scale: projection.scale(),
+                cx: projection.center()[0],
+                cy: projection.center()[1]
             };
 
-            projection.center(settings.center).scale(settings.scale);
-
-            map.selectAll("path")
-                .transition(t)
-                .attrTween("d", function() {
-                    const d = d3.select(this).attr("d");
-                    const interpolate = d3.interpolate(
-                        [oldProjection.center, oldProjection.scale],
-                        [settings.center, settings.scale]
-                    );
-                    return function(t) {
-                        const i = interpolate(t);
-                        projection.center(i[0]).scale(i[1]);
-                        return d3.geoPath().projection(projection)(d3.select(this).datum());
-                    };
-                })
-                .on("end", function() {
-                    // Call the callback when the transition is complete
-                    if (typeof callback === 'function') {
-                        callback();
-                    }
-                });
-
-            updateAnimationPositions(t);
+            // Return a GSAP tween
+            return gsap.to(projectionProxy, {
+                scale: settings.scale,
+                cx: settings.center[0],
+                cy: settings.center[1],
+                duration: duration,
+                ease: 'power2.inOut',
+                onUpdate: function() {
+                    projection.scale(this.targets()[0].scale).center([this.targets()[0].cx, this.targets()[0].cy]);
+                    // Redraw map paths without D3 transition
+                    map.selectAll("path.country").attr("d", d3.geoPath().projection(projection));
+                    // Update positions of existing D3 elements (visualizations) without transition
+                    updateAnimationPositions(); // Call without transition parameter
+                },
+                onComplete: function() {
+                    // Ensure final state is applied precisely
+                    projection.scale(settings.scale).center(settings.center);
+                    map.selectAll("path.country").attr("d", d3.geoPath().projection(projection));
+                    updateAnimationPositions();
+                }
+            });
         }
 
-        // Clear all visualizations
+
+        // Clear all visualizations - Returns a GSAP tween
         function clearAllVisualizations() {
             ["#migration-layer", "#language-layer", "#event-layer"].forEach(layer => {
                 const elements = map.select(layer).selectAll("*");
