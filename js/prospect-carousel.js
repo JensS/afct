@@ -2,7 +2,11 @@
  * Prospect Page Carousel Functionality
  * Enhanced with GSAP for smoother animations
  */
-jQuery(document).ready(function($) {
+
+import { gsap } from 'gsap';
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+export default function initProspectCarousel($) {
     // Register ScrollTrigger plugin if needed for future enhancements
     gsap.registerPlugin(ScrollTrigger);
 
@@ -178,4 +182,4 @@ jQuery(document).ready(function($) {
 
     // Initialize the carousel
     initializeCarousel();
-});
+}

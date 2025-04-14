@@ -33,9 +33,9 @@ if(!defined("IN_ONEPAGER"))
     </div>
     <div class="global-container">
       <div>
-        <img src="<?php echo $medium[0]; ?>" alt="A portrait of Serati." data-scroll data-scroll-speed="0" data-scroll-delay="2"/>
-        <div class=" text" data-scroll data-scroll-speed="5">
-          <p class=' blending-difference'   >
+        <img src="<?php echo $medium[0]; ?>" alt="A portrait of Serati." data-scroll data-scroll-speed="0.3">
+        <div data-scroll data-scroll-speed="1.5">
+          <p class='text blending-difference'   >
             <?php echo  wp_kses_post(get_post_meta(get_the_ID(), '_afct_about_serati', true)); ?>
           </p>
         </div>

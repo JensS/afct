@@ -40,6 +40,9 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 
 }
 
+@import 'node_modules/locomotive-scroll/dist/locomotive-scroll';
+
+
 @font-face {
 	font-family: 'Gambetta Variable';
 	src: url('fonts/gambetta/Gambetta-Variable.ttf') format('truetype');
@@ -94,7 +97,6 @@ body.dark-theme {
 }
 
 html {
-	line-height: 1.15;
 	-webkit-text-size-adjust: 100%;
 }
 
@@ -995,10 +997,6 @@ blockquote {
 }
 
 
-.text {
-	width: 55vw;
-}
-
 .credit-description {
 	text-align: right;
 	/*mix-blend-mode: difference;*/
@@ -1323,6 +1321,11 @@ section {
 	scroll-snap-align: center;
 }
 
+
+.text {
+	width: 55vw;
+	margin: 0 auto;
+}
 
 div.slide .text-upper-left {
 	position: absolute;

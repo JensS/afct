@@ -20,7 +20,7 @@
 	<?php wp_head(); ?>
 </head>
 
-<body data-scroll-container <?php body_class('body-main'); ?>>
+<body id="afct-body" <?php body_class('body-main'); ?>>
 <?php wp_body_open(); ?>
 <header id="masthead" class="site-header">
 	<nav id="site-navigation" class="menu">

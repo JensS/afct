@@ -1,25 +1,39 @@
+import LocomotiveScroll from 'locomotive-scroll';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import initHistoryTimeline from './history-timeline';
+import initProspectCarousel from './prospect-carousel';
 
-let locoScroll;
-let historyGsapAnimation;
+let locomotiveScroll = null;
 
 jQuery(document).ready(function($) {
-	"use strict";
+"use strict";
 
     gsap.registerPlugin(ScrollTrigger);
 
-    locoScroll = new LocomotiveScroll({
-        el: document.querySelector('[data-scroll-container]'),
-        smooth: true
-    });
-    locoScroll.on("scroll", ScrollTrigger.update);
 
-    locoScroll.on('scroll', (args) => {
-        if(typeof args.currentElements['history'] === 'object') {
-            let progress = args.currentElements['history'].progress;
-            //historyGsapAnimation.progress(progress);
+    locomotiveScroll = new LocomotiveScroll({
+        lenisOptions: {
+        lerp: 0.1,
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // https://www.desmos.com/calculator/brs54l4xou
         }
     });
-    
+
+    //locomotiveScroll.on('scroll', ScrollTrigger.update);
+
+    const historySection = document.getElementById('the-history');
+
+    if (historySection) {
+        //locomotiveScroll.on('scroll', ({ animatedScroll, targetScroll, currentScroll, velocity, progress }) => {
+      
+        
+        // Initialize history timeline only if history section exists
+        initHistoryTimeline($);
+    }
+
+    initProspectCarousel($);
+
     const themeToggleBtn = $('.theme-toggle');
     const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
    
@@ -44,7 +58,7 @@ jQuery(document).ready(function($) {
     });
     
     function updateToggleButton(isDark) {
-        themeToggleBtn.find('.theme-toggle-text').text(isDark ? 'Switch to light theme' : 'Switch to dark theme' );
+        themeToggleBtn.find('.theme-toggle-text').text(isDark ? 'Switch to light theme' : 'Switch to dark theme');
     }
     
     // System theme change handler
@@ -61,16 +75,14 @@ jQuery(document).ready(function($) {
     
     // Create an Intersection Observer instance
     const observerOptions = {
-        root: null, // Use viewport as the containing block
-        threshold: 0.5 // Trigger when at least 50% of the section is in view
+        root: null,
+        threshold: 0.5
     };
 
     const observerCallback = (entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const id = entry.target.id;
-                
-                // Update active menu item
                 $('.nav-link').removeClass('active');
                 $(`.nav-link[data-target="#${id}"]`).addClass('active');
             }
@@ -79,42 +91,34 @@ jQuery(document).ready(function($) {
 
     const observer = new IntersectionObserver(observerCallback, observerOptions);
 
-    // Observe each section
     sections.forEach(section => {
         observer.observe(section);
     });
 
-
-    // Menu hover effects - enhanced for smooth transitions
+    // Menu hover effects
     const menuContainer = $('.menu');
     const menuItems = $('.menu-item');
-    
-
-    
-    
-    // Smooth scroll for anchor links using Locomotive Scroll
     $('.scroll-link, .nav-link').click(function(e) {
         e.preventDefault();
-        
         const target = $(this).attr('href');
         if (target) {
-            locoScroll.scrollTo(target);
-            
-            // Close sidebar if open
-            $('.sidebar').removeClass('shown');
-            $('.sidebar_toggler').removeClass('active');
+            const targetElement = document.querySelector(target);
+            if (targetElement) {
+                locomotiveScroll.scrollTo(targetElement, {
+                    offset: 0,
+                    duration: 1.2,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+                });
+                $('.sidebar').removeClass('shown');
+                $('.sidebar_toggler').removeClass('active');
+            }
         }
     });
-});
 
-
-document.addEventListener('DOMContentLoaded', function() {
-   
     // Cookie consent functionality
     const cookieConsent = document.querySelector('.cookie-consent');
     const acceptButton = cookieConsent?.querySelector('.button-primary');
     if (cookieConsent && acceptButton) {
-        // Check localStorage first and set display accordingly
         if (localStorage.getItem('cookiesAccepted')) {
             cookieConsent.style.display = 'none';
         } else {
@@ -169,7 +173,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 audio.currentTime = percent * audio.duration;
             });
             
-            // Chapter navigation
             chapterLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -194,5 +197,4 @@ document.addEventListener('DOMContentLoaded', function() {
         seconds = Math.floor(seconds % 60);
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
-
 });

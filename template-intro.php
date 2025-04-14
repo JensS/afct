@@ -16,11 +16,16 @@ if(!defined("IN_ONEPAGER"))
     ?>
     <div class="text-upper-left">
         <h1><?php echo esc_html($about_headline_parts['upper']); ?></h1>
-        <p class="p-large"><?php echo esc_html(get_post_meta(get_the_ID(), '_afct_about_intro_part1', true)); ?></p>
     </div>
     <div class="text-lower-right">
         <h1><?php echo esc_html($about_headline_parts['lower']); ?></h1>
-        <p class="p-large"><?php echo esc_html(get_post_meta(get_the_ID(), '_afct_about_intro_part2', true)); ?></p>
+    </div>
+    <div class="text-upper-left">
+        <p class="p-large " data-scroll data-scroll-speed="0.2"><?php echo esc_html(get_post_meta(get_the_ID(), '_afct_about_intro_part2', true)); ?></p>
+    </div>
+
+    <div class="text-lower-right">
+        <p class="p-large " data-scroll data-scroll-speed="0.2"><?php echo esc_html(get_post_meta(get_the_ID(), '_afct_about_intro_part1', true)); ?></p>
     </div>
 </div>
     <?php

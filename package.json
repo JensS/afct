@@ -7,19 +7,19 @@
     "Classicpress",
     "Theme"
   ],
-  "homepage": "https://github.com/Automattic/_s#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Automattic/_s.git"
-  },
-  "bugs": {
-    "url": "https://github.com/Automattic/_s/issues"
-  },
   "devDependencies": {
+    "@babel/core": "^7.26.10",
+    "@babel/preset-env": "^7.26.9",
     "@wordpress/scripts": "^19.2.2",
+    "babel-loader": "^10.0.0",
+    "css-loader": "^7.1.2",
     "dir-archiver": "^1.1.1",
     "node-sass": "^7.0.1",
-    "rtlcss": "^3.5.0"
+    "rtlcss": "^3.5.0",
+    "style-loader": "^4.0.0",
+    "terser-webpack-plugin": "^5.3.14",
+    "webpack": "^5.99.5",
+    "webpack-cli": "^6.0.1"
   },
   "rtlcssConfig": {
     "options": {
@@ -40,6 +40,16 @@
     "compile:rtl": "rtlcss style.css style-rtl.css",
     "lint:scss": "wp-scripts lint-style 'sass/**/*.scss'",
     "lint:js": "wp-scripts lint-js 'js/*.js'",
-    "bundle": "dir-archiver --src . --dest ../_s.zip --exclude .DS_Store .stylelintrc.json .eslintrc .git .gitattributes .github .gitignore README.md composer.json composer.lock node_modules vendor package-lock.json package.json .travis.yml phpcs.xml.dist sass style.css.map yarn.lock"
-  }
+    "bundle": "dir-archiver --src . --dest ../_s.zip --exclude .DS_Store .stylelintrc.json .eslintrc .git .gitattributes .github .gitignore README.md composer.json composer.lock node_modules vendor package-lock.json package.json .travis.yml phpcs.xml.dist sass style.css.map yarn.lock",
+    "build": "webpack --mode=production",
+    "dev": "webpack --mode=development --watch"
+  },
+  "dependencies": {
+    "@studio-freight/lenis": "^1.0.42",
+    "d3": "^7.9.0",
+    "gsap": "^3.12.7",
+    "locomotive-scroll": "^5.0.0-beta.21",
+    "topojson-client": "^3.1.0"
+  },
+  "main": "webpack.config.js"
 }

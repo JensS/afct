@@ -78,20 +78,6 @@
     display: none;
 }
 
-.timeline-markers {
-    position: absolute;
-    top: 20vh;
-    left: 0;
-    right: 0;
-    height: 4vh;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    z-index: 15;
-    pointer-events: auto;
-    background: transparent;
-    width: 100%;
-}
 .timeline-marker {
     position: relative; 
     display: flex;
@@ -141,11 +127,12 @@
 }
 
 .timeline-item {
+
+    position: absolute;
     max-width: 600px;
     margin: 0 auto;
     padding: 1.5rem;
     background: transparent;
-    position: relative;
     z-index: 30; /* Higher z-index to appear above map */
     pointer-events: auto;
     border: none;
@@ -212,4 +199,117 @@
 .content-section {
     height: 100vh;
     opacity: 0;
+}
+
+.timeline-markers {
+    position: absolute;
+    top: 20vh;
+    left: 0;
+    right: 0;
+    height: 4vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 15;
+    pointer-events: auto;
+    background: transparent;
+    width: 100%;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.timeline-band-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.timeline-band {
+    position: absolute;
+    height: 40px;
+    bottom: 0;
+    transform: translateX(50%);
+    white-space: nowrap;
+}
+
+.timeline-fade {
+    position: absolute;
+    bottom: 0;
+    height: 40px;
+    width: 20%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.timeline-fade.left {
+    left: 0;
+    background: linear-gradient(to right, var(--background) 0%, transparent 100%);
+}
+
+.timeline-fade.right {
+    right: 0;
+    background: linear-gradient(to left, var(--background) 0%, transparent 100%);
+}
+
+.timeline-center-indicator {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    height: 40px;
+    width: 1px;
+    background-color: var(--red);
+    transform: translateX(-50%);
+    z-index: 2;
+}
+
+.timeline-marker {
+    position: absolute;
+    bottom: 0;
+    width: 1px;
+    background-color: var(--red);
+    transform: translateX(-50%);
+    opacity: 0.3;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.timeline-marker.century-marker {
+    height: 30px;
+    opacity: 0.8;
+}
+
+.timeline-marker.decade-marker {
+    height: 20px;
+    opacity: 0.5;
+}
+
+.timeline-marker.year-marker {
+    height: 10px;
+    opacity: 0.3;
+}
+
+.timeline-marker.chapter-marker {
+    height: 35px;
+    opacity: 1;
+    background-color: var(--text);
+}
+
+.timeline-marker.active {
+    opacity: 1;
+    background-color: var(--red);
+}
+
+.marker-year {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+    margin-bottom: 5px;
 }

@@ -82,10 +82,6 @@ if ( ! is_array( $slides ) ) {
             <p>No carousel slides have been configured for this page.</p>
         <?php endif; ?>
 
-        <?php
-        // Optional: Display standard page content if needed
-        // the_content();
-        ?>
     </div>
 </div>
 

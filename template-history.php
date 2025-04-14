@@ -37,7 +37,6 @@
         <div id="timeline-content" class="global-container"></div>
     </div>
 </div>
-<script src="<?php echo get_template_directory_uri(); ?>/js/history-timeline.js"></script>
 
 <?php
 if(!defined("IN_ONEPAGER")) 
