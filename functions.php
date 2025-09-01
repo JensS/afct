@@ -86,20 +86,135 @@ function afct_get_version_string($file_path) {
 }
 
 /**
+ * Add cache headers for static assets
+ */
+function afct_add_cache_headers() {
+    // Only add cache headers for static assets
+    if (is_admin() || is_user_logged_in()) {
+        return;
+    }
+    
+    // Set cache headers for static assets
+    $cache_time = 31536000; // 1 year in seconds
+    
+    // Add cache headers for CSS and JS files
+    add_action('wp_loaded', function() use ($cache_time) {
+        if (strpos($_SERVER['REQUEST_URI'], '.css') !== false || 
+            strpos($_SERVER['REQUEST_URI'], '.js') !== false ||
+            strpos($_SERVER['REQUEST_URI'], '.woff') !== false ||
+            strpos($_SERVER['REQUEST_URI'], '.woff2') !== false ||
+            strpos($_SERVER['REQUEST_URI'], '.ttf') !== false ||
+            strpos($_SERVER['REQUEST_URI'], '.eot') !== false ||
+            strpos($_SERVER['REQUEST_URI'], '.svg') !== false ||
+            strpos($_SERVER['REQUEST_URI'], '.png') !== false ||
+            strpos($_SERVER['REQUEST_URI'], '.jpg') !== false ||
+            strpos($_SERVER['REQUEST_URI'], '.jpeg') !== false ||
+            strpos($_SERVER['REQUEST_URI'], '.gif') !== false ||
+            strpos($_SERVER['REQUEST_URI'], '.webp') !== false) {
+            
+            header('Cache-Control: public, max-age=' . $cache_time);
+            header('Expires: ' . gmdate('D, d M Y H:i:s', time() + $cache_time) . ' GMT');
+            header('Pragma: cache');
+        }
+    });
+}
+add_action('init', 'afct_add_cache_headers');
+
+/**
+ * Add defer attribute to scripts for better performance
+ */
+function afct_defer_scripts($tag, $handle, $src) {
+    // List of scripts to defer
+    $defer_scripts = array('afct', 'youtube-consent');
+    
+    if (in_array($handle, $defer_scripts)) {
+        return str_replace('<script ', '<script defer ', $tag);
+    }
+    
+    return $tag;
+}
+add_filter('script_loader_tag', 'afct_defer_scripts', 10, 3);
+
+/**
+ * Optimize jQuery loading to reduce forced reflow
+ */
+function afct_optimize_jquery() {
+    if (!is_admin()) {
+        // Deregister default jQuery and register optimized version
+        wp_deregister_script('jquery');
+        wp_deregister_script('jquery-migrate');
+        
+        // Register jQuery from CDN with defer attribute for better performance
+        wp_register_script('jquery', 'https://code.jquery.com/jquery-3.6.3.min.js', array(), '3.6.3', true);
+        wp_enqueue_script('jquery');
+    }
+}
+add_action('wp_enqueue_scripts', 'afct_optimize_jquery', 1);
+
+/**
+ * Inline critical CSS to reduce render blocking
+ */
+function afct_inline_critical_css() {
+    // Only inline on front-end
+    if (is_admin()) {
+        return;
+    }
+    
+    // Critical CSS for above-the-fold content
+    $critical_css = '
+    <style id="critical-css">
+    /* Critical CSS for above-the-fold content */
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .global-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    h1.headline-a, h1.headline-b { font-size: 48px; line-height: 1.2; margin: 0 0 1rem 0; }
+    .hero-wrapper { min-height: 50vh; display: flex; align-items: center; }
+    @media (min-width: 768px) {
+        h1.headline-a, h1.headline-b { font-size: 64px; }
+    }
+    @media (min-width: 992px) {
+        h1.headline-a, h1.headline-b { font-size: 96px; }
+    }
+    </style>
+    ';
+    
+    echo $critical_css;
+}
+add_action('wp_head', 'afct_inline_critical_css', 1);
+
+/**
+ * Load non-critical CSS asynchronously
+ */
+function afct_async_css($tag, $handle, $href, $media) {
+    // List of stylesheets to load asynchronously
+    $async_styles = array('afct-style', 'afct-bundle');
+    
+    if (in_array($handle, $async_styles)) {
+        // Load CSS asynchronously with fallback
+        return '<link rel="preload" href="' . $href . '" as="style" onload="this.onload=null;this.rel=\'stylesheet\'" id="' . $handle . '-css">' . 
+               '<noscript><link rel="stylesheet" href="' . $href . '" id="' . $handle . '-css-noscript"></noscript>';
+    }
+    
+    return $tag;
+}
+add_filter('style_loader_tag', 'afct_async_css', 10, 4);
+
+/**
  * Enqueue scripts and styles.
  */
 function afct_scripts() {
+    // Enqueue styles (will be loaded asynchronously via filter)
     wp_enqueue_style('afct-style', get_stylesheet_uri(), array(), afct_get_version_string("/style.css"));
     wp_enqueue_style('afct-bundle', get_template_directory_uri() . "/dist/bundle.min.css", array(), afct_get_version_string("/dist/bundle.min.css"));
 
-    wp_enqueue_script('afct', get_template_directory_uri() . '/dist/afct.min.js', array('jquery'), afct_get_version_string('/dist/afct.min.js'), false);
+    // Use original bundled JS with GSAP libraries included and performance optimizations applied
+    wp_enqueue_script('afct', get_template_directory_uri() . '/dist/afct.min.js', array('jquery'), afct_get_version_string('/dist/afct.min.js'), true);
 	wp_localize_script('afct', 'afctSettings', array(
 		'templateUrl' => get_template_directory_uri(),
 		"historyDataUrl" => rest_url('afct/v1/history'),
 		"historyNonce" => wp_create_nonce('wp_rest')
 	));
 	
-	// Enqueue YouTube consent script
+	// Enqueue YouTube consent script in footer
 	wp_enqueue_script('youtube-consent', get_template_directory_uri() . '/js/youtube-consent.js', array(), afct_get_version_string('/js/youtube-consent.js'), true);
 
    
