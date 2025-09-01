@@ -1,38 +1,62 @@
-import LocomotiveScroll from 'locomotive-scroll';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollSmoother } from "gsap/ScrollSmoother";
 import initHistoryTimeline from './history-timeline';
 import initProspectCarousel from './prospect-carousel';
 
-let locomotiveScroll = null;
+window.locomotiveScroll = null;
 
 jQuery(document).ready(function($) {
 "use strict";
 
-    gsap.registerPlugin(ScrollTrigger);
+    gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
-
-    locomotiveScroll = new LocomotiveScroll({
-        lenisOptions: {
-        lerp: 0.1,
-        duration: 1.2,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // https://www.desmos.com/calculator/brs54l4xou
-        }
+    const smoother = ScrollSmoother.create({
+        wrapper: "#smooth-wrapper",
+        content: "#smooth-content",
+        smooth: 2,
+        speed: 3,
+        effects: true,
+        
+        
     });
 
-    //locomotiveScroll.on('scroll', ScrollTrigger.update);
+    
 
     const historySection = document.getElementById('the-history');
 
     if (historySection) {
         //locomotiveScroll.on('scroll', ({ animatedScroll, targetScroll, currentScroll, velocity, progress }) => {
-      
-        
         // Initialize history timeline only if history section exists
         initHistoryTimeline($);
     }
 
     initProspectCarousel($);
+    //initHeaders();
+    
+    // Initialize Serati image scaling effect
+    const seratiImage = document.getElementById('serati-image');
+    if (seratiImage) {
+        ScrollTrigger.create({
+            trigger: "#about-serati",
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 1,
+            onUpdate: (self) => {
+                // Scale from 1 to 0.3 as user scrolls through the section
+                const scale = 1 - (self.progress * 0.7);
+                gsap.set(seratiImage, { scale: Math.max(scale, 0.3) });
+            }
+        });
+    }
+
+    // Refresh ScrollTrigger after all initialization
+    ScrollTrigger.refresh();
+
+    // Only initialize YouTube embeds if cookie consent is already given
+    if (localStorage.getItem('cookiesAccepted')) {
+        initYoutubeEmbed($);
+    }
 
     const themeToggleBtn = $('.theme-toggle');
     const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
@@ -95,20 +119,13 @@ jQuery(document).ready(function($) {
         observer.observe(section);
     });
 
-    // Menu hover effects
-    const menuContainer = $('.menu');
-    const menuItems = $('.menu-item');
     $('.scroll-link, .nav-link').click(function(e) {
         e.preventDefault();
         const target = $(this).attr('href');
         if (target) {
             const targetElement = document.querySelector(target);
             if (targetElement) {
-                locomotiveScroll.scrollTo(targetElement, {
-                    offset: 0,
-                    duration: 1.2,
-                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
-                });
+                smoother.scrollTo(target, {smooth: true});
                 $('.sidebar').removeClass('shown');
                 $('.sidebar_toggler').removeClass('active');
             }
@@ -128,6 +145,8 @@ jQuery(document).ready(function($) {
         acceptButton.addEventListener('click', function() {
             cookieConsent.style.display = 'none';
             localStorage.setItem('cookiesAccepted', 'true');
+            // Initialize YouTube embeds after cookie consent is given
+            initYoutubeEmbed($);
         });
     }
 
@@ -149,22 +168,51 @@ jQuery(document).ready(function($) {
                 if (audio.paused) {
                     audio.play();
                     playIcon.style.display = 'none';
-                    pauseIcon.style.display = 'inline';
+                    pauseIcon.style.display = 'flex';
                 } else {
                     audio.pause();
-                    playIcon.style.display = 'inline';
+                    playIcon.style.display = 'flex';
                     pauseIcon.style.display = 'none';
                 }
             });
 
             audio.addEventListener('timeupdate', () => {
-                const percent = (audio.currentTime / audio.duration) * 100;
-                progress.style.width = percent + '%';
-                currentTime.textContent = formatTime(audio.currentTime);
+                if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
+                    const percent = (audio.currentTime / audio.duration) * 100;
+                    progress.style.width = percent + '%';
+                    currentTime.textContent = formatTime(audio.currentTime);
+                    
+                    // Update duration if not already set
+                    if (duration.textContent === '0:00') {
+                        duration.textContent = formatTime(audio.duration);
+                    }
+                }
             });
 
             audio.addEventListener('loadedmetadata', () => {
-                duration.textContent = formatTime(audio.duration);
+                if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
+                    duration.textContent = formatTime(audio.duration);
+                }
+            });
+
+            audio.addEventListener('durationchange', () => {
+                if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
+                    duration.textContent = formatTime(audio.duration);
+                }
+            });
+
+            audio.addEventListener('canplaythrough', () => {
+                if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
+                    duration.textContent = formatTime(audio.duration);
+                    positionChapterMarkers(player, audio.duration);
+                }
+            });
+
+            audio.addEventListener('loadedmetadata', () => {
+                if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
+                    duration.textContent = formatTime(audio.duration);
+                    positionChapterMarkers(player, audio.duration);
+                }
             });
 
             progressBar.addEventListener('click', (e) => {
@@ -184,7 +232,7 @@ jQuery(document).ready(function($) {
                         if (audio.paused) {
                             audio.play();
                             playIcon.style.display = 'none';
-                            pauseIcon.style.display = 'inline';
+                            pauseIcon.style.display = 'flex';
                         }
                     }
                 });
@@ -197,4 +245,95 @@ jQuery(document).ready(function($) {
         seconds = Math.floor(seconds % 60);
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
+
+    function positionChapterMarkers(player, audioDuration) {
+        const chapterMarkers = player.querySelectorAll('.chapter-mark');
+        
+        chapterMarkers.forEach(marker => {
+            const chapterTime = parseFloat(marker.getAttribute('data-time'));
+            if (chapterTime && audioDuration > 0) {
+                const percentage = (chapterTime / audioDuration) * 100;
+                marker.style.left = percentage + '%';
+            }
+        });
+    }
 });
+// Youtube embed functionality
+window.player;
+let video_id = null;
+
+window.onYouTubeIframeAPIReady= function() {
+    console.log('YouTube API is ready');
+    window.player = new YT.Player('youtube-placeholder', {
+        height: '390',
+        width: '640',
+        videoId: video_id,
+        playerVars: {
+          'playsinline': 1
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    };
+
+// 4. The API will call this function when the video player is ready.
+function onPlayerReady(event) {
+    event.target.playVideo();
+}
+
+var done = false;
+function onPlayerStateChange(event) {
+    if (event.data == YT.PlayerState.PLAYING && !done) {
+        setTimeout(stopVideo, 6000);
+        done = true;
+    }
+}
+
+function stopVideo() {
+    player.stopVideo();
+}
+
+export  function initYoutubeEmbed($) {
+
+    let youtubePlaceholders = $('.youtube-placeholder');
+
+    if (!youtubePlaceholders.length) 
+        return; // no youtube id given
+
+    video_id = youtubePlaceholders[0].dataset.videoId;
+
+}
+
+
+export  function initHeaders() {
+    const sections = document.querySelectorAll('section');
+    
+    // For each section, create ScrollTriggers for both elements
+    sections.forEach(section => {
+        const upperLeft = section.querySelector('.slide .text-upper-left');
+        const lowerRight = section.querySelector('.slide .text-lower-right');
+
+        if (upperLeft) {
+            ScrollTrigger.create({
+                trigger: section,      
+                start: 'top top',       
+                end:  'bottom 50%',
+                pin: upperLeft,     
+                pinSpacing: true,
+                refreshPriority: -1
+            });
+        }
+        
+        if (lowerRight) {
+            ScrollTrigger.create({
+                trigger: section,
+                start: 'top center',
+	            end: 'bottom bottom',
+                pin: lowerRight,
+                pinSpacing: true
+            });
+        }
+    });
+}

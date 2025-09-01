@@ -40,9 +40,6 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 
 }
 
-@import 'node_modules/locomotive-scroll/dist/locomotive-scroll';
-
-
 @font-face {
 	font-family: 'Gambetta Variable';
 	src: url('fonts/gambetta/Gambetta-Variable.ttf') format('truetype');
@@ -817,7 +814,8 @@ nav.sidebar {
 	background-color: var(--black) !important;
 }
 
-nav.sidebar div .menu a {
+nav.sidebar div .menu a, 
+.theme-toggle .theme-toggle-text {
 	color: var(--red) !important;
 }
 
@@ -837,33 +835,7 @@ nav.sidebar div .menu a {
 	right: 30px;
 }
 
-.w-backgroundvideo-backgroundvideoplaypausebutton:focus-visible {
-	outline-offset: 2px;
-	border-radius: 50%;
-	outline: 2px solid #3b79c3;
-}
 
-.w-embed-youtubevideo {
-	background-image: url('https://d3e54v103j8qbb.cloudfront.net/static/youtube-placeholder.2b05e7d68d.svg');
-	background-position: 50%;
-	background-size: cover;
-	width: 100%;
-	padding-bottom: 0;
-	padding-left: 0;
-	padding-right: 0;
-	position: relative;
-}
-
-.w-embed-youtubevideo:empty {
-	min-height: 75px;
-	padding-bottom: 56.25%;
-}
-
-.w-layout-hflex {
-	flex-direction: row;
-	align-items: flex-start;
-	display: flex;
-}
 
 h1 {
 	color: var(--red);
@@ -936,10 +908,13 @@ blockquote {
 	display: flex;
 }
 
-#intro {
-	top: 0;
-	left: 0;
-	overflow: hidden;
+#about-the-project .p-large {
+	width: 50vw;
+}
+
+#about-the-project .text-lower-right {
+	text-align: right;
+	width: 50vw;
 }
 
 #intro video {
@@ -959,16 +934,7 @@ blockquote {
 	padding-top: 1.5rem;
 	padding-bottom: 1.5rem;
 	display: flex;
-}
 
-.heading-4 {
-	position: absolute;
-	inset: 0% auto auto 0%;
-}
-
-.heading-5 {
-	position: absolute;
-	inset: auto 0% 0% auto;
 }
 
 .credits-grid {
@@ -987,14 +953,38 @@ blockquote {
 }
 
 
-.content-frame,.content-frame,.content  {
+.global-container {
+	flex: 1;
+	flex-direction: column;
 	justify-content: center;
-    min-height: 100vh;
-	margin: auto;
+	align-items: center;
+	height: 100%;
 }
+
+.content-frame,.content  {
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+}
+.content-frame {
+	display: flex;
+	flex-direction: column;
+}
+
 .blending-difference {
 	mix-blend-mode: difference;
 }
+
+/* Ensure blending-difference works in both themes */
+.light-theme .blending-difference, .light-theme .blending-difference p {
+	color: #000;
+}
+
+.dark-theme .blending-difference {
+	color: #fff;
+}
+
 
 
 .credit-description {
@@ -1029,6 +1019,13 @@ blockquote {
 	position: absolute;
 }
 
+.image-credits {
+	z-index: -1;
+	width: 34%;
+	display: inline-block;
+	position: absolute;
+}
+
 .div {
 	flex-flow: column;
 	justify-content: center;
@@ -1055,24 +1052,35 @@ blockquote {
 	width: 50%;
 }
 
-
-.youtube {
-	border: 1px solid #000;
+.video {
+	align-items: center;
+	justify-content: center;
+	margin: 200px auto;
+	aspect-ratio: 16/9;
+	flex: 1;
+	width: 500px;
+	text-align:center;
+}
+.youtube-placeholder {
+	margin: 0 auto;
+	width: 100%;
+	max-width: 800px;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	aspect-ratio: 16/9;
 }
 
-.youtube-wrap {
-	border: 4px solid var(--black);
-	justify-content: center;
-	align-items: center;
+.youtube-placeholder-inner {
+	width: 100%;
 	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
-.youtube-div {
-	justify-content: center;
-	align-items: center;
-	display: flex;
-	position: absolute;
-	inset: 0%;
+.youtube-placeholder-content {
+	text-align: center;
+	padding: 2rem;
 }
 
 .the-stills {
@@ -1188,6 +1196,15 @@ blockquote {
 /* 
 Menu 
  */
+div.menu {
+	height: 0px;
+}
+
+div.menu.theme-toggler {
+	height: auto;
+	position: static;
+}
+
 nav.menu {
 	position: fixed;
 	top: 4vh;
@@ -1267,9 +1284,8 @@ nav.menu:hover .menu-item .embed-menu-line {
 
 .theme-toggle {
 	position: fixed;
-	left: 0;
-	bottom: 12vh;
-	right: 2rem;
+	left: 2rem;
+	bottom: 2rem;
 	width: 200px;
 	height: 40px;
 	cursor: pointer;
@@ -1314,11 +1330,28 @@ nav.menu:hover .menu-item .embed-menu-line {
 
 
 section {
-	position: relative;
-	scroll-margin: 20px;
 	min-height: 100vh;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	/*
+	scroll-margin: 20px;
 	scroll-snap-stop: always;
-	scroll-snap-align: center;
+	scroll-snap-align: center;*/
+}
+
+.slide {
+	min-height: 100vh;
+	/*display: flex;*/
+	flex-direction: column;
+	position: relative;
+	justify-content: center;
+}
+
+/* Allow team section to expand beyond viewport height */
+#the-team {
+	height: auto;
+	min-height: 100vh;
 }
 
 
@@ -1327,7 +1360,7 @@ section {
 	margin: 0 auto;
 }
 
-div.slide .text-upper-left {
+ .text-upper-left {
 	position: absolute;
 	top: 1rem;
 	left: 1rem;
@@ -1335,36 +1368,38 @@ div.slide .text-upper-left {
 	line-height: 1;
 	width: 70%;
 	z-index: 1000;
+	transform: translateZ(0);
+	will-change: transform;
 }
-div.slide .text-upper-left h1 {
+.text-upper-left h1 {
 	font-family: var(--serif-font);
 	z-index: 1000;
 }
 
 
-div.slide .text-lower-right {
+ .text-lower-right {
 	position: absolute;
 	bottom: 2rem;
 	right: 1rem;
-	font-size: 8rem;
-	line-height: 1;
 	text-align: right;
 	width: 60%;
 	z-index: 1000;
+	transform: translateZ(0);
+	will-change: transform;
 }
 
-div.slide .text-lower-right h1 {
+.text-lower-right h1 {
 	font-family: var(--sans-serif-font);
-	font-size: 8rem;
 	z-index: 1000;
 }
+
 
 /* Podcast layout styles */
 .podcast-wrap {
 	width: 100%;
-	max-width: 800px;
+	max-width: 600px;
 	margin: 0 auto;
-	padding: 0 1rem;
+	padding-top:20vh;
 }
 
 .podcast-description {
@@ -1382,7 +1417,14 @@ div.slide .text-lower-right h1 {
 	margin: 2rem 0;
 }
 
+#about-serati img {
+	width: 25vw;
+	height: auto;
+}
 
+#essay-block {
+	padding: 25% 0;
+}
 /* Podcast chapters styles */
 .podcast-chapters {
 	width: 100%;
@@ -1538,6 +1580,21 @@ p {
     font-size: 16px;
     padding: 0;
     border: none;
+    line-height: 1;
+}
+
+.play-pause .play-icon,
+.play-pause .pause-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    line-height: 1;
+}
+
+.play-pause .play-icon {
+    margin-left: 2px; /* Slight adjustment for visual centering of play triangle */
 }
 
 .play-pause:hover {
@@ -1865,50 +1922,6 @@ p {
 	display: block;
 }
 
-/**
- * Headline Transitions
- * 
- * This CSS provides smooth transitions for the headline positioning system
- * to prevent jarring jumps when switching between fixed and absolute positioning.
- */
-
-/* Add smooth transitions to all headline elements */
-.text-upper-left,
-.text-lower-right {
-    transition: transform 0.3s ease-out, position 0s, top 0.3s ease-out, left 0.3s ease-out, bottom 0.3s ease-out, right 0.3s ease-out, opacity 0.3s ease-out;
-    will-change: transform, position, opacity;
-    transform: translateZ(0); /* Force hardware acceleration */
-    backface-visibility: hidden; /* Prevent flickering during transitions */
-    -webkit-font-smoothing: antialiased; /* Improve text rendering */
-}
-
-/* Special handling for elements at section boundaries */
-.text-lower-right.at-section-boundary {
-    /* Ensure the element stays within its section */
-    position: absolute !important;
-    bottom: 2rem !important;
-    right: 1rem !important; /* Ensure consistent right positioning */
-    transition: none !important; /* Prevent transition when at boundary */
-}
-
-/* Add a helper class for smooth position transitions */
-.text-upper-left.transitioning,
-.text-lower-right.transitioning {
-    transition: transform 0.3s ease-out, top 0.3s ease-out, left 0.3s ease-out, bottom 0.3s ease-out, right 0.3s ease-out, opacity 0.3s ease-out;
-}
-
-/* Fade effect classes */
-.text-upper-left.fade-out,
-.text-lower-right.fade-out {
-    opacity: 0.2;
-    transition: opacity 0.15s ease-out;
-}
-
-.text-upper-left.fade-in,
-.text-lower-right.fade-in {
-    opacity: 1;
-    transition: opacity 0.15s ease-in;
-}
 
 
 .content-section {

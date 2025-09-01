@@ -130,6 +130,17 @@ function afct_add_custom_boxes() {
                 'high'                           // Priority
             );
             break;
+        case 'template-credits.php':
+
+            add_meta_box(
+                'afct_credits_image_meta_box',
+                'Credits Page Image',
+                'afct_credits_image_meta_box_callback',
+                'page',
+                'normal',
+                'high'
+            );
+            break;
         default:
             
     }

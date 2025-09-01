@@ -89,10 +89,8 @@ function afct_get_version_string($file_path) {
  * Enqueue scripts and styles.
  */
 function afct_scripts() {
-
-    wp_enqueue_script('youtube-consent', get_template_directory_uri() . '/js/youtube-consent.js', array(), afct_get_version_string('/js/youtube-consent.js'), true);
-
-    wp_enqueue_style('afct', get_template_directory_uri() . "/dist/afct.min.css", array(), afct_get_version_string("/dist/afct.min.css"));
+    wp_enqueue_style('afct-style', get_stylesheet_uri(), array(), afct_get_version_string("/style.css"));
+    wp_enqueue_style('afct-bundle', get_template_directory_uri() . "/dist/bundle.min.css", array(), afct_get_version_string("/dist/bundle.min.css"));
 
     wp_enqueue_script('afct', get_template_directory_uri() . '/dist/afct.min.js', array('jquery'), afct_get_version_string('/dist/afct.min.js'), false);
 	wp_localize_script('afct', 'afctSettings', array(
@@ -100,6 +98,9 @@ function afct_scripts() {
 		"historyDataUrl" => rest_url('afct/v1/history'),
 		"historyNonce" => wp_create_nonce('wp_rest')
 	));
+	
+	// Enqueue YouTube consent script
+	wp_enqueue_script('youtube-consent', get_template_directory_uri() . '/js/youtube-consent.js', array(), afct_get_version_string('/js/youtube-consent.js'), true);
 
    
 

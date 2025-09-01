@@ -11,8 +11,6 @@
 
 ?>
 
-</div><!-- #page -->
-
 <section class="footer" >
         <div class="global-container">
             <div class="utility-links">
@@ -27,12 +25,19 @@
         </div>
     </div>
 </section>
+
+</div><!-- #page -->
+
+
 <div id="cookie-consent" class="cookie-consent">
     <div class="cookie-content">
         <p>We use cookies for analytics. <a href="<?php echo esc_url(home_url('/imprint')); ?>">Learn more</a></p>
         <button id="accept-cookies" class="button-primary">Accept</button>
     </div>
 </div>
+</div><!-- #smooth-content -->
+</div><!-- #smooth-wrapper -->
+<script type="text/javascript" src="https://www.youtube.com/iframe_api"></script>
 <?php wp_footer(); ?>
 </body>
 </html>

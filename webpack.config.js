@@ -6,7 +6,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 module.exports = {
   entry: {
     'afct': './js/afct.js',
-    'afct-css': [ './style.css', "./css/history.css", "./css/responsive.css"]
+    'bundle': ["./css/history.css", "./css/responsive.css"]
   },
   output: {
     path: path.resolve(__dirname, 'dist/'),
@@ -42,7 +42,7 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: 'afct.min.css'
+      filename: '[name].min.css'
     })
   ],
   mode: 'production'

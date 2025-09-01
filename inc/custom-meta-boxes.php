@@ -69,26 +69,53 @@ function afct_youtube_embed_meta_box_callback($post) {
     <?php
 }
 
-function afct_credits_meta_box_callback($post) {
-    wp_nonce_field('afct_save_credits_meta_box_data', 'afct_credits_meta_box_nonce');
-    $credits = get_post_meta($post->ID, '_afct_credits', true);
 
-    if (empty($credits)) {
-        // Read default credits from credits.json
-        $credits_file = get_template_directory() . '/credits.json';
-        if (file_exists($credits_file)) {
-            $credits_json = file_get_contents($credits_file);
-            $credits = json_decode($credits_json, true);
-        } else {
-            $credits = array();
-        }
-    }
+function afct_credits_image_meta_box_callback($post) {
+    wp_nonce_field('afct_save_credits_image_meta_box_data', 'afct_credits_image_meta_box_nonce');
+    $image_data = get_post_meta($post->ID, '_afct_credits_image', true);
     ?>
-    <label for="credits">Credits:</label>
-    <textarea id="credits" name="credits" rows="10" style="width:100%;"><?php echo esc_textarea(json_encode($credits, JSON_PRETTY_PRINT)); ?></textarea>
+    <div class="credits-image-upload">
+        <input type="hidden" name="credits_image" id="credits_image" 
+               value="<?php echo esc_attr($image_data ? $image_data['url'] : ''); ?>" />
+        <button type="button" class="upload_image_button button">
+            <?php echo $image_data ? 'Change Image' : 'Upload Image'; ?>
+        </button>
+        
+        <div class="image-preview" style="margin-top: 10px;">
+            <?php if ($image_data) : ?>
+                <img src="<?php echo esc_url($image_data['url']); ?>" 
+                     alt="<?php echo esc_attr($image_data['alt']); ?>"
+                     style="max-width: 300px; height: auto;" />
+            <?php endif; ?>
+        </div>
+    </div>
+    <script>
+        jQuery(document).ready(function($) {
+            $('.upload_image_button').on('click', function(e) {
+                e.preventDefault();
+                var button = $(this);
+                var custom_uploader = wp.media({
+                    title: 'Select Image',
+                    button: {
+                        text: 'Use this image'
+                    },
+                    multiple: false
+                }).on('select', function() {
+                    var attachment = custom_uploader.state().get('selection').first().toJSON();
+                    $('#credits_image').val(attachment.url);
+                    
+                    // Update preview
+                    $('.image-preview').html(
+                        '<img src="' + attachment.url + '" alt="' + attachment.alt + '" style="max-width: 300px; height: auto;" />'
+                    );
+                    
+                    button.text('Change Image');
+                }).open();
+            });
+        });
+    </script>
     <?php
 }
-
 
 function afct_save_custom_meta_box_data($post_id) {
     // Basic checks
@@ -198,6 +225,28 @@ function afct_save_custom_meta_box_data($post_id) {
             update_post_meta($post_id, '_afct_about_serati_image', $image_data);
         } else {
             delete_post_meta($post_id, '_afct_about_serati_image');
+        }
+    }
+
+    // Save credits image
+    if (isset($_POST['credits_image']) && 
+        isset($_POST['afct_credits_image_meta_box_nonce']) && 
+        wp_verify_nonce($_POST['afct_credits_image_meta_box_nonce'], 'afct_save_credits_image_meta_box_data')) {
+        
+        if (!empty($_POST['credits_image'])) {
+            $url = esc_url_raw($_POST['credits_image']);
+            $attachment_id = attachment_url_to_postid($url);
+            $alt_text = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+            
+            $image_data = [
+                'url' => $url,
+                'alt' => sanitize_text_field($alt_text),
+                'id' => $attachment_id
+            ];
+            
+            update_post_meta($post_id, '_afct_credits_image', $image_data);
+        } else {
+            delete_post_meta($post_id, '_afct_credits_image');
         }
     }
 

@@ -34,7 +34,7 @@ if ( ! is_array( $slides ) ) {
         $text_content = get_post_meta(get_the_ID(), '_afct_prospect_text', true);
         if (!empty($text_content)) : 
         ?>
-            <div class="prospect-text-block">
+            <div class="prospect-text-block" style="text-align:center">
                 <?php echo wp_kses_post($text_content); ?>
             </div>
         <?php endif; ?>

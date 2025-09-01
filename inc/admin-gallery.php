@@ -36,6 +36,8 @@ function afct_gallery_meta_box_html($post) {
                                value="<?php echo $column['width']; ?>">
                         <input type="hidden" name="gallery_layout[<?php echo $row_index; ?>][columns][<?php echo $col_index; ?>][image_id]" 
                                value="<?php echo $column['image_id'] ?? ''; ?>" class="image-id">
+                        <input type="hidden" name="gallery_layout[<?php echo $row_index; ?>][columns][<?php echo $col_index; ?>][scroll_speed]" 
+                               value="<?php echo $column['scroll_speed'] ?? '1'; ?>" class="scroll-speed">
                 <div style="border: 1px dashed #999; padding: 10px; text-align: center;">
                     <div class="column-type-selector" style="margin-bottom: 10px">
                         <label>
@@ -83,6 +85,25 @@ function afct_gallery_meta_box_html($post) {
                                     </select>
                                 </label>
                             </div>
+                            <div style="margin-top: 10px">
+                                <label>Scroll Speed: 
+                                    <select class="scroll-speed-select" onchange="updateScrollSpeed(this)">
+                                        <option value="0.5" <?php selected($column['scroll_speed'] ?? '1', '0.5'); ?>>0.5</option>
+                                        <option value="0.6" <?php selected($column['scroll_speed'] ?? '1', '0.6'); ?>>0.6</option>
+                                        <option value="0.7" <?php selected($column['scroll_speed'] ?? '1', '0.7'); ?>>0.7</option>
+                                        <option value="0.8" <?php selected($column['scroll_speed'] ?? '1', '0.8'); ?>>0.8</option>
+                                        <option value="0.9" <?php selected($column['scroll_speed'] ?? '1', '0.9'); ?>>0.9</option>
+                                        <option value="1" <?php selected($column['scroll_speed'] ?? '1', '1'); ?>>1</option>
+                                        <option value="1.1" <?php selected($column['scroll_speed'] ?? '1', '1.1'); ?>>1.1</option>
+                                        <option value="1.2" <?php selected($column['scroll_speed'] ?? '1', '1.2'); ?>>1.2</option>
+                                        <option value="1.3" <?php selected($column['scroll_speed'] ?? '1', '1.3'); ?>>1.3</option>
+                                        <option value="1.4" <?php selected($column['scroll_speed'] ?? '1', '1.4'); ?>>1.4</option>
+                                        <option value="1.5" <?php selected($column['scroll_speed'] ?? '1', '1.5'); ?>>1.5</option>
+                                        <option value="1.8" <?php selected($column['scroll_speed'] ?? '1', '1.8'); ?>>1.8</option>
+                                        <option value="2" <?php selected($column['scroll_speed'] ?? '1', '2'); ?>>2</option>
+                                    </select>
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -103,6 +124,7 @@ function afct_gallery_meta_box_html($post) {
                     <input type="hidden" name="gallery_layout[${rowIndex}][columns][${colIndex}][width]" value="1">
                     <input type="hidden" name="gallery_layout[${rowIndex}][columns][${colIndex}][image_id]" class="image-id">
                     <input type="hidden" name="gallery_layout[${rowIndex}][columns][${colIndex}][type]" value="image" class="column-type">
+                    <input type="hidden" name="gallery_layout[${rowIndex}][columns][${colIndex}][scroll_speed]" value="1" class="scroll-speed">
                     <div style="border: 1px dashed #999; padding: 10px; text-align: center;">
                         <div class="column-type-selector" style="margin-bottom: 10px">
                             <label>
@@ -139,6 +161,25 @@ function afct_gallery_meta_box_html($post) {
                                     <option value="8">80%</option>
                                     <option value="9">90%</option>
                                     <option value="10">100%</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div style="margin-top: 10px">
+                            <label>Scroll Speed: 
+                                <select class="scroll-speed-select" onchange="updateScrollSpeed(this)">
+                                    <option value="0.5">0.5</option>
+                                    <option value="0.6">0.6</option>
+                                    <option value="0.7">0.7</option>
+                                    <option value="0.8">0.8</option>
+                                    <option value="0.9">0.9</option>
+                                    <option value="1" selected>1</option>
+                                    <option value="1.1">1.1</option>
+                                    <option value="1.2">1.2</option>
+                                    <option value="1.3">1.3</option>
+                                    <option value="1.4">1.4</option>
+                                    <option value="1.5">1.5</option>
+                                    <option value="1.8">1.8</option>
+                                    <option value="2">2</option>
                                 </select>
                             </label>
                         </div>
@@ -239,6 +280,10 @@ function afct_gallery_meta_box_html($post) {
         window.updateColumnWidth = function(select) {
             $(select).closest('.gallery-column').css('flex', $(select).val());
             $(select).closest('.gallery-column').find('input[name*="[width]"]').val($(select).val());
+        };
+
+        window.updateScrollSpeed = function(select) {
+            $(select).closest('.gallery-column').find('input[name*="[scroll_speed]"]').val($(select).val());
         };
     });
     </script>

@@ -26,8 +26,9 @@ $credits = afct_get_team_credits();
             <h1><?php echo esc_html($headline_parts['lower']); ?></h1>
         </div>
 
-        <div class="content-frame">
-            <div class="podcast-wrap">
+        <div class="global-container">
+            <div class="content-frame">
+                <div class="podcast-wrap">
                 <div class="podcast-authors">
                     <?php
                     $podcast_guests = get_post_meta(get_the_ID(), '_afct_podcast_guests', true);
@@ -96,6 +97,7 @@ $credits = afct_get_team_credits();
                         </tbody>
                     </table>
                 <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>

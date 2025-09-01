@@ -32,17 +32,17 @@ if(!defined("IN_ONEPAGER"))
         <h1><?php echo esc_html($headline_parts['lower']); ?></h1>
     </div>
     <div class="global-container">
-      <div>
-        <img src="<?php echo $medium[0]; ?>" alt="A portrait of Serati." data-scroll data-scroll-speed="0.3">
-        <div data-scroll data-scroll-speed="1.5">
-          <p class='text blending-difference'   >
-            <?php echo  wp_kses_post(get_post_meta(get_the_ID(), '_afct_about_serati', true)); ?>
-          </p>
-        </div>
+
+      <div class="blending-difference" data-scroll data-scroll-speed="1.5" style="position: absolute;top:25vh;left:0;right:0;z-index:1000; ">
+        <p class='text '   >
+          <?php echo  wp_kses_post(get_post_meta(get_the_ID(), '_afct_about_serati', true)); ?>
+        </p>
+      </div>
+      <div data-scroll data-speed="0.8"  data-scroll-event-progress="seratiImageScroll" style="text-align:center;position: absolute;top:10vh;left:0;right:0">
+        <img id="serati-image" src="<?php echo $medium[0]; ?>" alt="A portrait of Serati." style="opacity: 0.8;">
       </div>
     </div>
   </div>
-</div>
 <?php
 
 if(!defined("IN_ONEPAGER")) 
