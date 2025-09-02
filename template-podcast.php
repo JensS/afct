@@ -36,7 +36,7 @@ $credits = afct_get_team_credits();
                         foreach ($podcast_guests as $guest) :
                     ?>
                         <div class="podcast-author">
-                        <img src="<?php echo esc_url($guest['image']); ?>" loading="lazy" alt="<?php echo esc_attr($guest['alt']); ?>" class="image-2">
+                        <img src="<?php echo esc_url($guest['image']); ?>" loading="lazy" alt="<?php echo esc_attr($guest['alt']); ?>" class="image-2" width="120" height="120">
                         </div>
                     <?php
                         endforeach;
@@ -46,57 +46,17 @@ $credits = afct_get_team_credits();
                 <div class="podcast-description">
                     <p>Your language is much more than the words you use to communicate. It defines shapes the culture and every individuals identity. The landscape of post-Apartheid South Africa created many similar but also different living realitites. We hear four stories from people with a similar upbringing but vastly different life and problems and learn about how the language you speak (or don’t speak) defines how you engage in your countries culture.</p>
                 </div>
-                <div class="audio-wrap">
-                    <?php 
-                    $podcast_audio = get_post_meta(get_the_ID(), '_afct_podcast_audio', true);
-                    if ($podcast_audio) : ?>
-                        <div class="custom-audio-player">
-                            <audio id="podcast-player" preload="metadata">
-                                <source src="<?php echo esc_url($podcast_audio); ?>" type="audio/mpeg">
-                            </audio>
-                            <div class="player-controls">
-                                <button class="play-pause">
-                                    <span class="play-icon">▶</span>
-                                    <span class="pause-icon" style="display:none">❚❚</span>
-                                </button>
-                                <div class="progress-wrap">
-                                    <div class="time current">0:00</div>
-                                    <div class="progress-bar">
-                                        <div class="progress"></div>
-                                        <div class="chapter-markers">
-                                            <?php
-                                            if ($podcast_chapters):
-                                                foreach ($podcast_chapters as $chapter):
-                                                    $parts = explode(':', $chapter['time']);
-                                                    $seconds = $parts[0] * 60 + $parts[1];
-                                                    echo '<div class="chapter-mark" data-time="' . esc_attr($seconds) . '" title="' . esc_attr($chapter['title']) . '"></div>';
-                                                endforeach;
-                                            endif;
-                                            ?>
-                                        </div>
-                                    </div>
-                                    <div class="time duration">0:00</div>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endif; ?>
+                <div class="podcast-player-wrap">
+                    <iframe width="100%" height="112" frameborder="0" scrolling="no" style="width: 100%; height: 112px; overflow: hidden;" src="https://show.7minus2.com/@africanface/episodes/finding-a-place-between-two-worlds/embed/dark"></iframe>
                 </div>
-                <!-- Display chapters -->
-                <?php if ($podcast_chapters): ?>
-                    <table class="podcast-chapters">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>Chapters</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($podcast_chapters as $chapter): ?>
-                            <tr><td><?php echo esc_attr($chapter['time']); ?></td><td><a href="#" data-time="<?php echo esc_attr($chapter['time']); ?>"><?php echo esc_html($chapter['title']); ?></a></td></tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php endif; ?>
+                <div class="podcast-buttons" style="margin-top: 2rem; display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <a href="https://open.spotify.com/show/7pZEwW27Xjr7Iqk1iIX7M7" class="button button-primary prospect-slide-button" target="_blank" rel="noopener noreferrer" style="padding: 0.8em 1.5em; min-width: 180px; text-align: center;">
+                        Listen on Spotify
+                    </a>
+                    <a href="https://podcasts.apple.com/us/podcast/african-face-colonial-tongue-the-podcast/id1771495874" class="button button-primary prospect-slide-button" target="_blank" rel="noopener noreferrer" style="padding: 0.8em 1.5em; min-width: 180px; text-align: center;">
+                        Listen on Podcasts
+                    </a>
+                </div>
                 </div>
             </div>
         </div>
