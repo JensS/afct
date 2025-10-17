@@ -38,14 +38,16 @@
 
 <div class="menu theme-toggler">
 	<ul>
-		<div class="theme-toggle">
-			<div class="embed-menu-line w-embed" style="position:relative;">
-				<svg width="24" height="1" viewBox="0 0 24 1" fill="none" xmlns="http://www.w3.org/2000/svg">
-					<rect width="24" height="1" transform="matrix(1 0 0 -1 0 1)" fill="currentColor"></rect>
-				</svg>
+		<li>
+			<div class="theme-toggle">
+				<div class="embed-menu-line w-embed" style="position:relative;">
+					<svg width="24" height="1" viewBox="0 0 24 1" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<rect width="24" height="1" transform="matrix(1 0 0 -1 0 1)" fill="currentColor"></rect>
+					</svg>
+				</div>
+				<div class="theme-toggle-text">Toggle dark/light</div>
 			</div>
-			<div class="theme-toggle-text">Toggle dark/light</div>
-		</div>
+		</li>
 	</ul>
 </div>
 

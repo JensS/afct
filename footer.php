@@ -31,7 +31,7 @@
 
 <div id="cookie-consent" class="cookie-consent">
     <div class="cookie-content">
-        <p>We use cookies for analytics. <a href="<?php echo esc_url(home_url('/imprint')); ?>">Learn more</a></p>
+        <p>We use cookies for analytics. <a href="<?php echo esc_url(home_url('/imprint')); ?>">Learn more about our cookie policy</a></p>
         <button id="accept-cookies" class="button-primary">Accept</button>
     </div>
 </div>

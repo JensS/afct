@@ -31,6 +31,7 @@ function afct_setup() {
 	);
 
 	add_theme_support( 'title-tag' ); 
+	add_theme_support( 'responsive-embeds' );
 }
 add_action( 'after_setup_theme', 'afct_setup' );
 add_filter( 'show_admin_bar', '__return_false' );
@@ -311,7 +312,19 @@ function disable_emojis() {
 add_action( 'init', 'disable_emojis' );
 
 function afct_remove_editor_for_templates() {
-      remove_post_type_support('page', 'editor');
+    $post_id = null;
+    if (isset($_GET['post'])) {
+        $post_id = $_GET['post'];
+    } else if (isset($_POST['post_ID'])) {
+        $post_id = $_POST['post_ID'];
+    }
+
+    if ($post_id) {
+        $template_file = get_post_meta($post_id, '_wp_page_template', true);
+        if ($template_file !== 'page-generic.php') {
+            remove_post_type_support('page', 'editor');
+        }
+    } 
 }
 add_action('admin_init', 'afct_remove_editor_for_templates');
 /**	
@@ -342,7 +355,7 @@ function prevent_meta_box_order($action)
 function fb_remove_postbox() {
     wp_deregister_script('postbox');
 }
-add_action( 'admin_init', 'fb_remove_postbox' );
+// add_action( 'admin_init', 'fb_remove_postbox' );
 
 
 // Include admin files
@@ -491,3 +504,8 @@ function afct_split_headline($title) {
         'lower' => implode(' ', $lower_words)
     );
 }
+
+function afct_remove_protected_prefix( $format ) {
+    return '%s';
+}
+add_filter( 'protected_title_format', 'afct_remove_protected_prefix' );

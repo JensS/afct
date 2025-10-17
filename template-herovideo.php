@@ -31,7 +31,7 @@ if(!defined("IN_ONEPAGER"))
     <?php  else :
         if ($video_cover_image):
             ?>
-            <img src="<?php echo esc_url($video_cover_image); ?>"/>
+            <img src="<?php echo esc_url($video_cover_image); ?>" width="1920" height="1080" alt="Video cover image"/>
             <?php
             endif;
     endif; ?>

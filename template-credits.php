@@ -29,7 +29,7 @@ $credits = get_credits_data();
     <div class="text-lower-right">
         <h1><?php echo esc_html($headline_parts['lower']); ?></h1>
     </div>
-    <div class="content text blending-difference"  data-scroll data-scroll-speed="1.4" style="margin-top:15vh;z-index:1000; margin-bottom:15vh">
+    <div class="content text blending-difference"  data-scroll data-scroll-speed="1.5" style="margin-top:15vh;z-index:1000; margin-bottom:15vh">
         <?php if (isset($credits['film_team'])): ?>
         <div class="team">
             <h2 class="align-center">Film Team</h2>
@@ -42,17 +42,6 @@ $credits = get_credits_data();
         </div>
         <?php endif; ?>
 
-        <?php if (isset($credits['podcast_team'])): ?>
-        <div class="team" >
-            <h2 class="align-center padding-bottom_24px">Podcast Team</h2>
-            <?php foreach ($credits['podcast_team'] as $role => $name): ?>
-            <div class="credit-div">
-                <p class="credit-description"><?php echo esc_html($role); ?></p>
-                <p class="meta-description"><?php echo esc_html($name); ?></p>
-            </div>
-            <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
     </div>
             <?php
             // Get the image data from the meta field
@@ -85,7 +74,7 @@ $credits = get_credits_data();
                     }
                 }
             }
-
+/*
             // Output the image tag or fallback
             if ($image_url) {
                 // Use a generic default alt text if none was found
@@ -95,7 +84,7 @@ $credits = get_credits_data();
                 echo '<div data-scroll data-scroll-speed="0.8" style="text-align:center;position: absolute;top:10vh;left:0;right:0">';
                 echo '<img src="' . esc_url($image_url) . '" alt="' . esc_attr($alt_text) . '" class="image-credits" style="opacity: 0.9;" />';
                 echo '</div>';
-            } 
+            } */
             ?>
 </div>
 

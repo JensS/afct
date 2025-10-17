@@ -1939,3 +1939,33 @@ p {
 .footer-logo svg path {
 	fill: var(--red);
 }
+
+.post-password-form {
+    width: 50%;
+    margin: 0 auto; /* Center the form */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.post-password-form label {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.post-password-form input[type="password"] {
+    background-color: var(--background);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.post-password-form input[type="submit"] {
+    background-color: var(--background);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    width: 100%;
+    padding: 0.5rem;
+}
