@@ -38,10 +38,19 @@ function afct_get_history_data($request) {
     $standardized_entries = array_map(function($entry) {
         // Make sure year_start is used as the ID
         $entry['id'] = intval($entry['year_start']);
-        
-        // Ensure required fields exist
+
+        // Ensure required fields exist - normalize to both formats for backwards compatibility
         if (!isset($entry['title'])) $entry['title'] = '';
         if (!isset($entry['paragraph'])) $entry['paragraph'] = '';
+
+        // Also set history_paragraph format for JS compatibility
+        if (!isset($entry['history_paragraph'])) {
+            $entry['history_paragraph'] = [
+                'title' => $entry['title'],
+                'paragraph' => $entry['paragraph']
+            ];
+        }
+
         if (!isset($entry['map_zoom'])) $entry['map_zoom'] = 'africa';
         
         // Convert old animation data to new visualization format if needed

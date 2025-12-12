@@ -37,8 +37,10 @@ function afct_history_meta_box_callback($post) {
     ?>
     <!-- Wrap everything in a container to scope our styles -->
     <div id="afct-history-container">
-        <div style="margin-bottom: 15px;">
+        <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
             <button type="button" id="add-history-entry" class="button button-primary">Add New History Entry</button>
+            <button type="button" id="export-history-json" class="button">Export JSON</button>
+            <span id="export-message" style="color: green; display: none;">JSON copied to clipboard!</span>
         </div>
 
         <div id="history-entries-container">
@@ -582,17 +584,25 @@ function afct_admin_history_scripts($hook) {
                                                                                                                                                                                                
     // --- Enqueue JS ---                                                                                                                                                                      
     // Dependencies: jQuery, jQuery UI Sortable, D3, TopoJSON                                                                                                                                  
-    wp_enqueue_script('jquery-ui-sortable');                                                                                                                                                   
-    // Make sure D3 and TopoJSON are registered/enqueued if not already handled elsewhere                                                                                                      
-    // wp_enqueue_script('d3', get_template_directory_uri() . '/js/d3.min.js', [], '7.8.5', true); // Example                                                                                  
-    // wp_enqueue_script('topojson', get_template_directory_uri() . '/js/topojson.min.js', [], '3.0.2', true); // Example                                                                      
-                                                                                                                                                                                               
-    wp_enqueue_script(                                                                                                                                                                         
-        'afct-admin-history-script',                                                                                                                                                           
-        get_template_directory_uri() . '/js/admin-history.js', // Adjust path if it's a plugin                                                                                                 
-        ['jquery', 'jquery-ui-sortable', 'd3', 'topojson'], // Dependencies                                                                                                                    
-        filemtime(get_template_directory() . '/js/admin-history.js'), // Versioning                                                                                                            
-        true // Load in footer                                                                                                                                                                 
+    wp_enqueue_script('jquery-ui-sortable');
+
+    // Register and enqueue D3 and TopoJSON from CDN if not already registered
+    if (!wp_script_is('d3', 'registered')) {
+        wp_register_script('d3', 'https://d3js.org/d3.v7.min.js', [], '7.8.5', true);
+    }
+    wp_enqueue_script('d3');
+
+    if (!wp_script_is('topojson', 'registered')) {
+        wp_register_script('topojson', 'https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js', [], '3.0.2', true);
+    }
+    wp_enqueue_script('topojson');
+
+    wp_enqueue_script(
+        'afct-admin-history-script',
+        get_template_directory_uri() . '/js/admin-history.js',
+        ['jquery', 'jquery-ui-sortable', 'd3', 'topojson'],
+        filemtime(get_template_directory() . '/js/admin-history.js'),
+        true
     );                                                                                                                                                                                         
                                                                                                                                                                                                
     // --- Localize Data for JS ---                                                                                                                                                            

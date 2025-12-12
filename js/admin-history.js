@@ -1,15 +1,27 @@
 
 jQuery(document).ready(function($) {
-    // Initialize map previews for all entries
-    $('.map-preview-container').each(function() {
-        const container = $(this);
-        const entryIndex = container.data('entry-index');
-        const visualizations = container.data('visualizations');
-        initMapPreview(container[0], visualizations);
-    });
+    // Check if d3 and topojson are available
+    const d3Available = typeof d3 !== 'undefined';
+    const topoJsonAvailable = typeof topojson !== 'undefined';
+
+    if (!d3Available || !topoJsonAvailable) {
+        console.warn('D3 or TopoJSON not loaded. Map previews will be disabled.');
+        // Hide map preview sections
+        $('.map-preview').hide();
+    }
+
+    // Initialize map previews for all entries (only if libraries are available)
+    if (d3Available && topoJsonAvailable) {
+        $('.map-preview-container').each(function() {
+            const container = $(this);
+            const entryIndex = container.data('entry-index');
+            const visualizations = container.data('visualizations');
+            initMapPreview(container[0], visualizations);
+        });
+    }
 
     function initMapPreview(container, visualizations) {
-        if (!container) return;
+        if (!container || typeof d3 === 'undefined' || typeof topojson === 'undefined') return;
         
         // Clear previous content
         container.innerHTML = '';
@@ -149,7 +161,17 @@ jQuery(document).ready(function($) {
     
     // Toggle entry form visibility
     $(document).on('click', '.toggle-entry-form', function() {
-        $(this).closest('.history-entry').find('.entry-form').slideToggle();
+        const $button = $(this);
+        const $form = $button.closest('.history-entry').find('.entry-form');
+
+        $form.slideToggle(function() {
+            // Update button text based on form visibility
+            if ($form.is(':visible')) {
+                $button.text('Close');
+            } else {
+                $button.text('Edit');
+            }
+        });
     });
     
     // Remove entry
@@ -773,4 +795,118 @@ jQuery(document).ready(function($) {
         // Initialize visualization type change handler
         initVizTypeHandlers(entryIndex, vizIndex);
     }
+
+    // Export history data as JSON
+    $('#export-history-json').on('click', function() {
+        const historyData = [];
+
+        $('.history-entry').each(function() {
+            const $entry = $(this);
+            const index = $entry.data('index');
+
+            const entry = {
+                year_start: parseInt($entry.find(`input[name="history_entries[${index}][year_start]"]`).val()) || 0,
+                id: parseInt($entry.find(`input[name="history_entries[${index}][year_start]"]`).val()) || 0,
+                year_end: $entry.find(`input[name="history_entries[${index}][year_end]"]`).val() || null,
+                map_zoom: $entry.find(`select[name="history_entries[${index}][map_zoom]"]`).val() || 'africa',
+                title: $entry.find(`input[name="history_entries[${index}][title]"]`).val() || '',
+                paragraph: $entry.find(`textarea[name="history_entries[${index}][paragraph]"]`).val() || '',
+                visualizations: []
+            };
+
+            // Remove year_end if null or empty
+            if (!entry.year_end) {
+                delete entry.year_end;
+            } else {
+                entry.year_end = parseInt(entry.year_end);
+            }
+
+            // Collect visualizations
+            $entry.find('.visualization-item').each(function() {
+                const $viz = $(this);
+                const vizIndex = $viz.data('viz-index');
+                const vizType = $viz.find(`select[name*="[visualizations][${vizIndex}][type]"]`).val();
+
+                const viz = {
+                    type: vizType,
+                    label: $viz.find(`input[name*="[visualizations][${vizIndex}][label]"]`).val() || '',
+                    origin: [
+                        parseFloat($viz.find(`input[name*="[visualizations][${vizIndex}][origin][0]"]`).val()) || 0,
+                        parseFloat($viz.find(`input[name*="[visualizations][${vizIndex}][origin][1]"]`).val()) || 0
+                    ]
+                };
+
+                // Add destination for arrow type
+                if (vizType === 'arrow') {
+                    viz.destination = [
+                        parseFloat($viz.find(`input[name*="[visualizations][${vizIndex}][destination][0]"]`).val()) || 0,
+                        parseFloat($viz.find(`input[name*="[visualizations][${vizIndex}][destination][1]"]`).val()) || 0
+                    ];
+                }
+
+                // Add dotCoordinates for dots type
+                if (vizType === 'dots') {
+                    viz.dotCoordinates = [];
+                    $viz.find('.dot-coordinate-pair').each(function() {
+                        const $coord = $(this);
+                        viz.dotCoordinates.push([
+                            parseFloat($coord.find('input').eq(0).val()) || 0,
+                            parseFloat($coord.find('input').eq(1).val()) || 0
+                        ]);
+                    });
+                }
+
+                // Add arrows for arrows type
+                if (vizType === 'arrows') {
+                    viz.arrows = [];
+                    $viz.find('.arrow-coordinate-pair').each(function() {
+                        const $arrow = $(this);
+                        viz.arrows.push({
+                            origin: [
+                                parseFloat($arrow.find('input').eq(0).val()) || 0,
+                                parseFloat($arrow.find('input').eq(1).val()) || 0
+                            ],
+                            destination: [
+                                parseFloat($arrow.find('input').eq(2).val()) || 0,
+                                parseFloat($arrow.find('input').eq(3).val()) || 0
+                            ]
+                        });
+                    });
+                }
+
+                entry.visualizations.push(viz);
+            });
+
+            historyData.push(entry);
+        });
+
+        // Convert to JSON string with nice formatting
+        const jsonString = JSON.stringify(historyData, null, 2);
+
+        // Trigger download (primary action)
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'history-timeline-' + new Date().toISOString().split('T')[0] + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        // Try to copy to clipboard as bonus feature (may not work on http://)
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(jsonString).then(function() {
+                $('#export-message').text('JSON downloaded and copied to clipboard!').fadeIn().delay(3000).fadeOut();
+            }).catch(function(err) {
+                $('#export-message').text('JSON downloaded successfully!').fadeIn().delay(3000).fadeOut();
+                console.log('Clipboard not available (requires HTTPS), but download succeeded');
+            });
+        } else {
+            $('#export-message').text('JSON downloaded successfully!').fadeIn().delay(3000).fadeOut();
+            console.log('Clipboard API not available (requires HTTPS or localhost)');
+        }
+
+        console.log('History data exported:', historyData.length + ' entries');
+    });
 });

@@ -197,14 +197,23 @@ export default function initHistoryTimeline($) {
                     return;
                 }
 
+                console.log("Raw history data received:", data);
+
                 historyData = data.filter(item => {
                     if (!item?.year_start) return false;
-                    if (item.visualisation === "paragraph" && (!item.history_paragraph?.title)) return false;
+                    // Check if it's a paragraph item - accept either format
+                    if (item.visualisation === "paragraph") {
+                        const hasTitle = item.title || item.history_paragraph?.title;
+                        if (!hasTitle) return false;
+                    }
                     return true;
                 });
-                
+
+                console.log("Filtered history data:", historyData);
+
                 if (historyData.length === 0) {
                     console.error("No valid history items found");
+                    console.log("Check WordPress admin: Pages → Edit History page → Add history entries");
                     return;
                 }
                 
@@ -229,13 +238,15 @@ export default function initHistoryTimeline($) {
     
     // Initialize the African map
     function initMap()  {
+        console.log("Initializing map...");
         const svg = d3.select("#map-container")
             .append("svg")
             .attr("width", "100%")
             .attr("height", "100%")
             .attr("viewBox", `0 0 ${config.mapWidth} ${config.mapHeight}`);
-        
-        
+
+        console.log("SVG created:", svg.node());
+
         // Create dot patterns
         const defs = svg.append("defs");
         
@@ -264,29 +275,38 @@ export default function initHistoryTimeline($) {
             .attr("fill", "var(--text)");
         
         // Load and render map
+        console.log("Loading map data from:", afctSettings.templateUrl + "/js/countries-110m.json");
+
+        // Assign svg to map FIRST so createAnimationLayers can use it
+        map = svg;
+
+        // Create countries layer first (bottom of stack)
+        const countriesLayer = svg.append("g").attr("id", "countries-layer");
+
+        // Create animation layers on top (these need map to be defined)
+        createAnimationLayers();
+
         d3.json(afctSettings.templateUrl + "/js/countries-110m.json")
             .then(function(data) {
+                console.log("Map data loaded successfully:", data);
                 const path = d3.geoPath().projection(projection);
-                
-                svg.append("g")
+
+                const countries = countriesLayer
                     .selectAll("path")
                     .data(topojson.feature(data, data.objects.countries).features)
                     .enter()
                     .append("path")
                     .attr("d", path)
-                    .attr("fill", d => d.id === 710 ? "url(#southAfricaPattern)" : "url(#countryPattern)")
-                    .attr("stroke", "var(--background)")
+                    .attr("fill", d => d.id === 710 ? "#ff0000" : "#666666") // Solid colors for debugging
+                    .attr("stroke", "#000000") // Black stroke for visibility
                     .attr("stroke-width", 1)
                     .attr("class", d => "country country-" + d.id)
                     .attr("opacity", d => d.id === 710 ? 0.8 : 0.5);
-                
-                createAnimationLayers();
+
+                console.log("Countries rendered:", countries.size(), "paths");
             })
             .catch(error => console.error("Error loading map:", error));
-            
-        map = svg; // Assign svg to map before using it
-        createAnimationLayers();
-            
+
         return svg;
     }
 
@@ -384,12 +404,15 @@ export default function initHistoryTimeline($) {
                 markerClass += " year-marker";
                 if (year % 5 === 0) markerLabel = year.toString();
             }
-            
-            if (chapterYears.has(year)) {
+
+            // Check if it's a chapter marker
+            const isChapterMarker = chapterYears.has(year);
+            if (isChapterMarker) {
                 markerClass += " chapter-marker";
-                markerLabel = year.toString();
+                // Don't set markerLabel for chapter markers to avoid duplicates
+                markerLabel = '';
             }
-            
+
             timelineBand.append(`
                 <div class="${markerClass}" data-year="${year}" style="left: ${position}px;">
                     ${markerLabel ? `<span class="marker-year">${markerLabel}</span>` : ''}
@@ -401,22 +424,28 @@ export default function initHistoryTimeline($) {
     // Create timeline items
     function createTimelineItems(timelineContent, paragraphItems) {
         timelineContent.find('.timeline-item').remove();
-        
+
         paragraphItems.forEach(item => {
-            if (!item?.id || !item.year_start || !item.title) return;
-            
+            if (!item?.id || !item.year_start) return;
+
+            // Get title and paragraph from either format
+            const title = item.title || item.history_paragraph?.title || '';
+            const paragraph = item.paragraph || item.history_paragraph?.paragraph || '';
+
+            if (!title) return; // Skip items without titles
+
             const timelineItem = $(`
                 <div class="timeline-item" data-id="${item.id}" data-year-start="${item.year_start}" style="display: none; visibility: hidden; opacity: 0;">
                     <div class="content-wrapper">
                         <div class="year">
                             ${item.year_start}${(item.year_end && item.year_end !== item.year_start) ? ` - ${item.year_end}` : ''}
                         </div>
-                        <h3>${item.title}</h3>
-                        <p>${item.paragraph}</p>
+                        <h3>${title}</h3>
+                        <p>${paragraph}</p>
                     </div>
                 </div>
             `);
-            
+
             timelineContent.append(timelineItem);
         });
     }
@@ -434,53 +463,87 @@ export default function initHistoryTimeline($) {
         historyContainer.append('<button class="carousel-arrow next" aria-label="Next History Entry"></button>');
         $('#the-history').off('click', '.carousel-arrow.prev').on('click', '.carousel-arrow.prev', function(e) {
             e.preventDefault();
-            if ($(this).hasClass('disabled') || (masterTimeline && masterTimeline.isActive())) return;
+            console.log('Prev arrow clicked');
+
+            if ($(this).hasClass('disabled')) {
+                console.log('Prev arrow is disabled');
+                return;
+            }
+
+            if (masterTimeline && masterTimeline.isActive()) {
+                console.log('Timeline is currently animating');
+                return;
+            }
 
             // Get current and previous labels
             const currentTime = masterTimeline.time();
             const labels = Object.entries(masterTimeline.labels).sort((a, b) => a[1] - b[1]);
             let prevLabel = null;
-            
+
+            console.log('Current time:', currentTime, 'Labels:', labels);
+
             // Find the previous label
             for (let i = labels.length - 1; i >= 0; i--) {
-                if (labels[i][1] < currentTime) {
+                if (labels[i][1] < currentTime - 0.01) { // Add small tolerance
                     prevLabel = labels[i][0];
                     break;
                 }
             }
-            
+
+            console.log('Previous label:', prevLabel);
+
             if (prevLabel) {
                 // Tween to the previous label
+                console.log('Tweening to:', prevLabel);
                 masterTimeline.tweenTo(prevLabel, {
                     duration: 0.8,
                     ease: 'power2.inOut'
                 });
+            } else {
+                console.log('No previous label found');
             }
         });
 
         $('#the-history').off('click', '.carousel-arrow.next').on('click', '.carousel-arrow.next', function(e) {
             e.preventDefault();
-            if ($(this).hasClass('disabled') || (masterTimeline && masterTimeline.isActive())) return;
+            console.log('Next arrow clicked');
+
+            if ($(this).hasClass('disabled')) {
+                console.log('Next arrow is disabled');
+                return;
+            }
+
+            if (masterTimeline && masterTimeline.isActive()) {
+                console.log('Timeline is currently animating');
+                return;
+            }
 
             // Get current and next labels
             const currentTime = masterTimeline.time();
             const labels = Object.entries(masterTimeline.labels).sort((a, b) => a[1] - b[1]);
             let nextLabel = null;
-            
+
+            console.log('Current time:', currentTime, 'Labels:', labels);
+
             // Find the next label
             for (let i = 0; i < labels.length; i++) {
-                if (labels[i][1] > currentTime) {
+                if (labels[i][1] > currentTime + 0.01) { // Add small tolerance
                     nextLabel = labels[i][0];
                     break;
                 }
             }
-            
+
+            console.log('Next label:', nextLabel);
+
             if (nextLabel) {
                 // Tween to the next label
+                console.log('Tweening to:', nextLabel);
                 masterTimeline.tweenTo(nextLabel, {
                     duration: 0.8,
                     ease: 'power2.inOut'
                 });
+            } else {
+                console.log('No next label found');
             }
         });
     }
@@ -507,7 +570,7 @@ export default function initHistoryTimeline($) {
     }
 
 
-    // Update map zoom - Returns a GSAP tween
+    // Update map zoom - Returns a GSAP tween that dynamically captures starting state
     function updateMapZoom(item) {
         let mapZoom = item.map_zoom || "europe_and_africa";
         const zoomSettings = {
@@ -520,34 +583,44 @@ export default function initHistoryTimeline($) {
         const settings = zoomSettings[mapZoom] || zoomSettings.europe_and_africa;
         const duration = 1.0; // Zoom duration
 
-        // Create a proxy object to tween
-        let projectionProxy = {
-            scale: projection.scale(),
-            cx: projection.center()[0],
-            cy: projection.center()[1]
-        };
-
-        // Return a GSAP tween
-        return gsap.to(projectionProxy, {
-            scale: settings.scale,
-            cx: settings.center[0],
-            cy: settings.center[1],
+        // Return a function that creates the tween when called
+        // This ensures the starting state is captured when the tween actually plays
+        const tween = gsap.to({}, {
             duration: duration,
             ease: 'power2.inOut',
+            onStart: function() {
+                // Capture starting state when tween actually starts playing
+                this.vars.startScale = projection.scale();
+                this.vars.startCx = projection.center()[0];
+                this.vars.startCy = projection.center()[1];
+                console.log(`🗺️ Zoom starting: [${this.vars.startCx}, ${this.vars.startCy}] scale=${this.vars.startScale} → [${settings.center}] scale=${settings.scale}`);
+            },
             onUpdate: function() {
-                projection.scale(this.targets()[0].scale).center([this.targets()[0].cx, this.targets()[0].cy]);
-                // Redraw map paths without D3 transition
-                map.selectAll("path.country").attr("d", d3.geoPath().projection(projection));
-                // Update positions of existing D3 elements (visualizations) without transition
-                updateAnimationPositions(); // Call without transition parameter
+                // Calculate progress (0 to 1)
+                const progress = this.progress();
+
+                // Interpolate between start and end values
+                const currentScale = this.vars.startScale + (settings.scale - this.vars.startScale) * progress;
+                const currentCx = this.vars.startCx + (settings.center[0] - this.vars.startCx) * progress;
+                const currentCy = this.vars.startCy + (settings.center[1] - this.vars.startCy) * progress;
+
+                // Update projection
+                projection.scale(currentScale).center([currentCx, currentCy]);
+
+                // Redraw map countries
+                map.select("#countries-layer").selectAll("path").attr("d", d3.geoPath().projection(projection));
+                updateAnimationPositions();
             },
             onComplete: function() {
                 // Ensure final state is applied precisely
                 projection.scale(settings.scale).center(settings.center);
-                map.selectAll("path.country").attr("d", d3.geoPath().projection(projection));
+                map.select("#countries-layer").selectAll("path").attr("d", d3.geoPath().projection(projection));
                 updateAnimationPositions();
+                console.log(`   ✅ Zoom complete at [${settings.center}] scale=${settings.scale}`);
             }
         });
+
+        return tween;
     }
 
 
@@ -600,20 +673,24 @@ export default function initHistoryTimeline($) {
 
     // Create arrow visualization - Returns created DOM nodes
     function createArrowVisualization(viz) {
-        const elements = { line: null, originMarker: null, destMarker: null, label: null };
-        if (!viz.origin || !viz.destination) return elements;
-        
+        if (!viz.origin || !viz.destination) {
+            console.warn("Arrow visualization missing origin or destination:", viz);
+            return { line: null, originMarker: null, destMarker: null, label: null };
+        }
+
         const layer = map.select("#migration-layer");
         const originPos = projection(viz.origin);
         const destPos = projection(viz.destination);
-        
+
+        console.log("Creating arrow from", viz.origin, "to", viz.destination, "positions:", originPos, destPos);
+
         // Create line with GSAP animation
         const line = layer.append("path")
             .attr("class", "migration-line")
             .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`)
-            .attr("stroke", "var(--red)")
-            .attr("stroke-width", 2)
-            .attr("stroke-dasharray", "4, 4")
+            .attr("stroke", "#ff0000") // Solid red for visibility
+            .attr("stroke-width", 3)
+            .attr("stroke-dasharray", "8, 4")
             .attr("fill", "none")
             .attr("opacity", 0)
             .attr("data-origin-x", viz.origin[0])
@@ -627,8 +704,8 @@ export default function initHistoryTimeline($) {
             .attr("class", "origin-marker")
             .attr("cx", originPos[0])
             .attr("cy", originPos[1])
-            .attr("r", 5)
-            .attr("fill", "var(--red)")
+            .attr("r", 8)
+            .attr("fill", "#ff0000") // Solid red
             .attr("opacity", 0) // Start invisible
             .attr("data-x", viz.origin[0])
             .attr("data-y", viz.origin[1])
@@ -639,21 +716,22 @@ export default function initHistoryTimeline($) {
             .attr("class", "destination-marker")
             .attr("cx", destPos[0])
             .attr("cy", destPos[1])
-            .attr("r", 5)
-            .attr("fill", "var(--red)")
+            .attr("r", 8)
+            .attr("fill", "#ff0000") // Solid red
             .attr("opacity", 0) // Start invisible
             .attr("data-x", viz.destination[0])
             .attr("data-y", viz.destination[1])
             .node();
 
         // Add label if provided (initially invisible)
+        let label = null;
         if (viz.label) {
-            const label = layer.append("text")
+            label = layer.append("text")
                 .attr("class", "migration-label")
                 .attr("x", (originPos[0] + destPos[0]) / 2)
                 .attr("y", (originPos[1] + destPos[1]) / 2 - 10)
                 .attr("text-anchor", "middle")
-                .attr("fill", "var(--red)")
+                .attr("fill", "#ff0000")
                 .text(viz.label)
                 .attr("opacity", 0)
                 .attr("data-x", (viz.origin[0] + viz.destination[0]) / 2)
@@ -661,38 +739,55 @@ export default function initHistoryTimeline($) {
                 .attr("data-offset", -10)
                 .node();
         }
-        return elements; // Return the DOM nodes
+
+        // Return the created DOM nodes
+        const elements = {
+            line: line,
+            originMarker: originMarker,
+            destMarker: destMarker,
+            label: label
+        };
+
+        console.log("Arrow elements created and returning:", elements);
+        return elements;
     }
 
 
     // Create dot visualization - Returns created DOM nodes
     function createDotVisualization(viz) {
-        const elements = { dot: null, label: null };
-        if (!viz.origin) return elements;
-        
+        if (!viz.origin) {
+            console.warn("Dot visualization missing origin:", viz);
+            return { dot: null, label: null };
+        }
+
         const layer = map.select("#event-layer");
         const pos = projection(viz.origin);
-        
+
+        console.log("Creating dot at", viz.origin, "position:", pos);
+
         // Create dot with GSAP animation
         const dot = layer.append("circle")
             .attr("class", "event-marker")
             .attr("cx", pos[0])
             .attr("cy", pos[1])
-            .attr("r", 8)
-            .attr("fill", "var(--red)")
+            .attr("r", 12)
+            .attr("fill", "#ff0000") // Solid red
+            .attr("stroke", "#ffffff")
+            .attr("stroke-width", 2)
             .attr("opacity", 0) // Start invisible
             .attr("data-x", viz.origin[0])
             .attr("data-y", viz.origin[1])
             .node();
 
         // Add label if provided (initially invisible)
+        let label = null;
         if (viz.label) {
-            const label = layer.append("text")
+            label = layer.append("text")
                 .attr("class", "event-label")
                 .attr("x", pos[0])
                 .attr("y", pos[1] + 20)
                 .attr("text-anchor", "middle")
-                .attr("fill", "var(--red)")
+                .attr("fill", "#ff0000")
                 .text(viz.label)
                 .attr("opacity", 0)
                 .attr("data-x", viz.origin[0])
@@ -700,29 +795,41 @@ export default function initHistoryTimeline($) {
                 .attr("data-offset", 20)
                 .node();
         }
+
+        const elements = { dot: dot, label: label };
+        console.log("Dot elements created and returning:", elements);
         return elements;
     }
 
 
     // Create dots visualization - Returns created DOM nodes
     function createDotsVisualization(viz) {
+        if (!viz.origin) {
+            console.warn("Dots visualization missing origin:", viz);
+            return { centralDot: null, dots: [], labels: [], mainLabel: null };
+        }
+
         const elements = { centralDot: null, dots: [], labels: [], mainLabel: null };
-        if (!viz.origin) return elements;
-        
         const layer = map.select("#language-layer");
         const pos = projection(viz.origin);
-        
+
+        console.log("Creating dots at", viz.origin, "position:", pos);
+
         // Create central dot
         const centralDot = layer.append("circle")
             .attr("class", "language-bubble")
             .attr("cx", pos[0])
             .attr("cy", pos[1])
             .attr("r", 15)
-            .attr("fill", "var(--red)")
+            .attr("fill", "#ff0000") // Solid red
+            .attr("stroke", "#ffffff")
+            .attr("stroke-width", 2)
             .attr("opacity", 0) // Start invisible
             .attr("data-x", viz.origin[0])
             .attr("data-y", viz.origin[1])
             .node();
+
+        elements.centralDot = centralDot; // ASSIGN IT!
 
         // Create additional dots if coordinates provided
         if (viz.dotCoordinates?.length) {
@@ -734,8 +841,10 @@ export default function initHistoryTimeline($) {
                     .attr("class", "language-bubble")
                     .attr("cx", dotPos[0])
                     .attr("cy", dotPos[1])
-                    .attr("r", 8)
-                    .attr("fill", "var(--red)")
+                    .attr("r", 10)
+                    .attr("fill", "#ff0000") // Solid red
+                    .attr("stroke", "#ffffff")
+                    .attr("stroke-width", 1)
                     .attr("opacity", 0) // Start invisible
                     .attr("data-x", coord[0])
                     .attr("data-y", coord[1])
@@ -748,7 +857,7 @@ export default function initHistoryTimeline($) {
                         .attr("x", dotPos[0])
                         .attr("y", dotPos[1] + 20)
                         .attr("text-anchor", "middle")
-                        .attr("fill", "var(--red)")
+                        .attr("fill", "#ff0000")
                         .text(viz.labels[i])
                         .attr("opacity", 0)
                         .attr("data-x", coord[0])
@@ -799,19 +908,22 @@ export default function initHistoryTimeline($) {
 
         // Add main label if provided (initially invisible)
         if (viz.label) {
-            const label = layer.append("text")
+            const mainLabel = layer.append("text")
                 .attr("class", "language-label")
                 .attr("x", pos[0])
                 .attr("y", pos[1] - 25)
                 .attr("text-anchor", "middle")
-                .attr("fill", "var(--red)")
+                .attr("fill", "#ff0000")
                 .text(viz.label)
                 .attr("opacity", 0)
                 .attr("data-x", viz.origin[0])
                 .attr("data-y", viz.origin[1])
                 .attr("data-offset", -25)
                 .node();
+            elements.mainLabel = mainLabel; // ASSIGN IT!
         }
+
+        console.log("Dots elements created and returning:", elements);
         return elements;
     }
 
@@ -857,25 +969,29 @@ export default function initHistoryTimeline($) {
         });
     }
 
-    // Creates and animates visualizations for a given item onto the masterTimeline
-    function renderVisualizationsForItem(item, timeline, position) {
+    // Creates and animates visualizations for a given item - Returns the elements to animate
+    function renderVisualizationsForItem(item) {
+        console.log("renderVisualizationsForItem called for item:", item.id, "visualizations:", item.visualizations);
+
         // Check if item has visualizations
         if (!item.visualizations || !Array.isArray(item.visualizations) || item.visualizations.length === 0) {
-            console.log("No visualizations for item:", item.id);
-            return;
+            console.log("No visualizations for item:", item.id, "- skipping visual indicators");
+            return { elements: [], pulseElements: [] };
         }
-        
-        console.log("Rendering visualizations for item:", item.id, item.visualizations);
+
+        console.log("Rendering", item.visualizations.length, "visualizations for item:", item.id);
             // Clear existing visualizations
         const visualizationsToShow = item.visualizations || [];
         let allElementsToAnimate = [];
         let pulseElements = []; // Elements that should pulse
 
-        visualizationsToShow.forEach(viz => {
+        visualizationsToShow.forEach((viz, idx) => {
+            console.log(`Processing visualization ${idx + 1}/${visualizationsToShow.length}:`, viz);
             let createdElements = {};
             switch (viz.type) {
                 case "arrow":
                 case "arrows": // Handle potential plural type
+                    console.log("Creating arrow visualization");
                     if (Array.isArray(viz.arrows)) {
                             viz.arrows.forEach(arrowViz => {
                                 createdElements = createArrowVisualization(arrowViz);
@@ -885,8 +1001,10 @@ export default function initHistoryTimeline($) {
                             createdElements = createArrowVisualization(viz);
                             Object.values(createdElements).forEach(el => { if (el) allElementsToAnimate.push(el); });
                         }
+                    console.log("Arrow elements created:", createdElements);
                     break;
                 case "dot":
+                    console.log("Creating dot visualization");
                     createdElements = createDotVisualization(viz);
                     Object.values(createdElements).forEach(el => {
                         if (el) {
@@ -895,8 +1013,10 @@ export default function initHistoryTimeline($) {
                             if (el.nodeName.toLowerCase() === 'circle') pulseElements.push(el);
                         }
                     });
+                    console.log("Dot elements created:", createdElements);
                     break;
                 case "dots":
+                    console.log("Creating dots visualization");
                     createdElements = createDotsVisualization(viz);
                     // Add central dot, other dots, labels, main label if they exist
                     if (createdElements.centralDot) {
@@ -907,40 +1027,20 @@ export default function initHistoryTimeline($) {
                     pulseElements.push(...createdElements.dots.filter(el => el)); // Pulse other dots
                     allElementsToAnimate.push(...createdElements.labels.filter(el => el));
                     if (createdElements.mainLabel) allElementsToAnimate.push(createdElements.mainLabel);
+                    console.log("Dots elements created:", createdElements);
                     break;
                 default:
                     console.warn("Unknown visualization type:", viz.type);
             }
         });
 
-        // Add fade-in animation for all created elements to the timeline
-        if (allElementsToAnimate.length > 0 && timeline) {
-            try {
+        console.log("Total elements to animate:", allElementsToAnimate.length, "Pulse elements:", pulseElements.length);
 
-                gsap.set(allElementsToAnimate, { opacity: 0 });
-
-                timeline.to(allElementsToAnimate, {
-                    opacity: 1,
-                    duration: 0.6,
-                    stagger: 0.05, // Stagger the appearance slightly
-                    ease: 'power2.out'
-                }, position); // Add at the specified position relative to label
-
-                // Add pulsing animation for specific elements (dots) after they fade in
-                if (pulseElements.length > 0) {
-                    timeline.to(pulseElements, {
-                        scale: 1.2, // Pulse scale effect
-                        duration: 0.8,
-                        ease: "power1.inOut",
-                        yoyo: true,
-                        repeat: -1, // Repeat indefinitely while the item is active
-                        stagger: 0.1
-                    }, ">-0.4"); // Start pulsing slightly after fade-in completes
-                }
-            } catch (error) {
-                console.error("GSAP animation error:", error);
-            }
-        }
+        // Return the elements to be animated by the caller
+        return {
+            elements: allElementsToAnimate,
+            pulseElements: pulseElements
+        };
     }
 
 
@@ -1081,7 +1181,31 @@ export default function initHistoryTimeline($) {
             }
 
             // 6. Render and Animate New Visualizations
-            masterTimeline.call(renderVisualizationsForItem, [item, masterTimeline, ">-0.2"], ">-0.2");
+            const vizResult = renderVisualizationsForItem(item);
+            if (vizResult.elements.length > 0) {
+                // Set initial opacity to 0
+                gsap.set(vizResult.elements, { opacity: 0 });
+
+                // Fade in visualization elements
+                masterTimeline.to(vizResult.elements, {
+                    opacity: 1,
+                    duration: 0.6,
+                    stagger: 0.05,
+                    ease: 'power2.out'
+                }, ">-0.2"); // Overlap with text fade-in
+
+                // Add pulsing animation for dots
+                if (vizResult.pulseElements.length > 0) {
+                    masterTimeline.to(vizResult.pulseElements, {
+                        scale: 1.2,
+                        duration: 0.8,
+                        ease: "power1.inOut",
+                        yoyo: true,
+                        repeat: -1,
+                        stagger: 0.1
+                    }, ">-0.4");
+                }
+            }
 
             // Store current item ID for the next iteration
             previousItemId = itemId;

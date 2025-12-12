@@ -17,7 +17,15 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="profile" href="https://gmpg.org/xfn/11">
 
-	<?php wp_head(); ?>
+	<?php
+	// Output SEO meta tags
+	afct_output_seo_meta_tags();
+
+	// Output structured data (JSON-LD)
+	afct_output_structured_data();
+
+	wp_head();
+	?>
 </head>
 
 <body id="afct-body" <?php body_class('body-main'); ?>>

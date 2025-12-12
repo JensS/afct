@@ -30,8 +30,14 @@ function afct_setup() {
 		)
 	);
 
-	add_theme_support( 'title-tag' ); 
+	add_theme_support( 'title-tag' );
 	add_theme_support( 'responsive-embeds' );
+
+	// Enable featured images (thumbnails) for posts and pages
+	add_theme_support( 'post-thumbnails' );
+
+	// Enable excerpt field for pages (for meta descriptions)
+	add_post_type_support( 'page', 'excerpt' );
 }
 add_action( 'after_setup_theme', 'afct_setup' );
 add_filter( 'show_admin_bar', '__return_false' );
@@ -460,6 +466,8 @@ require_once get_template_directory() . '/inc/admin-podcasts.php';
 require_once get_template_directory() . '/inc/admin-history.php';
 require_once get_template_directory() . '/inc/rest-api-history.php';
 require_once get_template_directory() . '/inc/admin-prospect.php';
+require_once get_template_directory() . '/inc/seo-meta.php';
+require_once get_template_directory() . '/inc/user-profile-fields.php';
 
 /**
  * Split page title into two parts for the two-part headline display

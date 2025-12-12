@@ -10,8 +10,8 @@
     width: 100%;
     height: 100vh;
     margin: 2rem 0;
-    overflow: hidden;
-    z-index: 1; 
+    overflow: visible; /* Allow visualizations to extend beyond container */
+    z-index: 10; /* Above map but below timeline UI elements */
 }
 
 #map-container {
@@ -203,22 +203,17 @@
 
 .timeline-markers {
     position: absolute;
-    top: 20vh;
+    bottom: 2rem; /* Move to bottom of section */
     left: 0;
     right: 0;
-    height: 4vh;
+    height: 60px;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    z-index: 15;
-    pointer-events: auto;
+    z-index: 1000; /* Above everything */
+    pointer-events: none;
     background: transparent;
     width: 100%;
-    left: 0;
-    width: 100%;
-    height: 60px;
-    z-index: 1000;
-    pointer-events: none;
 }
 
 .timeline-band-container {
@@ -243,16 +238,15 @@
     width: 20%;
     z-index: 1;
     pointer-events: none;
+    display: none; /* Hide gradient fades */
 }
 
 .timeline-fade.left {
     left: 0;
-    background: linear-gradient(to right, var(--background) 0%, transparent 100%);
 }
 
 .timeline-fade.right {
     right: 0;
-    background: linear-gradient(to left, var(--background) 0%, transparent 100%);
 }
 
 .timeline-center-indicator {
