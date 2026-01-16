@@ -75,6 +75,7 @@ body {
 	--background-opaque: var(--black-opaque);
 	--text-color: var(--text-dark);
 	--text-color-opaque: var(--text-dark-opaque);
+	--viz-color: var(--white);
 }
 
 /* Light theme class */
@@ -83,6 +84,7 @@ body.light-theme {
 	--background-opaque: var(--white-opaque);
 	--text-color: var(--text-light);
 	--text-color-opaque: var(--text-light-opaque);
+	--viz-color: var(--red);
 }
 
 /* Dark theme class */
@@ -91,6 +93,7 @@ body.dark-theme {
 	--background-opaque: var(--black-opaque);
 	--text-color: var(--text-dark);
 	--text-color-opaque: var(--text-dark-opaque);
+	--viz-color: var(--white);
 }
 
 html {
@@ -457,8 +460,8 @@ input[type="submit"]:hover {
 	border-color: #ccc #bbb #aaa;
 }
 
-button:active,
-button:focus,
+button:active:not(.carousel-arrow),
+button:focus:not(.carousel-arrow),
 input[type="button"]:active,
 input[type="button"]:focus,
 input[type="reset"]:active,
@@ -994,13 +997,14 @@ blockquote {
 	padding-bottom: 0;
 	font-family: var(--serif-font);
 	font-size: 1rem;
+	line-height: 15px;
 }
 
 .meta-description {
 	text-transform: uppercase;
 	/*mix-blend-mode: difference;*/
 	font-size: 1rem;
-	line-height: 145%;
+	line-height: 20px;
 }
 
 .credit-div {
@@ -1707,6 +1711,12 @@ p {
     transform: translateY(-50%) scale(1.1);
 }
 
+.carousel-arrow:focus,
+.carousel-arrow:active {
+    outline: none;
+    box-shadow: none;
+}
+
 .carousel-arrow.prev {
     left: -60px; /* Position further outside */
 }
@@ -1750,6 +1760,11 @@ p {
 /*--------------------------------------------------------------
 # Prospect Carousel Styles
 --------------------------------------------------------------*/
+#prospect.slide,
+#podcast.slide {
+    display: flex;
+}
+
 .prospect-content {
     display: flex;
     flex-direction: column;

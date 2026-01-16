@@ -34,9 +34,56 @@ $credits = afct_get_team_credits();
                     $podcast_guests = get_post_meta(get_the_ID(), '_afct_podcast_guests', true);
                     if (!empty($podcast_guests)) :
                         foreach ($podcast_guests as $guest) :
+                            // Get attachment ID from URL
+                            $attachment_id = attachment_url_to_postid($guest['image']);
+
+                            // Default values from meta field
+                            $alt_text = !empty($guest['alt']) ? $guest['alt'] : '';
+                            $title_text = '';
+                            $caption = '';
+                            $srcset = '';
+                            $sizes = '';
+
+                            if ($attachment_id) {
+                                // Get attachment metadata
+                                $attachment = get_post($attachment_id);
+
+                                // Alt text (prefer WP attachment alt, fallback to meta field)
+                                $wp_alt = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+                                if (!empty($wp_alt)) {
+                                    $alt_text = $wp_alt;
+                                }
+
+                                // Title from attachment
+                                if ($attachment && !empty($attachment->post_title)) {
+                                    $title_text = $attachment->post_title;
+                                }
+
+                                // Caption from attachment
+                                if ($attachment && !empty($attachment->post_excerpt)) {
+                                    $caption = $attachment->post_excerpt;
+                                }
+
+                                // Get srcset and sizes for responsive images
+                                $srcset = wp_get_attachment_image_srcset($attachment_id, 'medium');
+                                $sizes = wp_get_attachment_image_sizes($attachment_id, 'medium');
+                            }
                     ?>
                         <div class="podcast-author">
-                        <img src="<?php echo esc_url($guest['image']); ?>" loading="lazy" alt="<?php echo esc_attr($guest['alt']); ?>" class="image-2" width="120" height="120">
+                        <img
+                            src="<?php echo esc_url($guest['image']); ?>"
+                            loading="lazy"
+                            alt="<?php echo esc_attr($alt_text); ?>"
+                            <?php if (!empty($title_text)) : ?>title="<?php echo esc_attr($title_text); ?>"<?php endif; ?>
+                            <?php if (!empty($srcset)) : ?>srcset="<?php echo esc_attr($srcset); ?>"<?php endif; ?>
+                            <?php if (!empty($sizes)) : ?>sizes="<?php echo esc_attr($sizes); ?>"<?php endif; ?>
+                            class="image-2"
+                            width="120"
+                            height="120"
+                        >
+                        <?php if (!empty($caption)) : ?>
+                        <span class="screen-reader-text"><?php echo esc_html($caption); ?></span>
+                        <?php endif; ?>
                         </div>
                     <?php
                         endforeach;

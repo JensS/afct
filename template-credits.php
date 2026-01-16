@@ -42,6 +42,18 @@ $credits = get_credits_data();
         </div>
         <?php endif; ?>
 
+        <?php if (isset($credits['podcast_team'])): ?>
+        <div class="team">
+            <h2 class="align-center">Podcast Team</h2>
+            <?php foreach ($credits['podcast_team'] as $role => $name): ?>
+            <div class="credit-div">
+                <p class="credit-description"><?php echo esc_html($role); ?></p>
+                <p class="meta-description"><?php echo esc_html($name); ?></p>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+
     </div>
             <?php
             // Get the image data from the meta field

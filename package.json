@@ -13,8 +13,8 @@
     "@wordpress/scripts": "^19.2.2",
     "babel-loader": "^10.0.0",
     "css-loader": "^7.1.2",
-    "dir-archiver": "^1.1.1",
-    "rtlcss": "^3.5.0",
+    "dir-archiver": "^2.1.0",
+    "rtlcss": "^4.3.0",
     "sass": "^1.96.0",
     "style-loader": "^4.0.0",
     "terser-webpack-plugin": "^5.3.14",
@@ -48,7 +48,7 @@
     "@studio-freight/lenis": "^1.0.42",
     "d3": "^7.9.0",
     "gsap": "^3.12.7",
-    "locomotive-scroll": "^5.0.0-beta.21",
+    "locomotive-scroll": "^5.0.1",
     "topojson-client": "^3.1.0"
   },
   "main": "webpack.config.js"
