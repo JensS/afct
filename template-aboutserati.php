@@ -39,7 +39,7 @@ if(!defined("IN_ONEPAGER"))
         </p>
       </div>
       <div data-scroll data-speed="0.8"  data-scroll-event-progress="seratiImageScroll" style="text-align:center;position: absolute;top:10vh;left:0;right:0">
-        <img id="serati-image" src="<?php echo $medium[0]; ?>" alt="A portrait of Serati.">
+        <img id="serati-image" src="<?php echo $medium[0]; ?>" width="<?php echo intval($medium[1]); ?>" height="<?php echo intval($medium[2]); ?>" alt="A portrait of Serati.">
       </div>
     </div>
   </div>
