@@ -2,7 +2,7 @@
 Theme Name: AFCT
 Author: Jens Sage
 Description: AFCT
-Version: 1.0.1
+Version: 1.0.2
 Tested up to: 5.4
 Requires PHP: 5.6
 License: GNU General Public License v2 or later
@@ -1140,8 +1140,7 @@ blockquote {
 	color: var(--black);
 	text-align: center;
 	border-radius: 9999px;
-	width: 160px;
-	padding: 1rem 0;
+	padding: 10px 1em 7px;
 	font-family: var(--sans-serif-font);
 	font-size: 1rem;
 	line-height: 110%;
@@ -1176,8 +1175,7 @@ blockquote {
 	letter-spacing: 0;
 	text-transform: none;
 	border-radius: 99999px;
-	width: 160px;
-	padding: 1rem 0 .75rem;
+	padding: 12px 2em 9px;
 	font-family: var(--sans-serif-font);
 	font-size: 1rem;
 	line-height: 110%;
@@ -1196,7 +1194,7 @@ blockquote {
 	background-color: #0000;
 	border-radius: 99999px;
 	width: 160px;
-	padding: 1rem 0 .75rem;
+	padding: 10px 1em 7px;
 	font-family: var(--sans-serif-font);
 	font-size: 1rem;
 	line-height: 110%;
@@ -1303,7 +1301,7 @@ nav.menu:hover .menu-item .embed-menu-line {
 .theme-toggle {
 	position: fixed;
 	left: 2rem;
-	bottom: 2rem;
+	bottom: 20px;
 	width: auto;
 	height: auto;
 	cursor: pointer;
@@ -1507,24 +1505,19 @@ section {
 	margin-bottom: 2rem;
 }
 
-/* Podcast player embed - color adjustments for theme integration */
-.podcast-player-wrap {
-	border-radius: 8px;
-	overflow: hidden;
-}
-
+/* Podcast player embed */
 .podcast-player-wrap iframe {
 	display: block;
 }
 
-/* Light theme: warm up the white iframe background to match beige site background */
+/* Light theme: multiply blends the white iframe background into the page background */
 .light-theme .podcast-player-wrap iframe {
-	filter: sepia(8%) saturate(90%) brightness(98%);
+	mix-blend-mode: multiply;
 }
 
-/* Dark theme: no filter needed, dark embed matches black background */
+/* Dark theme: dark embed fits naturally, no blending needed */
 .dark-theme .podcast-player-wrap iframe {
-	filter: none;
+	mix-blend-mode: normal;
 }
 
 h1.headline-a {

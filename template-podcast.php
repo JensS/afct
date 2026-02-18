@@ -97,10 +97,10 @@ $credits = afct_get_team_credits();
                     <iframe id="podcast-embed" width="100%" height="112" frameborder="0" scrolling="no" allowtransparency="true" style="width: 100%; height: 112px; overflow: hidden; background: transparent;" data-embed-base="https://show.7minus2.com/@africanface/episodes/finding-a-place-between-two-worlds/embed/" src="https://show.7minus2.com/@africanface/episodes/finding-a-place-between-two-worlds/embed/light" title="African Face Colonial Tongue Podcast Player"></iframe>
                 </div>
                 <div class="podcast-buttons" style="margin-top: 2rem; display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                    <a href="https://open.spotify.com/show/7pZEwW27Xjr7Iqk1iIX7M7" class="button button-primary prospect-slide-button" target="_blank" rel="noopener noreferrer" style="padding: 0.8em 1.5em; min-width: 180px; text-align: center;">
+                    <a href="https://open.spotify.com/show/7pZEwW27Xjr7Iqk1iIX7M7" class="button button-primary" target="_blank" rel="noopener noreferrer">
                         Listen on Spotify
                     </a>
-                    <a href="https://podcasts.apple.com/us/podcast/african-face-colonial-tongue-the-podcast/id1771495874" class="button button-primary prospect-slide-button" target="_blank" rel="noopener noreferrer" style="padding: 0.8em 1.5em; min-width: 180px; text-align: center;">
+                    <a href="https://podcasts.apple.com/us/podcast/african-face-colonial-tongue-the-podcast/id1771495874" class="button button-primary" target="_blank" rel="noopener noreferrer">
                         Listen on Podcasts
                     </a>
                 </div>
