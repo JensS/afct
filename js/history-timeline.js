@@ -28,6 +28,7 @@ export default function initHistoryTimeline($) {
     let projection;
     let masterTimeline; // GSAP master timeline
     let cachedParagraphItems = null;
+    let storedVisualizations = {}; // Store visualization elements per item ID
 
     // Helper function to get paragraph items with cache
     function getParagraphItems() {
@@ -99,9 +100,9 @@ export default function initHistoryTimeline($) {
         try {
             masterTimeline = gsap.timeline({
                 paused: true,
-                onUpdate: updateTimelineArrowStates, // Update arrows during tweening
-                onComplete: updateTimelineArrowStates, // Update arrows on completion
-                onReverseComplete: updateTimelineArrowStates // Update arrows on reverse completion
+                onUpdate: updateTimelineArrowStates,
+                onComplete: updateTimelineArrowStates,
+                onReverseComplete: updateTimelineArrowStates
             });
         } catch (error) {
             console.error("Error initializing GSAP timeline:", error);
@@ -113,15 +114,18 @@ export default function initHistoryTimeline($) {
         
         buildMasterTimeline();
 
-        masterTimeline.time(0);
-        masterTimeline.seek("welcome");
-        
-        const welcomeLayer = map.select("#event-layer");
-        welcomeLayer.selectAll(".welcome-title, .welcome-instructions, .welcome-start")
-            .attr("opacity", 1);
-            
+        // Set timeline to welcome state and ensure welcome elements are visible
+        masterTimeline.seek("welcome_end");
+        masterTimeline.pause();
+
+        // Manually ensure welcome elements are visible (seek doesn't always render properly)
+        const welcomeElements = map.select("#event-layer").selectAll(".welcome-title, .welcome-instructions");
+        welcomeElements.each(function() {
+            gsap.set(this, { opacity: 1 });
+        });
+
         updateArrowStates(-1, getParagraphItems().length);
-        
+
         console.log("Timeline initialized with labels:", masterTimeline.labels);
     }
 
@@ -132,46 +136,35 @@ export default function initHistoryTimeline($) {
             console.error("Event layer not found for welcome message");
             return {};
         }
-        eventLayer.selectAll(".welcome-title, .welcome-instructions, .welcome-start").remove();
+        eventLayer.selectAll(".welcome-title, .welcome-instructions").remove();
 
         const title = eventLayer.append("text")
             .attr("class", "welcome-title")
             .attr("x", config.mapWidth / 2)
-            .attr("y", config.mapHeight / 2 - 40)
+            .attr("y", config.mapHeight / 2 - 20)
             .attr("text-anchor", "middle")
             .attr("font-size", "24px")
             .attr("font-weight", "bold")
-            .attr("fill", "var(--text)")
+            .attr("fill", "var(--red)")
             .text("South African History Timeline")
             .attr("opacity", 0) // Start invisible
             .node();
 
-            const instructions = eventLayer.append("text")
+        const instructions = eventLayer.append("text")
             .attr("class", "welcome-instructions")
             .attr("x", config.mapWidth / 2)
-            .attr("y", config.mapHeight / 2 + 10)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "16px")
-            .attr("fill", "var(--text)")
-            .text("Use the arrows to navigate through history")
-            .attr("opacity", 0) // Start invisible
-            .node();
-
-            const startArrow = eventLayer.append("text")
-            .attr("class", "welcome-start")
-            .attr("x", config.mapWidth / 2)
-            .attr("y", config.mapHeight / 2 + 40)
+            .attr("y", config.mapHeight / 2 + 20)
             .attr("text-anchor", "middle")
             .attr("font-size", "16px")
             .attr("fill", "var(--red)")
-            .text("Click the right arrow to begin →")
+            .text("Use the arrows to navigate")
             .attr("opacity", 0) // Start invisible
             .node();
-        console.log("Welcome elements created:", {title, instructions, startArrow});
+
+        console.log("Welcome elements created:", {title, instructions});
         return {
             title: title,
-            instructions: instructions,
-            startInstructions: startArrow
+            instructions: instructions
         };
     }
 
@@ -247,10 +240,43 @@ export default function initHistoryTimeline($) {
 
         console.log("SVG created:", svg.node());
 
-        // Create dot patterns
+        // Create defs for patterns and masks
         const defs = svg.append("defs");
-        
-        // Country pattern
+
+        // Radial gradient for fade-out effect
+        const radialGradient = defs.append("radialGradient")
+            .attr("id", "mapFadeGradient")
+            .attr("cx", "50%")
+            .attr("cy", "50%")
+            .attr("r", "50%");
+
+        radialGradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", "white")
+            .attr("stop-opacity", 1);
+
+        radialGradient.append("stop")
+            .attr("offset", "60%")
+            .attr("stop-color", "white")
+            .attr("stop-opacity", 1);
+
+        radialGradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", "white")
+            .attr("stop-opacity", 0);
+
+        // Mask using the radial gradient
+        const mask = defs.append("mask")
+            .attr("id", "mapFadeMask");
+
+        mask.append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", config.mapWidth)
+            .attr("height", config.mapHeight)
+            .attr("fill", "url(#mapFadeGradient)");
+
+        // Country pattern (kept for potential future use)
         defs.append("pattern")
             .attr("id", "countryPattern")
             .attr("patternUnits", "userSpaceOnUse")
@@ -261,7 +287,7 @@ export default function initHistoryTimeline($) {
             .attr("cy", 2)
             .attr("r", 0.5)
             .attr("fill", "var(--text)");
-        
+
         // South Africa pattern
         defs.append("pattern")
             .attr("id", "southAfricaPattern")
@@ -274,19 +300,21 @@ export default function initHistoryTimeline($) {
             .attr("r", 0.6)
             .attr("fill", "var(--text)");
         
-        // Load and render map
-        console.log("Loading map data from:", afctSettings.templateUrl + "/js/countries-110m.json");
+        // Load and render map (50m = medium resolution for better detail)
+        console.log("Loading map data from:", afctSettings.templateUrl + "/js/countries-50m.json");
 
         // Assign svg to map FIRST so createAnimationLayers can use it
         map = svg;
 
-        // Create countries layer first (bottom of stack)
-        const countriesLayer = svg.append("g").attr("id", "countries-layer");
+        // Create countries layer first (bottom of stack) with radial fade mask
+        const countriesLayer = svg.append("g")
+            .attr("id", "countries-layer")
+            .attr("mask", "url(#mapFadeMask)");
 
         // Create animation layers on top (these need map to be defined)
         createAnimationLayers();
 
-        d3.json(afctSettings.templateUrl + "/js/countries-110m.json")
+        d3.json(afctSettings.templateUrl + "/js/countries-50m.json")
             .then(function(data) {
                 console.log("Map data loaded successfully:", data);
                 const path = d3.geoPath().projection(projection);
@@ -297,11 +325,11 @@ export default function initHistoryTimeline($) {
                     .enter()
                     .append("path")
                     .attr("d", path)
-                    .attr("fill", d => d.id === 710 ? "#ff0000" : "#666666") // Solid colors for debugging
-                    .attr("stroke", "#000000") // Black stroke for visibility
-                    .attr("stroke-width", 1)
+                    .attr("fill", "var(--red)")
+                    .attr("stroke", "var(--background)") // Background color creates transparent gap effect
+                    .attr("stroke-width", 2) // Gap width between countries
                     .attr("class", d => "country country-" + d.id)
-                    .attr("opacity", d => d.id === 710 ? 0.8 : 0.5);
+                    .attr("opacity", d => d.id === 710 ? 0.8 : 0.4);
 
                 console.log("Countries rendered:", countries.size(), "paths");
             })
@@ -452,15 +480,15 @@ export default function initHistoryTimeline($) {
 
     // Add navigation arrows
     function addNavigationArrows(timelineContent, paragraphItems) {
-        const historyContainer = $('#the-history');
-        if (!historyContainer.length) {
-            console.error("#the-history container not found");
+        const arrowContainer = $('#the-history .history-nav-arrows');
+        if (!arrowContainer.length) {
+            console.error(".history-nav-arrows container not found");
             return;
         }
-        
-        $('#the-history .carousel-arrow.prev, #the-history .carousel-arrow.next').remove();
-        historyContainer.append('<button class="carousel-arrow prev" aria-label="Previous History Entry"></button>');
-        historyContainer.append('<button class="carousel-arrow next" aria-label="Next History Entry"></button>');
+
+        arrowContainer.empty();
+        arrowContainer.append('<button class="carousel-arrow prev" aria-label="Previous History Entry"></button>');
+        arrowContainer.append('<button class="carousel-arrow next" aria-label="Next History Entry"></button>');
         $('#the-history').off('click', '.carousel-arrow.prev').on('click', '.carousel-arrow.prev', function(e) {
             e.preventDefault();
             console.log('Prev arrow clicked');
@@ -577,6 +605,7 @@ export default function initHistoryTimeline($) {
             europe_and_africa: { center: [20, 30], scale: config.mapWidth / 4 },
             africa: { center: [25, 0], scale: config.mapWidth / 2 },
             south_africa: { center: [25, -25], scale: config.mapWidth * 1.2 },
+            south_africa_close: { center: [25, -29], scale: config.mapWidth * 2.5 }, // Close-up filling render area
             southern_africa: { center: [25, -25], scale: config.mapWidth * 0.8 },
             world: { center: [20, 10], scale: config.mapWidth / 6 }
         };
@@ -624,50 +653,12 @@ export default function initHistoryTimeline($) {
     }
 
 
-    // Clear all visualizations - Returns a GSAP tween
-    function clearAllVisualizations() {
-        const layers = ["#migration-layer", "#language-layer", "#event-layer"];
-        const elementsToRemove = [];
-        
-        try {
-            layers.forEach(layer => {
-                // Check if the layer exists
-                const layerSelection = map.select(layer);
-                if (!layerSelection.empty()) {
-                    // Select all direct children of the layer group to avoid selecting the group itself
-                    layerSelection.selectAll(":scope > *").each(function() {
-                        // Exclude welcome message elements if they should persist differently
-                        if (!d3.select(this).classed('welcome-title') &&
-                            !d3.select(this).classed('welcome-instructions') &&
-                            !d3.select(this).classed('welcome-start')) {
-                            elementsToRemove.push(this);
-                        }
-                    });
-                }
-            });
-        } catch (error) {
-            console.warn("Error selecting elements to clear:", error);
-        }
-
-        if (elementsToRemove.length === 0) {
-            // Return an empty tween if nothing to remove
-            return gsap.to({}, { duration: 0 });
-        }
-
-        // Return a tween that fades out and removes elements
-        return gsap.to(elementsToRemove, {
-            opacity: 0,
-            duration: 0.3, // Short fade-out duration
-            stagger: 0.02,
-            ease: 'power1.in',
-            onComplete: () => {
-                elementsToRemove.forEach(el => {
-                    if (el && el.parentNode) {
-                        el.remove();
-                    }
-                });
-            }
-        });
+    // Check if an item has valid visualization data
+    function hasValidVisualizationData(item) {
+        // Check if item has visualizations array with at least one entry
+        return item.visualizations &&
+               Array.isArray(item.visualizations) &&
+               item.visualizations.length > 0;
     }
 
 
@@ -688,7 +679,7 @@ export default function initHistoryTimeline($) {
         const line = layer.append("path")
             .attr("class", "migration-line")
             .attr("d", `M${originPos[0]},${originPos[1]} L${destPos[0]},${destPos[1]}`)
-            .attr("stroke", "#ff0000") // Solid red for visibility
+            .attr("stroke", "var(--viz-color)")
             .attr("stroke-width", 3)
             .attr("stroke-dasharray", "8, 4")
             .attr("fill", "none")
@@ -705,7 +696,7 @@ export default function initHistoryTimeline($) {
             .attr("cx", originPos[0])
             .attr("cy", originPos[1])
             .attr("r", 8)
-            .attr("fill", "#ff0000") // Solid red
+            .attr("fill", "var(--viz-color)")
             .attr("opacity", 0) // Start invisible
             .attr("data-x", viz.origin[0])
             .attr("data-y", viz.origin[1])
@@ -717,7 +708,7 @@ export default function initHistoryTimeline($) {
             .attr("cx", destPos[0])
             .attr("cy", destPos[1])
             .attr("r", 8)
-            .attr("fill", "#ff0000") // Solid red
+            .attr("fill", "var(--viz-color)")
             .attr("opacity", 0) // Start invisible
             .attr("data-x", viz.destination[0])
             .attr("data-y", viz.destination[1])
@@ -729,14 +720,15 @@ export default function initHistoryTimeline($) {
             label = layer.append("text")
                 .attr("class", "migration-label")
                 .attr("x", (originPos[0] + destPos[0]) / 2)
-                .attr("y", (originPos[1] + destPos[1]) / 2 - 10)
+                .attr("y", (originPos[1] + destPos[1]) / 2 - 15)
                 .attr("text-anchor", "middle")
-                .attr("fill", "#ff0000")
+                .attr("font-size", "12px")
+                .attr("fill", "var(--viz-color)")
                 .text(viz.label)
                 .attr("opacity", 0)
                 .attr("data-x", (viz.origin[0] + viz.destination[0]) / 2)
                 .attr("data-y", (viz.origin[1] + viz.destination[1]) / 2)
-                .attr("data-offset", -10)
+                .attr("data-offset", -15)
                 .node();
         }
 
@@ -771,9 +763,7 @@ export default function initHistoryTimeline($) {
             .attr("cx", pos[0])
             .attr("cy", pos[1])
             .attr("r", 12)
-            .attr("fill", "#ff0000") // Solid red
-            .attr("stroke", "#ffffff")
-            .attr("stroke-width", 2)
+            .attr("fill", "var(--viz-color)")
             .attr("opacity", 0) // Start invisible
             .attr("data-x", viz.origin[0])
             .attr("data-y", viz.origin[1])
@@ -785,14 +775,15 @@ export default function initHistoryTimeline($) {
             label = layer.append("text")
                 .attr("class", "event-label")
                 .attr("x", pos[0])
-                .attr("y", pos[1] + 20)
+                .attr("y", pos[1] + 28)
                 .attr("text-anchor", "middle")
-                .attr("fill", "#ff0000")
+                .attr("font-size", "12px")
+                .attr("fill", "var(--viz-color)")
                 .text(viz.label)
                 .attr("opacity", 0)
                 .attr("data-x", viz.origin[0])
                 .attr("data-y", viz.origin[1])
-                .attr("data-offset", 20)
+                .attr("data-offset", 28)
                 .node();
         }
 
@@ -821,9 +812,7 @@ export default function initHistoryTimeline($) {
             .attr("cx", pos[0])
             .attr("cy", pos[1])
             .attr("r", 15)
-            .attr("fill", "#ff0000") // Solid red
-            .attr("stroke", "#ffffff")
-            .attr("stroke-width", 2)
+            .attr("fill", "var(--viz-color)")
             .attr("opacity", 0) // Start invisible
             .attr("data-x", viz.origin[0])
             .attr("data-y", viz.origin[1])
@@ -835,16 +824,14 @@ export default function initHistoryTimeline($) {
         if (viz.dotCoordinates?.length) {
             viz.dotCoordinates.forEach((coord, i) => {
                 if (!Array.isArray(coord) || coord.length < 2) return;
-                
+
                 const dotPos = projection(coord);
                 const dot = layer.append("circle")
                     .attr("class", "language-bubble")
                     .attr("cx", dotPos[0])
                     .attr("cy", dotPos[1])
                     .attr("r", 10)
-                    .attr("fill", "#ff0000") // Solid red
-                    .attr("stroke", "#ffffff")
-                    .attr("stroke-width", 1)
+                    .attr("fill", "var(--viz-color)")
                     .attr("opacity", 0) // Start invisible
                     .attr("data-x", coord[0])
                     .attr("data-y", coord[1])
@@ -855,14 +842,15 @@ export default function initHistoryTimeline($) {
                     const label = layer.append("text")
                         .attr("class", "language-label")
                         .attr("x", dotPos[0])
-                        .attr("y", dotPos[1] + 20)
+                        .attr("y", dotPos[1] + 24)
                         .attr("text-anchor", "middle")
-                        .attr("fill", "#ff0000")
+                        .attr("font-size", "12px")
+                        .attr("fill", "var(--viz-color)")
                         .text(viz.labels[i])
                         .attr("opacity", 0)
                         .attr("data-x", coord[0])
                         .attr("data-y", coord[1])
-                        .attr("data-offset", 20)
+                        .attr("data-offset", 24)
                         .node();
                     elements.labels.push(label);
                 }
@@ -882,7 +870,7 @@ export default function initHistoryTimeline($) {
                     .attr("cx", x)
                     .attr("cy", y)
                     .attr("r", 8)
-                    .attr("fill", "var(--red)")
+                    .attr("fill", "var(--viz-color)")
                     .attr("opacity", 0)
                     .attr("data-x", coord ? coord[0] : viz.origin[0]) // Use estimated or fallback
                     .attr("data-y", coord ? coord[1] : viz.origin[1])
@@ -892,14 +880,15 @@ export default function initHistoryTimeline($) {
                 const textLabel = layer.append("text")
                     .attr("class", "language-label")
                     .attr("x", x)
-                    .attr("y", y + 20)
+                    .attr("y", y + 24)
                     .attr("text-anchor", "middle")
-                    .attr("fill", "var(--red)")
+                    .attr("font-size", "12px")
+                    .attr("fill", "var(--viz-color)")
                     .text(label)
                     .attr("opacity", 0)
                     .attr("data-x", coord ? coord[0] : viz.origin[0])
                     .attr("data-y", coord ? coord[1] : viz.origin[1])
-                    .attr("data-offset", 20)
+                    .attr("data-offset", 24)
                     .node();
                 elements.labels.push(textLabel);
                 });
@@ -911,14 +900,15 @@ export default function initHistoryTimeline($) {
             const mainLabel = layer.append("text")
                 .attr("class", "language-label")
                 .attr("x", pos[0])
-                .attr("y", pos[1] - 25)
+                .attr("y", pos[1] - 28)
                 .attr("text-anchor", "middle")
-                .attr("fill", "#ff0000")
+                .attr("font-size", "12px")
+                .attr("fill", "var(--viz-color)")
                 .text(viz.label)
                 .attr("opacity", 0)
                 .attr("data-x", viz.origin[0])
                 .attr("data-y", viz.origin[1])
-                .attr("data-offset", -25)
+                .attr("data-offset", -28)
                 .node();
             elements.mainLabel = mainLabel; // ASSIGN IT!
         }
@@ -1051,169 +1041,116 @@ export default function initHistoryTimeline($) {
             console.error("Cannot build timeline: No paragraph items.");
             return;
         }
-        // Clear any existing timeline
+
+        // Clear any existing timeline and stored visualizations
         masterTimeline.clear();
+        storedVisualizations = {};
 
-        // Create a structure to track animation elements for each timeline entry
-        const animationElements = {
-            welcome: null,
-            items: {}
-        };
-
-        // --- Initial State (Welcome Message) ---
-        masterTimeline.addLabel("welcome", 0);
-        const welcomeElements = showWelcomeMessage(); // Create welcome elements
-        // Store welcome elements in our tracking structure
-        animationElements.welcome = welcomeElements;
-        // Add initial map zoom for welcome screen
-        masterTimeline.add(updateMapZoom({ map_zoom: "africa" }), "<"); // Start zoom immediately at welcome label
-
-        try {
-             // Only animate elements that are valid DOM nodes
-             const validElements = Object.values(welcomeElements)
-             .filter(el => el && el.nodeType === 1);
-            
-            if (validElements.length > 0) {
-                // Welcome message fade in - set initial opacity to 0 to ensure animation works
-                masterTimeline.set(validElements, { opacity: 0 }, "<");
-                masterTimeline.to(validElements, {
-                    opacity: 1,
-                    duration: 0.75,
-                    stagger: 0.2,
-                    ease: "power2.out"
-                }, ">-=0.5"); // Stagger in after map zoom starts
-                
-                // Add pulsing arrow animation for start instructions (only if it exists)
-                if (welcomeElements.startInstructions && welcomeElements.startInstructions.nodeType === 1) {
-                    masterTimeline.to(welcomeElements.startInstructions, {
-                        x: "+=10", // Move right
-                        repeat: -1, // Repeat indefinitely
-                        yoyo: true, // Go back and forth
-                        duration: 0.8,
-                        ease: "power1.inOut"
-                    }, ">-0.5"); // Start pulsing near the end of the text fade-in
+        // --- Step 1: Pre-create all visualizations with validation ---
+        paragraphItems.forEach(item => {
+            if (hasValidVisualizationData(item)) {
+                const vizResult = renderVisualizationsForItem(item);
+                storedVisualizations[item.id] = vizResult;
+                // Set initial state: hidden
+                if (vizResult.elements.length > 0) {
+                    gsap.set(vizResult.elements, { opacity: 0 });
                 }
             }
-        } catch (error) {
-            console.error("GSAP welcome animation error:", error);
+        });
+
+        // --- Step 2: Build the timeline ---
+
+        // Welcome screen
+        masterTimeline.addLabel("welcome", 0);
+        const welcomeElements = showWelcomeMessage();
+        const validWelcomeElements = Object.values(welcomeElements).filter(el => el && el.nodeType === 1);
+
+        // Map zoom for welcome
+        masterTimeline.add(updateMapZoom({ map_zoom: "africa" }), "welcome");
+
+        // Welcome text fade in
+        if (validWelcomeElements.length > 0) {
+            masterTimeline.fromTo(validWelcomeElements,
+                { opacity: 0 },
+                { opacity: 1, duration: 0.75, stagger: 0.2, ease: "power2.out" },
+                "welcome+=0.3"
+            );
         }
-    
-        // --- Transitions Between Items ---
+
+        masterTimeline.addLabel("welcome_end", "welcome+=1.5");
+
+        // --- Step 3: Add each entry's animations ---
         let previousItemId = null;
-        masterTimeline.addLabel("welcome_end", "+=0.5");
 
         paragraphItems.forEach((item, index) => {
             const itemId = item.id;
             const itemLabel = `entry_${itemId}`;
-            
-            // Store current item's DOM element in our tracking structure
-            const itemElement = $(`.timeline-item[data-id="${itemId}"]`);
-            animationElements.items[itemId] = {
-                element: itemElement.length > 0 ? itemElement.get(0) : null
-            };
-            
+            const itemElement = $(`.timeline-item[data-id="${itemId}"]`).get(0);
             const itemYear = item.year_start;
 
-            // --- Add Label for this item ---
-            masterTimeline.addLabel(itemLabel, index === 0 ? ">+0.5" : ">+0.3");
+            // Calculate position: first entry after welcome_end, others follow
+            const labelPosition = index === 0 ? "welcome_end+=0.3" : ">=0.3";
+            masterTimeline.addLabel(itemLabel, labelPosition);
 
-            // --- Animations STARTING at itemLabel ---
-
-            // 1. Fade out previous item's text (or welcome message)
-            let elementToFadeOut = null;
-            if (index === 0 && animationElements.welcome) {
-                // For first item, fade out welcome elements if they exist
-                const welcomeElementsToFade = Object.values(animationElements.welcome)
-                    .filter(el => el && el.nodeType === 1);
-                    
-                // Only set elementToFadeOut if we have valid welcome elements
-                if (welcomeElementsToFade.length > 0) {
-                    elementToFadeOut = welcomeElementsToFade;
+            // --- Fade out previous content ---
+            if (index === 0 && validWelcomeElements.length > 0) {
+                // Fade out welcome
+                masterTimeline.to(validWelcomeElements, {
+                    opacity: 0,
+                    duration: 0.3,
+                    ease: "power1.in"
+                }, itemLabel);
+            } else if (previousItemId) {
+                // Fade out previous item's text
+                const prevElement = $(`.timeline-item[data-id="${previousItemId}"]`).get(0);
+                if (prevElement) {
+                    masterTimeline.to(prevElement, {
+                        autoAlpha: 0,
+                        duration: 0.3,
+                        ease: "power1.in"
+                    }, itemLabel);
                 }
-                
-                // Stop pulsing animation on welcome arrow if it exists
-                if (animationElements.welcome.startInstructions) {
-                    try {
-                        gsap.killTweensOf(animationElements.welcome.startInstructions);
-                    } catch (error) {
-                        console.warn("Could not kill welcome animation tweens:", error);
-                    }
+                // Fade out previous item's visualizations
+                const prevViz = storedVisualizations[previousItemId];
+                if (prevViz && prevViz.elements.length > 0) {
+                    masterTimeline.to(prevViz.elements, {
+                        opacity: 0,
+                        duration: 0.3,
+                        ease: "power1.in"
+                    }, itemLabel);
                 }
-            } else if (previousItemId && animationElements.items[previousItemId]?.element) {
-                // For subsequent items, fade out the previous item's element if it exists
-                elementToFadeOut = animationElements.items[previousItemId].element;
             }
 
-            if (elementToFadeOut) {
-                masterTimeline.to(elementToFadeOut, {
-                    autoAlpha: 0, // Fades out and sets visibility: hidden
-                    duration: 0.4,
-                }, itemLabel); // Start fade out exactly at the item label
-            }
-
-            // 2. Clear previous visualizations
-            masterTimeline.add(clearAllVisualizations(), itemLabel + "+=0.1");
-
-            // 3. Animate Map Zoom
+            // --- Map zoom ---
             masterTimeline.add(updateMapZoom(item), itemLabel + "+=0.1");
 
-            // 4. Animate Timeline Band centering
-            masterTimeline.call(() => {
-                const targetX = updateTimelineMarker(itemYear); // Update active class and get target X
-                gsap.to('.timeline-band', { // Animate the band using the calculated value
-                    x: targetX,
-                    duration: 0.8,
-                    ease: 'power2.inOut'
-                });
-            }, null, itemLabel + "+=0.1"); // Call slightly after label
+            // --- Timeline marker update (non-reversible, just visual) ---
+            masterTimeline.call(() => updateTimelineMarker(itemYear), null, itemLabel + "+=0.1");
 
-            // --- Animations STARTING LATER (relative to itemLabel or previous tween) ---
-
-            // 5. Fade In Current Item's Text (only if the element exists)
-            const currentElement = animationElements.items[itemId]?.element;
-            if (currentElement) {
-                // Ensure item is visible before fading in (autoAlpha handles display and opacity)
-                masterTimeline.set(currentElement, { display: 'block', autoAlpha: 0 });
-                masterTimeline.to(currentElement, {
-                    autoAlpha: 1,
-                    duration: 0.5
-                }, ">-0.3"); // Overlap slightly with map zoom/band animation end
+            // --- Fade in current item's text ---
+            if (itemElement) {
+                masterTimeline.fromTo(itemElement,
+                    { autoAlpha: 0, display: 'block' },
+                    { autoAlpha: 1, duration: 0.5, ease: "power2.out" },
+                    itemLabel + "+=0.4"
+                );
             }
 
-            // 6. Render and Animate New Visualizations
-            const vizResult = renderVisualizationsForItem(item);
-            if (vizResult.elements.length > 0) {
-                // Set initial opacity to 0
-                gsap.set(vizResult.elements, { opacity: 0 });
-
-                // Fade in visualization elements
-                masterTimeline.to(vizResult.elements, {
-                    opacity: 1,
-                    duration: 0.6,
-                    stagger: 0.05,
-                    ease: 'power2.out'
-                }, ">-0.2"); // Overlap with text fade-in
-
-                // Add pulsing animation for dots
-                if (vizResult.pulseElements.length > 0) {
-                    masterTimeline.to(vizResult.pulseElements, {
-                        scale: 1.2,
-                        duration: 0.8,
-                        ease: "power1.inOut",
-                        yoyo: true,
-                        repeat: -1,
-                        stagger: 0.1
-                    }, ">-0.4");
-                }
+            // --- Fade in current item's visualizations ---
+            const currentViz = storedVisualizations[itemId];
+            if (currentViz && currentViz.elements.length > 0) {
+                masterTimeline.fromTo(currentViz.elements,
+                    { opacity: 0 },
+                    { opacity: 1, duration: 0.5, stagger: 0.03, ease: "power2.out" },
+                    itemLabel + "+=0.5"
+                );
             }
 
-            // Store current item ID for the next iteration
             previousItemId = itemId;
         });
 
-        // --- Final State ---
-        // Add a final label to mark the end of the last item's animations
-        masterTimeline.addLabel("end", ">+0.5"); // Add a bit of padding at the end
+        // End label
+        masterTimeline.addLabel("end", ">=0.5");
 
         console.log("Master Timeline Built:", masterTimeline.labels);
     }

@@ -11,15 +11,40 @@ jQuery(document).ready(function($) {
 
     gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
+    // Enable normalizeScroll for better snap behavior
+    ScrollTrigger.normalizeScroll(true);
+
     const smoother = ScrollSmoother.create({
         wrapper: "#smooth-wrapper",
         content: "#smooth-content",
         smooth: 2,
         speed: 3,
         effects: true,
-        
-        
+        normalizeScroll: true,
     });
+
+    // Section snap using GSAP's native snap functionality
+    const snapSections = gsap.utils.toArray('section');
+
+    if (snapSections.length > 0) {
+        // Calculate section positions as normalized progress values (0-1)
+        const getSnapPositions = () => {
+            const maxScroll = ScrollTrigger.maxScroll(window);
+            return snapSections.map(section => section.offsetTop / maxScroll);
+        };
+
+        ScrollTrigger.create({
+            snap: {
+                snapTo: (progress) => {
+                    const positions = getSnapPositions();
+                    return gsap.utils.snap(positions, progress);
+                },
+                duration: { min: 0.3, max: 0.6 },
+                delay: 0.02,
+                ease: "power1.inOut"
+            }
+        });
+    }
 
     
 
@@ -60,18 +85,29 @@ jQuery(document).ready(function($) {
 
     const themeToggleBtn = $('.theme-toggle');
     const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-   
+
+    // Update podcast embed theme to match site theme
+    function updatePodcastEmbed(isDark) {
+        const podcastEmbed = document.getElementById('podcast-embed');
+        if (podcastEmbed && podcastEmbed.dataset.embedBase) {
+            const theme = isDark ? 'dark' : 'light';
+            podcastEmbed.src = podcastEmbed.dataset.embedBase + theme;
+        }
+    }
+
     // Get saved theme or use system preference
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
         document.body.classList.add(savedTheme + '-theme');
         updateToggleButton(savedTheme === 'dark');
+        updatePodcastEmbed(savedTheme === 'dark');
     } else {
         const isDark = prefersDarkScheme.matches;
         document.body.classList.add(isDark ? 'dark-theme' : 'light-theme');
         updateToggleButton(isDark);
+        updatePodcastEmbed(isDark);
     }
-    
+
     // Theme toggle click handler
     themeToggleBtn.on('click', function() {
         const isDark = document.body.classList.contains('dark-theme');
@@ -79,12 +115,13 @@ jQuery(document).ready(function($) {
         document.body.classList.add(isDark ? 'light-theme' : 'dark-theme');
         localStorage.setItem('theme', isDark ? 'light' : 'dark');
         updateToggleButton(!isDark);
+        updatePodcastEmbed(!isDark);
     });
-    
+
     function updateToggleButton(isDark) {
         themeToggleBtn.find('.theme-toggle-text').text(isDark ? 'Switch to light theme' : 'Switch to dark theme');
     }
-    
+
     // System theme change handler
     prefersDarkScheme.addListener((e) => {
         if (!localStorage.getItem('theme')) {
@@ -92,6 +129,7 @@ jQuery(document).ready(function($) {
             document.body.classList.remove(isDark ? 'light-theme' : 'dark-theme');
             document.body.classList.add(isDark ? 'dark-theme' : 'light-theme');
             updateToggleButton(isDark);
+            updatePodcastEmbed(isDark);
         }
     });
 

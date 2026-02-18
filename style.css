@@ -98,6 +98,7 @@ body.dark-theme {
 
 html {
 	-webkit-text-size-adjust: 100%;
+	scroll-snap-type: y proximity;
 }
 
 html, body { height: auto }
@@ -753,6 +754,19 @@ textarea {
     display: block;
 }
 
+.gallery-grid .gallery-intro-row {
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+    margin-top: 100px;
+    margin-bottom: 100px;
+}
+
+.gallery-grid .gallery-intro-row h2 {
+    position: relative;
+    z-index: 1;
+}
+
 /* Jetpack infinite scroll
 --------------------------------------------- */
 
@@ -962,6 +976,7 @@ blockquote {
 	justify-content: center;
 	align-items: center;
 	height: 100%;
+	position: relative;
 }
 
 .content-frame,.content  {
@@ -1262,8 +1277,7 @@ nav.menu .menu-item a.nav-link:hover, nav.menu:hover .menu-item a.nav-link.activ
  .embed-menu-line {
 	position: absolute;
 	right: 0;
-	top: 50%;
-	transform: translateY(-50%);
+	top: 0;
 	color: var(--red);
 	opacity:0.7;
 	transition: color 0.3s ease;
@@ -1290,21 +1304,20 @@ nav.menu:hover .menu-item .embed-menu-line {
 	position: fixed;
 	left: 2rem;
 	bottom: 2rem;
-	width: 200px;
-	height: 40px;
+	width: auto;
+	height: auto;
 	cursor: pointer;
 	z-index: 1000;
 	overflow: hidden;
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
-	padding: 0 10px;
 	box-sizing: border-box;
 }
 
 .theme-toggle .theme-toggle-text {
 	opacity: 0;
-	margin-top: 28px;
+	margin-top: 12px;
     margin-left: 10px;
 }
 
@@ -1338,10 +1351,7 @@ section {
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	/*
-	scroll-margin: 20px;
-	scroll-snap-stop: always;
-	scroll-snap-align: center;*/
+	scroll-snap-align: start;
 }
 
 .slide {
@@ -1424,6 +1434,16 @@ section {
 #about-serati img {
 	width: 25vw;
 	height: auto;
+	opacity: 0.8;
+}
+
+/* Light theme specific styles for About Serati section */
+.light-theme #about-serati img {
+	opacity: 0.4 !important;
+}
+
+.light-theme #about-serati .blending-difference {
+	mix-blend-mode: normal;
 }
 
 #essay-block {
@@ -1487,6 +1507,25 @@ section {
 	margin-bottom: 2rem;
 }
 
+/* Podcast player embed - color adjustments for theme integration */
+.podcast-player-wrap {
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.podcast-player-wrap iframe {
+	display: block;
+}
+
+/* Light theme: warm up the white iframe background to match beige site background */
+.light-theme .podcast-player-wrap iframe {
+	filter: sepia(8%) saturate(90%) brightness(98%);
+}
+
+/* Dark theme: no filter needed, dark embed matches black background */
+.dark-theme .podcast-player-wrap iframe {
+	filter: none;
+}
 
 h1.headline-a {
 	font-family: var(--serif-font);
@@ -1774,14 +1813,17 @@ p {
     position: relative; /* Needed for absolute positioning of slides */
 }
 
-/* Text block above carousel */
+/* Text block above carousel - matches h2 styling */
 .prospect-text-block {
     margin-bottom: 2rem;
     max-width: 800px;
     width: 100%;
-    text-align: left;
+    text-align: center;
     color: var(--text-color);
-    line-height: 1.6;
+    font-family: var(--sans-serif-font);
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 140%;
 }
 
 .prospect-carousel-container {

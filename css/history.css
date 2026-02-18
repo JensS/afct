@@ -2,16 +2,74 @@
 #the-history {
     position: relative;
     min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+/* Main layout container */
+.history-layout {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    align-items: stretch;
+}
+
+/* Left panel - Text content (40%) */
+.history-text-panel {
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 4rem 3rem;
+    position: relative;
+    z-index: 20;
+}
+
+/* Text content area - positioned at top */
+.history-text-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 2rem;
+}
+
+/* Right panel - Map (60%) */
+.history-map-panel {
+    width: 60%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+/* Navigation arrows container - positioned at bottom */
+.history-nav-arrows {
+    display: flex;
+    gap: 1rem;
+    padding-bottom: 2rem;
+}
+
+#the-history .carousel-arrow {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    transform: none;
+}
+
+#the-history .carousel-arrow:hover {
+    transform: scale(1.1);
 }
 
 #visualization-container {
     position: relative;
-    top: 0;
     width: 100%;
-    height: 100vh;
-    margin: 2rem 0;
-    overflow: visible; /* Allow visualizations to extend beyond container */
-    z-index: 10; /* Above map but below timeline UI elements */
+    flex: 1;
+    overflow: visible;
+    z-index: 10;
 }
 
 #map-container {
@@ -21,7 +79,7 @@
     top: 0;
     left: 0;
     z-index: 1;
-    pointer-events: none; /* Allow clicks to pass through to elements below */
+    pointer-events: none;
 }
 
 
@@ -116,24 +174,20 @@
 
 
 #timeline-content {
-    position: absolute;
-    top: 66%; /* Position in the lower third of the screen */
-    left: 0;
-    right: 0;
-    transform: translateY(-50%);
-    z-index: 30; /* Higher z-index to appear above map */
+    position: relative;
+    z-index: 30;
     pointer-events: none;
-    display: block; /* Always show in history section */
+    display: block;
 }
 
 .timeline-item {
-
     position: absolute;
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 1.5rem;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0;
     background: transparent;
-    z-index: 30; /* Higher z-index to appear above map */
+    z-index: 30;
     pointer-events: auto;
     border: none;
     box-shadow: none;
@@ -151,21 +205,7 @@
     pointer-events: auto; /* Ensure it's clickable */
 }
 
-/*
- * Removed old .nav-arrow, .prev-arrow, .next-arrow styles.
- * These are now handled by the shared .carousel-arrow styles in components.css
- */
-
-/* Adjust positioning for history arrows if needed, overriding shared styles */
-#the-history .carousel-arrow.prev {
-    left: 10%; /* Example: Different position for history */
-    /* Override other shared styles if necessary */
-    /* background-color: rgba(0, 0, 0, 0.6); */
-}
-
-#the-history .carousel-arrow.next {
-    right: 10%; /* Example: Different position for history */
-}
+/* History arrows are positioned in .history-nav-arrows container */
 
 
 .timeline-item .year {
@@ -201,19 +241,18 @@
     opacity: 0;
 }
 
+/* Timeline markers - positioned under the map */
 .timeline-markers {
-    position: absolute;
-    bottom: 2rem; /* Move to bottom of section */
-    left: 0;
-    right: 0;
+    position: relative;
+    width: 100%;
     height: 60px;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    z-index: 1000; /* Above everything */
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 20;
     pointer-events: none;
     background: transparent;
-    width: 100%;
+    margin-top: 1rem;
 }
 
 .timeline-band-container {

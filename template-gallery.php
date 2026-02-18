@@ -21,13 +21,15 @@ if(!defined("IN_ONEPAGER"))
     
     <div class="img-sections-wrap">
         <div class="global-container" >
-            <div style="margin-top:100px;margin-bottom:100px">
-                <h2 class="align-center" data-scroll data-scroll-speed="2">Explore the photography stills captured by Steve Marais.</h2>
-            </div>
             <div class="gallery-grid" >
+                <div class="gallery-row gallery-intro-row">
+                    <div class="gallery-column" style="width: 100%">
+                        <h2 class="align-center">Explore the photography stills captured by Steve Marais.</h2>
+                    </div>
+                </div>
                 <?php
                 $gallery_data = get_post_meta(get_the_ID(), '_afct_gallery_layout', true);
-                
+
                 if (!empty($gallery_data['rows'])) :
                     foreach ($gallery_data['rows'] as $row) : ?>
                         <div class="gallery-row">

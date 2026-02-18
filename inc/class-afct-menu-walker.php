@@ -1,6 +1,9 @@
 <?php
 class AFCT_Menu_Walker extends Walker_Nav_Menu {
     function start_el(&$output, $item, $depth = 0, $args = array(), $id = 0) {
+        if ( get_post_meta( $item->ID, '_afct_menu_experimental', true ) === '1' && ! afct_is_experimental_mode() ) {
+            return;
+        }
         $is_homepage = is_page_template('template-homepage.php');
         $unique_id = uniqid('menu-line-');
         
