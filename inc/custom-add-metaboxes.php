@@ -130,6 +130,24 @@ function afct_add_custom_boxes() {
                 'high'                           // Priority
             );
             break;
+        case 'template-awards.php':
+            add_meta_box(
+                'afct_awards_laurels_meta_box',
+                'Festival Laurels',
+                'afct_awards_laurels_meta_box_callback',
+                'page',
+                'normal',
+                'high'
+            );
+            add_meta_box(
+                'afct_awards_articles_meta_box',
+                'Press Articles',
+                'afct_awards_articles_meta_box_callback',
+                'page',
+                'normal',
+                'high'
+            );
+            break;
         case 'template-credits.php':
 
             add_meta_box(

@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const videoId = placeholder.getAttribute('data-video-id');
         if (!videoId) return;
         
-        const embedUrl = 'https://www.youtube.com/embed/' + videoId;
+        const embedUrl = 'https://www.youtube.com/embed/' + videoId + '?autoplay=0';
         const iframe = document.createElement('iframe');
         iframe.width = '560';
         iframe.height = '315';

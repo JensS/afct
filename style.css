@@ -2014,3 +2014,115 @@ p {
     width: 100%;
     padding: 0.5rem;
 }
+
+/*--------------------------------------------------------------
+# Awards & Press
+--------------------------------------------------------------*/
+
+.awards-wrap {
+    padding-top: 6vh;
+    padding-bottom: 6vh;
+}
+
+/* Laurels */
+.laurels-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    margin-bottom: 4rem;
+}
+
+.laurel-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 160px;
+}
+
+.laurel-image {
+    width: 120px;
+    height: auto;
+    object-fit: contain;
+    margin-bottom: 0.75rem;
+}
+
+.laurel-festival {
+    font-family: var(--sans-serif-font);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 0.25rem;
+    color: var(--text-color);
+}
+
+.laurel-award {
+    font-family: var(--sans-serif-font);
+    font-size: 0.75rem;
+    margin: 0 0 0.2rem;
+    color: var(--text-color);
+    opacity: 0.75;
+}
+
+.laurel-year {
+    font-family: var(--sans-serif-font);
+    font-size: 0.7rem;
+    margin: 0;
+    color: var(--red);
+}
+
+/* Press */
+.press-heading {
+    font-family: var(--sans-serif-font);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--red);
+    margin-bottom: 1.25rem;
+}
+
+.press-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid var(--text-color);
+}
+
+.press-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 20%, transparent);
+    text-decoration: none;
+    color: var(--text-color);
+    transition: color 0.2s ease;
+}
+
+.press-item:hover {
+    color: var(--red);
+}
+
+.press-title {
+    font-family: var(--serif-font);
+    font-size: 1rem;
+}
+
+.press-publication {
+    font-family: var(--sans-serif-font);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.6;
+    white-space: nowrap;
+}
+
+.press-date {
+    font-family: var(--sans-serif-font);
+    font-size: 0.75rem;
+    opacity: 0.5;
+    white-space: nowrap;
+}
