@@ -408,7 +408,7 @@ function afct_get_llms_txt_content() {
 /**
  * Serve /llms.txt for AI/LLM crawlers
  */
-add_action( 'template_redirect', function () {
+add_action( 'init', function () {
     if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
         return;
     }
@@ -422,6 +422,85 @@ add_action( 'template_redirect', function () {
     header( 'Content-Type: text/plain; charset=utf-8' );
     header( 'Cache-Control: public, max-age=86400' );
     echo afct_get_llms_txt_content();
+    exit;
+} );
+
+/**
+ * Auto-generate sitemap XML from WordPress data.
+ * Includes the homepage and each primary-menu section as an anchor URL.
+ */
+function afct_auto_generate_sitemap_xml() {
+    $home_url    = rtrim( home_url( '/' ), '/' );
+    $homepage_id = get_option( 'page_on_front' );
+    $home_mod    = $homepage_id
+        ? get_post_modified_time( 'Y-m-d', true, $homepage_id )
+        : gmdate( 'Y-m-d' );
+
+    $lines   = array();
+    $lines[] = '<?xml version="1.0" encoding="UTF-8"?>';
+    $lines[] = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+    // Homepage
+    $lines[] = '  <url>';
+    $lines[] = '    <loc>' . esc_url( $home_url . '/' ) . '</loc>';
+    $lines[] = '    <lastmod>' . $home_mod . '</lastmod>';
+    $lines[] = '    <changefreq>weekly</changefreq>';
+    $lines[] = '    <priority>1.0</priority>';
+    $lines[] = '  </url>';
+
+    // Primary-menu sections
+    $menu_locations = get_nav_menu_locations();
+    $menu_id        = $menu_locations['menu-1'] ?? 0;
+    $menu_items     = $menu_id ? wp_get_nav_menu_items( $menu_id ) : array();
+
+    foreach ( $menu_items as $item ) {
+        $page = get_post( $item->object_id );
+        if ( ! $page ) {
+            continue;
+        }
+        $modified = get_post_modified_time( 'Y-m-d', true, $page->ID );
+        $url      = $home_url . '/#section-' . $page->post_name;
+
+        $lines[] = '  <url>';
+        $lines[] = '    <loc>' . esc_url( $url ) . '</loc>';
+        $lines[] = '    <lastmod>' . $modified . '</lastmod>';
+        $lines[] = '    <changefreq>monthly</changefreq>';
+        $lines[] = '    <priority>0.8</priority>';
+        $lines[] = '  </url>';
+    }
+
+    $lines[] = '</urlset>';
+
+    return implode( "\n", $lines );
+}
+
+/**
+ * Get sitemap XML: returns saved custom content if set, otherwise auto-generates.
+ */
+function afct_get_sitemap_xml_content() {
+    $saved = get_option( 'afct_sitemap_xml_content', '' );
+    return $saved !== '' ? $saved : afct_auto_generate_sitemap_xml();
+}
+
+/**
+ * Serve /sitemap.xml
+ * Hooks into 'init' (before wp_loaded / parse_request) to intercept the
+ * request before WordPress's own sitemap feature redirects it to wp-sitemap.xml.
+ */
+add_action( 'init', function () {
+    if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
+        return;
+    }
+    $path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+    $home = parse_url( home_url( '/' ), PHP_URL_PATH );
+    $file = ltrim( str_replace( rtrim( $home, '/' ), '', $path ), '/' );
+    if ( $file !== 'sitemap.xml' ) {
+        return;
+    }
+    status_header( 200 );
+    header( 'Content-Type: application/xml; charset=utf-8' );
+    header( 'Cache-Control: public, max-age=86400' );
+    echo afct_get_sitemap_xml_content();
     exit;
 } );
 

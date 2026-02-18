@@ -234,6 +234,7 @@ require_once get_template_directory() . '/inc/class-afct-menu-walker.php';
 require_once get_template_directory() . '/inc/admin-menu-experimental.php';
 require_once get_template_directory() . '/inc/admin-awards.php';
 require_once get_template_directory() . '/inc/admin-llms-txt.php';
+require_once get_template_directory() . '/inc/admin-sitemap-xml.php';
 
 function afct_body_classes( $classes ) {
 	// Adds a class of hfeed to non-singular pages.

@@ -58,7 +58,7 @@ function afct_gallery_meta_box_html($post) {
                     <div class="image-controls" <?php echo isset($column['type']) && $column['type'] === 'space' ? 'style="display:none"' : ''; ?>>
                         <div class="image-preview" style="margin-bottom: 10px">
                             <?php if (!empty($column['image_id'])): ?>
-                                <?php echo wp_get_attachment_image($column['image_id'], 'thumbnail'); ?>
+                                <?php echo wp_get_attachment_image($column['image_id'], 'thumbnail', false, ['style' => 'cursor:pointer', 'title' => 'Click to change or edit image']); ?>
                             <?php endif; ?>
                         </div>
                         <button type="button" class="button select-image">Select Image</button>
@@ -239,24 +239,49 @@ function afct_gallery_meta_box_html($post) {
             }
         });
 
-        // Select Image
-        $(document).on('click', '.select-image', function() {
-            const $button = $(this);
+        // Shared helper: open the media picker for a given column,
+        // pre-selecting the current attachment so the user can edit alt text etc.
+        function openMediaPicker($column) {
+            const currentId = $column.find('.image-id').val();
+
             const frame = wp.media({
-                title: 'Select Image',
+                title: currentId ? 'Edit Image' : 'Select Image',
                 multiple: false,
                 library: { type: 'image' }
             });
 
+            // Pre-select the existing attachment so its details panel opens
+            frame.on('open', function() {
+                if (currentId) {
+                    const attachment = wp.media.attachment(currentId);
+                    attachment.fetch();
+                    frame.state().get('selection').add(attachment);
+                }
+            });
+
             frame.on('select', function() {
                 const attachment = frame.state().get('selection').first().toJSON();
-                const $column = $button.closest('.gallery-column');
+                const thumbUrl = attachment.sizes && attachment.sizes.thumbnail
+                    ? attachment.sizes.thumbnail.url
+                    : attachment.url;
                 $column.find('.image-id').val(attachment.id);
-                $column.find('.image-preview').html(`<img src="${attachment.sizes.thumbnail.url}" style="max-width:100%">`);
+                $column.find('.image-preview').html(
+                    `<img src="${thumbUrl}" style="max-width:100%;cursor:pointer" title="Click to change or edit image">`
+                );
                 $column.find('.remove-image').show();
             });
 
             frame.open();
+        }
+
+        // Select Image button
+        $(document).on('click', '.select-image', function() {
+            openMediaPicker($(this).closest('.gallery-column'));
+        });
+
+        // Click on the thumbnail to re-open the picker (edit alt text, swap image, …)
+        $(document).on('click', '.image-preview img', function() {
+            openMediaPicker($(this).closest('.gallery-column'));
         });
 
         // Remove Image
