@@ -486,15 +486,15 @@ add_filter('wp_sitemaps_posts_entry', function($entry, $post) {
 function afct_auto_generate_llms_txt() {
     $site_name = get_bloginfo( 'name' );
     $site_desc = get_bloginfo( 'description' );
-    $home_url  = home_url( '/' );
+    $home_url  = trailingslashit( home_url() );
 
-    // Homepage description
+    // Blockquote summary: prefer homepage excerpt, fall back to tagline
     $homepage_id = get_option( 'page_on_front' );
     $intro = $homepage_id
         ? wp_strip_all_tags( get_the_excerpt( $homepage_id ) )
         : $site_desc;
 
-    $lines = array();
+    $lines   = array();
     $lines[] = '# ' . $site_name;
     $lines[] = '';
     if ( $intro ) {
@@ -502,38 +502,152 @@ function afct_auto_generate_llms_txt() {
         $lines[] = '';
     }
 
-    // Build sections from primary menu
+    // Thematic context — appears in the body before H2 sections
+    $lines[] = 'African Face, Colonial Tongue is a South African artivism project exploring linguistic identity, cultural belonging, and the legacy of Apartheid. Writer and performer Serati Maseko examines how the language you speak — or fail to speak — shapes your place in post-Apartheid South Africa. The project spans a short film, a companion podcast series, an interactive historical timeline, and a photography collection.';
+    $lines[] = '';
+
+    // ── Sections ─────────────────────────────────────────────────────────
     $menu_locations = get_nav_menu_locations();
     $menu_id        = $menu_locations['menu-1'] ?? 0;
     $menu_items     = $menu_id ? wp_get_nav_menu_items( $menu_id ) : array();
 
-    if ( $menu_items ) {
-        $lines[] = '## Sections';
+    // Categorise menu items by template for grouped sections
+    $film_items      = array();
+    $podcast_items   = array();
+    $history_items   = array();
+    $gallery_items   = array();
+    $other_items     = array();
+
+    $film_templates    = array( 'template-film.php', 'template-herovideo.php' );
+    $podcast_templates = array( 'template-podcast.php' );
+    $history_templates = array( 'template-history.php' );
+    $gallery_templates = array( 'template-gallery.php' );
+
+    foreach ( $menu_items as $item ) {
+        $page = get_post( $item->object_id );
+        if ( ! $page ) continue;
+        $tpl = get_page_template_slug( $page->ID );
+        if ( in_array( $tpl, $film_templates, true ) ) {
+            $film_items[] = $item;
+        } elseif ( in_array( $tpl, $podcast_templates, true ) ) {
+            $podcast_items[] = $item;
+        } elseif ( in_array( $tpl, $history_templates, true ) ) {
+            $history_items[] = $item;
+        } elseif ( in_array( $tpl, $gallery_templates, true ) ) {
+            $gallery_items[] = $item;
+        } else {
+            $other_items[] = $item;
+        }
+    }
+
+    // Helper: emit a list item for a menu item
+    $emit_item = function( $item ) use ( $home_url ) {
+        $page    = get_post( $item->object_id );
+        $excerpt = wp_strip_all_tags( get_the_excerpt( $page->ID ) );
+        $url     = $home_url . '#section-' . $page->post_name;
+        $label   = $item->title ?: $page->post_title;
+        $line    = '- [' . $label . '](' . $url . ')';
+        if ( $excerpt ) {
+            $line .= ': ' . $excerpt;
+        }
+        return $line;
+    };
+
+    // ── The Film ─────────────────────────────────────────────────────────
+    $lines[] = '## The Film';
+    $lines[] = '';
+    $lines[] = 'A short narrative film written and performed by Serati Maseko, directed by Jens Sage, shot on location in South Africa. The film confronts the tensions of navigating Afrikaans, English, and indigenous languages as markers of identity, belonging, and power.';
+    $lines[] = '';
+    foreach ( $film_items as $item ) {
+        $lines[] = $emit_item( $item );
+    }
+    // About Serati belongs here too — pull from other_items if present
+    foreach ( $other_items as $item ) {
+        $page = get_post( $item->object_id );
+        if ( $page && strpos( $page->post_name, 'serati' ) !== false ) {
+            $lines[] = $emit_item( $item );
+        }
+    }
+    $lines[] = '';
+
+    // ── The Podcast ──────────────────────────────────────────────────────
+    $lines[] = '## The Podcast';
+    $lines[] = '';
+    $lines[] = 'A companion podcast series hosted by Serati Maseko. Four conversations with South Africans who share similar upbringings but vastly different relationships to language, identity, and culture.';
+    $lines[] = '';
+    foreach ( $podcast_items as $item ) {
+        $lines[] = $emit_item( $item );
+    }
+    $lines[] = '- [Listen on Spotify](https://open.spotify.com/show/7pZEwW27Xjr7Iqk1iIX7M7): Full podcast series';
+    $lines[] = '- [Listen on Apple Podcasts](https://podcasts.apple.com/us/podcast/african-face-colonial-tongue-the-podcast/id1771495874): Full podcast series';
+    $lines[] = '';
+
+    // ── History Timeline ─────────────────────────────────────────────────
+    if ( $history_items ) {
+        $lines[] = '## The History';
         $lines[] = '';
-        foreach ( $menu_items as $item ) {
-            $page    = get_post( $item->object_id );
-            if ( ! $page ) continue;
-            $excerpt = wp_strip_all_tags( get_the_excerpt( $page->ID ) );
-            $url     = $home_url . '#section-' . $page->post_name;
-            $label   = $item->title ?: $page->post_title;
-            $line    = '- [' . $label . '](' . $url . ')';
-            if ( $excerpt ) {
-                $line .= ': ' . $excerpt;
-            }
-            $lines[] = $line;
+        $lines[] = 'An interactive visual timeline mapping key events in South Africa\'s linguistic and cultural history — from colonisation through Apartheid to the present day.';
+        $lines[] = '';
+        foreach ( $history_items as $item ) {
+            $lines[] = $emit_item( $item );
         }
         $lines[] = '';
     }
 
-    // Podcast external links
-    $lines[] = '## The Podcast';
-    $lines[] = '';
-    $lines[] = '- [Listen on Spotify](https://open.spotify.com/show/7pZEwW27Xjr7Iqk1iIX7M7): African Face, Colonial Tongue podcast series on Spotify';
-    $lines[] = '- [Listen on Apple Podcasts](https://podcasts.apple.com/us/podcast/african-face-colonial-tongue-the-podcast/id1771495874): African Face, Colonial Tongue podcast series on Apple Podcasts';
-    $lines[] = '';
+    // ── Photography ──────────────────────────────────────────────────────
+    if ( $gallery_items ) {
+        $lines[] = '## Photography';
+        $lines[] = '';
+        $lines[] = 'Production stills photographed by Steve Marais during the film shoot in South Africa.';
+        $lines[] = '';
+        foreach ( $gallery_items as $item ) {
+            $lines[] = $emit_item( $item );
+        }
+        $lines[] = '';
+    }
 
-    // Sitemap reference
-    $lines[] = '## Sitemap';
+    // ── Other sections ───────────────────────────────────────────────────
+    $remaining = array_filter( $other_items, function( $item ) {
+        $page = get_post( $item->object_id );
+        return $page && strpos( $page->post_name, 'serati' ) === false;
+    } );
+    if ( $remaining ) {
+        $lines[] = '## More';
+        $lines[] = '';
+        foreach ( $remaining as $item ) {
+            $lines[] = $emit_item( $item );
+        }
+        $lines[] = '';
+    }
+
+    // ── Credits ──────────────────────────────────────────────────────────
+    $credits_file = get_template_directory() . '/credits.json';
+    if ( file_exists( $credits_file ) ) {
+        $credits = json_decode( file_get_contents( $credits_file ), true );
+        if ( $credits ) {
+            $lines[] = '## Credits';
+            $lines[] = '';
+            if ( ! empty( $credits['film_team'] ) ) {
+                $lines[] = '**Film**';
+                $lines[] = '';
+                foreach ( $credits['film_team'] as $role => $name ) {
+                    $lines[] = '- ' . $role . ': ' . $name;
+                }
+                $lines[] = '';
+            }
+            if ( ! empty( $credits['podcast_team'] ) ) {
+                $lines[] = '**Podcast**';
+                $lines[] = '';
+                foreach ( $credits['podcast_team'] as $role => $name ) {
+                    $lines[] = '- ' . $role . ': ' . $name;
+                }
+                $lines[] = '';
+            }
+        }
+    }
+
+    // ── Optional (skippable for LLMs) ────────────────────────────────────
+    $lines[] = '## Optional';
     $lines[] = '';
     $lines[] = '- [XML Sitemap](' . home_url( '/wp-sitemap.xml' ) . ')';
     $lines[] = '';

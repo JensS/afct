@@ -34,8 +34,8 @@ $credits = afct_get_team_credits();
                     $podcast_guests = get_post_meta(get_the_ID(), '_afct_podcast_guests', true);
                     if (!empty($podcast_guests)) :
                         foreach ($podcast_guests as $guest) :
-                            // Get attachment ID from URL
-                            $attachment_id = attachment_url_to_postid($guest['image']);
+                            // Prefer stored image_id; fall back to URL lookup for legacy data
+                            $attachment_id = !empty($guest['image_id']) ? intval($guest['image_id']) : attachment_url_to_postid($guest['image']);
 
                             // Default values from meta field
                             $alt_text = !empty($guest['alt']) ? $guest['alt'] : '';
@@ -48,10 +48,12 @@ $credits = afct_get_team_credits();
                                 // Get attachment metadata
                                 $attachment = get_post($attachment_id);
 
-                                // Alt text (prefer WP attachment alt, fallback to meta field)
+                                // Alt text (prefer WP attachment alt, fallback to meta field, then title)
                                 $wp_alt = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
                                 if (!empty($wp_alt)) {
                                     $alt_text = $wp_alt;
+                                } elseif (empty($alt_text) && $attachment && !empty($attachment->post_title)) {
+                                    $alt_text = $attachment->post_title;
                                 }
 
                                 // Title from attachment

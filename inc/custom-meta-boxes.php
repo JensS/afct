@@ -149,21 +149,28 @@ function afct_save_custom_meta_box_data($post_id) {
         }
     }
 
-    // Save podcast guests
-    if (isset($_POST['guest_image'])) {
+    // Save podcast guests (new: guest_image_id[] stores attachment IDs)
+    if (isset($_POST['guest_image_id'])) {
         $podcast_guests = [];
-        $guest_images = $_POST['guest_image'];
-        foreach ($guest_images as $guest_image) {
-            if ($guest_image) {
-                $attachment_id = attachment_url_to_postid($guest_image);
-                $alt_text = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+        foreach ((array) $_POST['guest_image_id'] as $image_id) {
+            $image_id = intval($image_id);
+            if ($image_id > 0) {
+                $image_url = wp_get_attachment_url($image_id);
+                $alt_text  = get_post_meta($image_id, '_wp_attachment_image_alt', true);
+                if (empty($alt_text)) {
+                    $att_post = get_post($image_id);
+                    $alt_text = $att_post ? $att_post->post_title : '';
+                }
                 $podcast_guests[] = [
-                    'image' => esc_url_raw($guest_image),
-                    'alt' => sanitize_text_field($alt_text),
+                    'image'    => esc_url_raw($image_url),
+                    'image_id' => $image_id,
+                    'alt'      => sanitize_text_field($alt_text),
                 ];
             }
         }
         update_post_meta($post_id, '_afct_podcast_guests', $podcast_guests);
+    } elseif (!isset($_POST['afct_podcast_guests_meta_box_nonce'])) {
+        // No nonce means this save isn't from the podcast edit screen — leave meta alone
     } else {
         delete_post_meta($post_id, '_afct_podcast_guests');
     }

@@ -4,48 +4,140 @@
 function afct_podcast_guests_meta_box_callback($post) {
     wp_nonce_field('afct_save_podcast_guests_meta_box_data', 'afct_podcast_guests_meta_box_nonce');
     $podcast_guests = get_post_meta($post->ID, '_afct_podcast_guests', true);
+    if (!is_array($podcast_guests)) {
+        $podcast_guests = [];
+    }
     ?>
+    <style>
+        .podcast-guest {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: #fafafa;
+            margin-bottom: 8px;
+            border-radius: 3px;
+        }
+        .podcast-guest-thumb {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid #ccc;
+            display: block;
+            flex-shrink: 0;
+        }
+        .podcast-guest-thumb:hover { border-color: #0073aa; }
+        .podcast-guest-placeholder {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px dashed #ccc;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+        .podcast-guest-placeholder:hover { border-color: #0073aa; color: #0073aa; }
+        .podcast-guest-actions { display: flex; flex-direction: column; gap: 6px; }
+        .podcast-guest-remove {
+            background: none;
+            border: none;
+            color: #a00;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 12px;
+            padding: 0;
+            text-align: left;
+        }
+    </style>
+
     <div id="podcast-guests-wrapper">
-        <?php if (!empty($podcast_guests)) : ?>
-            <?php foreach ($podcast_guests as $guest) : ?>
-                <div class="podcast-guest">
-                    <label for="guest_image">Guest Image:</label>
-                    <input type="hidden" name="guest_image[]" value="<?php echo esc_attr($guest['image']); ?>" />
-                    <button type="button" class="upload_image_button button">Upload Image</button>
-                    <?php if ($guest['image']) : ?>
-                        <img src="<?php echo esc_url($guest['image']); ?>" alt="<?php echo esc_attr($guest['alt']); ?>" style="max-width: 100px; display: block;" />
-                    <?php endif; ?>
-                    <button type="button" class="remove-guest">Remove</button>
+        <?php foreach ($podcast_guests as $guest) :
+            // Prefer stored image_id; fall back to URL-based lookup for old data
+            $image_id = isset($guest['image_id']) ? intval($guest['image_id']) : 0;
+            if (!$image_id && !empty($guest['image'])) {
+                $image_id = attachment_url_to_postid($guest['image']);
+            }
+            $thumb_url = $image_id ? wp_get_attachment_image_url($image_id, 'thumbnail') : '';
+        ?>
+            <div class="podcast-guest">
+                <input type="hidden" name="guest_image_id[]" value="<?php echo esc_attr($image_id); ?>" />
+                <?php if ($thumb_url) : ?>
+                    <img class="podcast-guest-thumb" src="<?php echo esc_url($thumb_url); ?>" title="Click to change image" />
+                <?php else : ?>
+                    <div class="podcast-guest-placeholder">Click to<br>add image</div>
+                <?php endif; ?>
+                <div class="podcast-guest-actions">
+                    <button type="button" class="button pick-guest-image">
+                        <?php echo $thumb_url ? 'Change image' : 'Select image'; ?>
+                    </button>
+                    <button type="button" class="podcast-guest-remove remove-guest">Remove guest</button>
                 </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
+            </div>
+        <?php endforeach; ?>
     </div>
-    <button type="button" id="add-guest">Add Image of Guest</button>
+
+    <button type="button" id="add-guest" class="button button-secondary" style="margin-top: 8px;">+ Add Guest</button>
+
     <script>
-        jQuery(document).ready(function($) {
-            $('#add-guest').on('click', function() {
-                $('#podcast-guests-wrapper').append('<div class="podcast-guest"><label for="guest_image">Guest Image:</label><input type="hidden" name="guest_image[]" /><button type="button" class="upload_image_button button">Upload Image</button><button type="button" class="remove-guest">Remove</button></div>');
+    jQuery(document).ready(function($) {
+        function openMediaPicker(guestEl) {
+            var frame = wp.media({
+                title: 'Select Guest Image',
+                button: { text: 'Use this image' },
+                multiple: false,
+                library: { type: 'image' }
             });
-            $(document).on('click', '.remove-guest', function() {
-                $(this).closest('.podcast-guest').remove();
+            frame.on('select', function() {
+                var a = frame.state().get('selection').first().toJSON();
+                var thumbUrl = (a.sizes && a.sizes.thumbnail) ? a.sizes.thumbnail.url : a.url;
+                guestEl.find('input[name="guest_image_id[]"]').val(a.id);
+                guestEl.find('.podcast-guest-placeholder').replaceWith(
+                    '<img class="podcast-guest-thumb" src="' + thumbUrl + '" title="Click to change image" />'
+                );
+                // Replace existing thumb if already present
+                var existing = guestEl.find('.podcast-guest-thumb');
+                if (existing.length) {
+                    existing.attr('src', thumbUrl);
+                }
+                guestEl.find('.pick-guest-image').text('Change image');
             });
-            $(document).on('click', '.upload_image_button', function(e) {
-                e.preventDefault();
-                var button = $(this);
-                var custom_uploader = wp.media({
-                    title: 'Select Image',
-                    button: {
-                        text: 'Use this image'
-                    },
-                    multiple: false
-                }).on('select', function() {
-                    var attachment = custom_uploader.state().get('selection').first().toJSON();
-                    button.prev('input').val(attachment.url);
-                    button.next('img').remove();
-                    button.after('<img src="' + attachment.url + '" style="max-width: 100px; display: block;" />');
-                }).open();
-            });
+            frame.open();
+        }
+
+        // Clicking the image or placeholder opens the picker
+        $(document).on('click', '.podcast-guest-thumb, .podcast-guest-placeholder', function() {
+            openMediaPicker($(this).closest('.podcast-guest'));
         });
+        $(document).on('click', '.pick-guest-image', function() {
+            openMediaPicker($(this).closest('.podcast-guest'));
+        });
+
+        $(document).on('click', '.remove-guest', function() {
+            $(this).closest('.podcast-guest').remove();
+        });
+
+        $('#add-guest').on('click', function() {
+            var tpl = '<div class="podcast-guest">' +
+                '<input type="hidden" name="guest_image_id[]" value="" />' +
+                '<div class="podcast-guest-placeholder">Click to<br>add image</div>' +
+                '<div class="podcast-guest-actions">' +
+                    '<button type="button" class="button pick-guest-image">Select image</button>' +
+                    '<button type="button" class="podcast-guest-remove remove-guest">Remove guest</button>' +
+                '</div>' +
+                '</div>';
+            $('#podcast-guests-wrapper').append(tpl);
+        });
+    });
     </script>
     <?php
 }

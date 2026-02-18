@@ -41,8 +41,14 @@ if(!defined("IN_ONEPAGER"))
                                     <?php if ($column_type === 'image' && !empty($column['image_id'])) : 
                                         $scroll_speed = isset($column['scroll_speed']) ? $column['scroll_speed'] : '1';
                                     ?>
+                                        <?php
+                                            $_alt = get_post_meta($column['image_id'], '_wp_attachment_image_alt', true);
+                                            if (empty($_alt)) {
+                                                $_alt = get_the_title($column['image_id']);
+                                            }
+                                        ?>
                                         <img src="<?php echo esc_url(wp_get_attachment_image_url($column['image_id'], 'full')); ?>"
-                                             alt="<?php echo esc_attr(get_post_meta($column['image_id'], '_wp_attachment_image_alt', true)); ?>"
+                                             alt="<?php echo esc_attr($_alt); ?>"
                                              loading="lazy"
                                              data-scroll data-speed="<?php echo esc_attr($scroll_speed); ?>">
                                     <?php endif; ?>
