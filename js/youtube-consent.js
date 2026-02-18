@@ -17,10 +17,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const embedUrl = 'https://www.youtube.com/embed/' + videoId + '?autoplay=0';
         const iframe = document.createElement('iframe');
-        iframe.width = '560';
-        iframe.height = '315';
-        iframe.src = embedUrl;
+        iframe.style.width = '100%';
+        iframe.style.aspectRatio = '16/9';
         iframe.style.border = '0';
+        iframe.src = embedUrl;
         iframe.allowFullscreen = true;
         
         // Replace placeholder with iframe
