@@ -1,8 +1,8 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollSmoother } from "gsap/ScrollSmoother";
-import initHistoryTimeline from './history-timeline';
 import initProspectCarousel from './prospect-carousel';
+// history-timeline is loaded dynamically (it pulls in D3 + topojson)
 
 window.locomotiveScroll = null;
 
@@ -51,9 +51,11 @@ jQuery(document).ready(function($) {
     const historySection = document.getElementById('the-history');
 
     if (historySection) {
-        //locomotiveScroll.on('scroll', ({ animatedScroll, targetScroll, currentScroll, velocity, progress }) => {
-        // Initialize history timeline only if history section exists
-        initHistoryTimeline($);
+        // D3 + topojson are only loaded when the history section is present
+        import(/* webpackChunkName: "history-timeline" */ './history-timeline')
+            .then(({ default: initHistoryTimeline }) => {
+                initHistoryTimeline($);
+            });
     }
 
     initProspectCarousel($);

@@ -32,9 +32,14 @@ cp credits.json "${BUILD_DIR}/${THEME_NAME}/" 2>/dev/null || true
 
 # Copy dist — minified bundles only (skip unminified dev builds and font copies)
 mkdir -p "${BUILD_DIR}/${THEME_NAME}/dist"
-cp dist/afct.min.js dist/afct.min.js.LICENSE.txt \
-   dist/bundle.min.css dist/bundle.min.js \
+cp dist/afct.min.js dist/bundle.min.css dist/bundle.min.js \
    "${BUILD_DIR}/${THEME_NAME}/dist/" 2>/dev/null || true
+# Webpack dynamic chunks (history-timeline + vendor splits)
+find dist -name "*.chunk.min.js" \
+    | xargs -I{} cp {} "${BUILD_DIR}/${THEME_NAME}/dist/" 2>/dev/null || true
+# License files
+find dist -name "*.LICENSE.txt" \
+    | xargs -I{} cp {} "${BUILD_DIR}/${THEME_NAME}/dist/" 2>/dev/null || true
 # Webpack-emitted fonts (hashed filenames)
 find dist -name "*.otf" -o -name "*.ttf" -o -name "*.woff" -o -name "*.woff2" \
     | xargs -I{} cp {} "${BUILD_DIR}/${THEME_NAME}/dist/" 2>/dev/null || true
