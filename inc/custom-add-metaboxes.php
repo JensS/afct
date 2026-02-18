@@ -99,6 +99,14 @@ function afct_add_custom_boxes() {
                 "normal",
                 "high"
             );
+            add_meta_box(
+                "serati_profile_meta_box",
+                "Serati Profile (SEO)",
+                "afct_serati_profile_meta_box_callback",
+                "page",
+                "normal",
+                "high"
+            );
             break;
         case "template-gallery.php":
             add_meta_box(

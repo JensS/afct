@@ -34,6 +34,14 @@ function afct_get_seo_description() {
         return get_bloginfo('description');
     }
 
+    if (is_author()) {
+        $author_id = get_queried_object_id();
+        $bio = get_the_author_meta('description', $author_id);
+        if ($bio) {
+            return wp_strip_all_tags($bio);
+        }
+    }
+
     if (is_singular()) {
         $excerpt = get_the_excerpt();
         if ($excerpt) {
@@ -53,6 +61,15 @@ function afct_get_seo_image() {
         $homepage_id = get_option('page_on_front');
         if ($homepage_id && has_post_thumbnail($homepage_id)) {
             return get_the_post_thumbnail_url($homepage_id, 'large');
+        }
+    }
+
+    // Author page: use Gravatar
+    if (is_author()) {
+        $author_id  = get_queried_object_id();
+        $avatar_url = get_avatar_url($author_id, array('size' => 512));
+        if ($avatar_url) {
+            return $avatar_url;
         }
     }
 
@@ -98,7 +115,16 @@ function afct_output_seo_meta_tags() {
     <meta name="description" content="<?php echo esc_attr($description); ?>">
 
     <!-- Open Graph / Facebook -->
+    <?php if (is_author()) :
+        $og_author = get_queried_object();
+    ?>
+    <meta property="og:type" content="profile">
+    <meta property="profile:first_name" content="<?php echo esc_attr(get_the_author_meta('first_name', $og_author->ID)); ?>">
+    <meta property="profile:last_name" content="<?php echo esc_attr(get_the_author_meta('last_name', $og_author->ID)); ?>">
+    <meta property="profile:username" content="<?php echo esc_attr($og_author->user_nicename); ?>">
+    <?php else : ?>
     <meta property="og:type" content="website">
+    <?php endif; ?>
     <meta property="og:url" content="<?php echo esc_url($url); ?>">
     <meta property="og:title" content="<?php echo esc_attr($title); ?>">
     <meta property="og:description" content="<?php echo esc_attr($description); ?>">
@@ -202,6 +228,102 @@ function afct_get_film_schema() {
 }
 
 /**
+ * Generate VideoObject schema for the documentary film
+ */
+function afct_get_video_schema() {
+    $page = afct_get_menu_page_by_template( 'template-film.php' );
+    if ( ! $page ) {
+        return null;
+    }
+
+    $youtube_url = get_post_meta( $page->ID, '_afct_youtube_embed', true );
+    if ( ! $youtube_url ) {
+        return null;
+    }
+
+    // Extract YouTube video ID
+    $video_id = '';
+    $parsed   = parse_url( $youtube_url );
+    if ( ! empty( $parsed['query'] ) ) {
+        parse_str( $parsed['query'], $params );
+        $video_id = $params['v'] ?? '';
+    }
+    // Handle youtu.be short URLs
+    if ( ! $video_id && ! empty( $parsed['host'] ) && strpos( $parsed['host'], 'youtu.be' ) !== false ) {
+        $video_id = ltrim( $parsed['path'] ?? '', '/' );
+    }
+    if ( ! $video_id ) {
+        return null;
+    }
+
+    $title       = $page->post_title;
+    $description = wp_strip_all_tags( get_the_excerpt( $page->ID ) ) ?: get_bloginfo( 'description' );
+    $thumb_url   = get_the_post_thumbnail_url( $page->ID, 'large' );
+    if ( ! $thumb_url ) {
+        $thumb_url = 'https://img.youtube.com/vi/' . $video_id . '/maxresdefault.jpg';
+    }
+    $upload_date = get_the_date( 'c', $page->ID );
+    $duration    = get_post_meta( $page->ID, '_afct_video_duration', true ) ?: 'PT15M';
+
+    // Publisher
+    $org       = afct_get_organization_schema();
+    $publisher = array(
+        '@type' => 'Organization',
+        'name'  => $org['name'],
+        'url'   => $org['url'],
+    );
+    if ( ! empty( $org['logo'] ) ) {
+        $publisher['logo'] = array(
+            '@type' => 'ImageObject',
+            'url'   => $org['logo'],
+        );
+    }
+
+    // Creator: Serati Maseko
+    $serati_page = afct_get_menu_page_by_template( 'template-aboutserati.php' );
+    $creator     = array( '@type' => 'Person', 'name' => 'Serati Maseko' );
+    if ( $serati_page ) {
+        $serati_job = get_post_meta( $serati_page->ID, '_afct_serati_job_title', true );
+        if ( $serati_job ) {
+            $creator['jobTitle'] = $serati_job;
+        }
+    }
+
+    // Director: Jens Sage (from WP user)
+    $director = array( '@type' => 'Person', 'name' => 'Jens Sage' );
+    $jens     = get_user_by( 'slug', 'jens' ) ?: get_user_by( 'login', 'jens' );
+    if ( $jens ) {
+        $director['url'] = get_author_posts_url( $jens->ID );
+        $tagline         = get_the_author_meta( 'tagline', $jens->ID );
+        if ( $tagline ) {
+            $director['jobTitle'] = $tagline;
+        }
+    }
+
+    return array(
+        '@context'     => 'https://schema.org',
+        '@type'        => 'VideoObject',
+        'name'         => $title,
+        'description'  => $description,
+        'thumbnailUrl' => array( $thumb_url ),
+        'uploadDate'   => $upload_date,
+        'duration'     => $duration,
+        'contentUrl'   => home_url( '/' ) . '#section-' . $page->post_name,
+        'embedUrl'     => 'https://www.youtube.com/embed/' . $video_id,
+        'publisher'    => $publisher,
+        'creator'      => $creator,
+        'director'     => $director,
+        'keywords'     => 'Artivism, South Africa, Linguistic Identity, Post-Colonialism, African Film',
+        'about'        => array(
+            array( '@type' => 'Thing', 'name' => 'Post-colonialism' ),
+            array( '@type' => 'Thing', 'name' => 'Linguistic Identity' ),
+            array( '@type' => 'Thing', 'name' => 'African Languages' ),
+        ),
+        'inLanguage'   => 'en',
+    );
+}
+
+/**
  * Generate PodcastSeries schema
  */
 function afct_get_podcast_schema() {
@@ -243,6 +365,12 @@ function afct_get_serati_schema() {
     $image_data = get_post_meta( $page->ID, '_afct_about_serati_image', true );
     $image_url  = is_array( $image_data ) && ! empty( $image_data['url'] ) ? $image_data['url'] : afct_get_seo_image();
 
+    $job_title = get_post_meta( $page->ID, '_afct_serati_job_title', true );
+    $website   = get_post_meta( $page->ID, '_afct_serati_website',   true );
+    $instagram = get_post_meta( $page->ID, '_afct_serati_instagram', true );
+    $spotify   = get_post_meta( $page->ID, '_afct_serati_spotify',   true );
+    $twitter   = get_post_meta( $page->ID, '_afct_serati_twitter',   true );
+
     $schema = array(
         '@context'    => 'https://schema.org',
         '@type'       => 'Person',
@@ -253,10 +381,24 @@ function afct_get_serati_schema() {
         ),
         'image'       => $image_url,
         'url'         => home_url( '/' ) . '#section-' . $page->post_name,
+        'subjectOf'   => array(
+            '@type' => 'Movie',
+            'name'  => get_bloginfo('name'),
+            'url'   => home_url('/'),
+        ),
     );
+
+    if ( $job_title ) {
+        $schema['jobTitle'] = $job_title;
+    }
 
     if ( $bio ) {
         $schema['description'] = wp_trim_words( $bio, 55 );
+    }
+
+    $same_as = array_filter( array( $website, $instagram, $spotify, $twitter ) );
+    if ( ! empty( $same_as ) ) {
+        $schema['sameAs'] = array_values( $same_as );
     }
 
     return $schema;
@@ -294,10 +436,12 @@ function afct_output_structured_data() {
     // On the front page (one-pager) include all content-type schemas
     if ( is_front_page() ) {
         $film    = afct_get_film_schema();
+        $video   = afct_get_video_schema();
         $podcast = afct_get_podcast_schema();
         $person  = afct_get_serati_schema();
 
         if ( $film )    $schemas[] = $film;
+        if ( $video )   $schemas[] = $video;
         if ( $podcast ) $schemas[] = $podcast;
         if ( $person )  $schemas[] = $person;
     }

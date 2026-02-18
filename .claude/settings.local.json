@@ -42,7 +42,16 @@
       "Bash(python3:*)",
       "Bash(pip3 install:*)",
       "mcp__chrome-devtools__new_page",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "mcp__chrome-devtools__performance_start_trace",
+      "mcp__chrome-devtools__performance_analyze_insight",
+      "Bash(/Users/jens/Sites/afct/wp-content/themes/afct/README.md:*)",
+      "mcp__chrome-devtools__select_page",
+      "Bash(php -l:*)",
+      "Bash(bash build.sh)",
+      "Bash(unzip:*)",
+      "mcp__chrome-devtools__list_network_requests",
+      "Bash(bash /Users/jens/Sites/afct/wp-content/themes/afct/build.sh)"
     ]
   }
 }

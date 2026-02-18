@@ -230,11 +230,150 @@ function afct_scripts() {
 add_action('wp_enqueue_scripts', 'afct_scripts');
 
 
+// ---------------------------------------------------------------------------
+// WebP Image Conversion
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert a single image file to WebP and save it alongside the original.
+ *
+ * @param string $source_path Absolute path to the source image.
+ * @param string $mime_type   MIME type of the source image.
+ */
+function afct_convert_image_to_webp( $source_path, $mime_type ) {
+    $webp_path = preg_replace( '/\.[^.]+$/', '.webp', $source_path );
+    if ( file_exists( $webp_path ) || ! function_exists( 'imagewebp' ) ) {
+        return;
+    }
+    switch ( $mime_type ) {
+        case 'image/jpeg':
+            $image = imagecreatefromjpeg( $source_path );
+            break;
+        case 'image/png':
+            $image = imagecreatefrompng( $source_path );
+            if ( $image ) {
+                imagealphablending( $image, false );
+                imagesavealpha( $image, true );
+            }
+            break;
+        default:
+            return;
+    }
+    if ( ! $image ) {
+        return;
+    }
+    imagewebp( $image, $webp_path, 82 );
+    imagedestroy( $image );
+}
+
+/**
+ * Generate WebP versions for all sizes when an image is uploaded.
+ */
+function afct_generate_webp_on_upload( $metadata, $attachment_id ) {
+    $mime_type = get_post_mime_type( $attachment_id );
+    if ( ! in_array( $mime_type, array( 'image/jpeg', 'image/png' ), true ) ) {
+        return $metadata;
+    }
+
+    $upload_dir = wp_upload_dir();
+    $base_dir   = $upload_dir['basedir'];
+
+    // Full-size image
+    if ( ! empty( $metadata['file'] ) ) {
+        afct_convert_image_to_webp( $base_dir . '/' . $metadata['file'], $mime_type );
+    }
+
+    // Intermediate sizes
+    if ( ! empty( $metadata['sizes'] ) && ! empty( $metadata['file'] ) ) {
+        $sub_dir = trailingslashit( $base_dir . '/' . dirname( $metadata['file'] ) );
+        foreach ( $metadata['sizes'] as $size ) {
+            if ( ! empty( $size['file'] ) ) {
+                afct_convert_image_to_webp( $sub_dir . $size['file'], $mime_type );
+            }
+        }
+    }
+
+    return $metadata;
+}
+add_filter( 'wp_generate_attachment_metadata', 'afct_generate_webp_on_upload', 10, 2 );
+
+/**
+ * Wrap attachment images in <picture><source type="image/webp"> for browsers
+ * that support WebP. Only runs on the front end. Falls back silently when the
+ * WebP counterpart does not exist on disk.
+ */
+function afct_wrap_image_in_picture( $html, $attachment_id, $size, $icon ) {
+    if ( is_admin() || $icon ) {
+        return $html;
+    }
+
+    $mime_type = get_post_mime_type( $attachment_id );
+    if ( ! in_array( $mime_type, array( 'image/jpeg', 'image/png' ), true ) ) {
+        return $html;
+    }
+
+    // Extract the img src
+    if ( ! preg_match( '/src=["\']([^"\']+)["\']/', $html, $src_match ) ) {
+        return $html;
+    }
+
+    $upload_dir  = wp_upload_dir();
+    $base_url    = untrailingslashit( $upload_dir['baseurl'] );
+    $base_dir    = untrailingslashit( $upload_dir['basedir'] );
+    $img_url     = $src_match[1];
+    $rel         = str_replace( $base_url, '', $img_url );
+    $webp_rel    = preg_replace( '/\.[^.]+$/', '.webp', $rel );
+
+    if ( ! file_exists( $base_dir . $webp_rel ) ) {
+        return $html;
+    }
+
+    $webp_url = $base_url . $webp_rel;
+
+    // Build WebP srcset when present
+    $webp_srcset = '';
+    if ( preg_match( '/srcset=["\']([^"\']+)["\']/', $html, $srcset_match ) ) {
+        $entries = array_map( 'trim', explode( ',', $srcset_match[1] ) );
+        $webp_entries = array();
+        foreach ( $entries as $entry ) {
+            $parts      = preg_split( '/\s+/', $entry, 2 );
+            $entry_url  = $parts[0];
+            $descriptor = isset( $parts[1] ) ? ' ' . $parts[1] : '';
+            $entry_rel  = str_replace( $base_url, '', $entry_url );
+            $entry_webp = preg_replace( '/\.[^.]+$/', '.webp', $entry_rel );
+            if ( file_exists( $base_dir . $entry_webp ) ) {
+                $webp_entries[] = $base_url . $entry_webp . $descriptor;
+            }
+        }
+        if ( ! empty( $webp_entries ) ) {
+            $webp_srcset = implode( ', ', $webp_entries );
+        }
+    }
+
+    $source = '<source type="image/webp"';
+    if ( $webp_srcset ) {
+        $source .= ' srcset="' . esc_attr( $webp_srcset ) . '"';
+        if ( preg_match( '/sizes=["\']([^"\']+)["\']/', $html, $sizes_match ) ) {
+            $source .= ' sizes="' . esc_attr( $sizes_match[1] ) . '"';
+        }
+    } else {
+        $source .= ' srcset="' . esc_url( $webp_url ) . '"';
+    }
+    $source .= '>';
+
+    return '<picture>' . $source . $html . '</picture>';
+}
+add_filter( 'wp_get_attachment_image', 'afct_wrap_image_in_picture', 10, 4 );
+
+// ---------------------------------------------------------------------------
+
 require_once get_template_directory() . '/inc/class-afct-menu-walker.php';
 require_once get_template_directory() . '/inc/admin-menu-experimental.php';
+require_once get_template_directory() . '/inc/admin-webp-convert.php';
 require_once get_template_directory() . '/inc/admin-awards.php';
 require_once get_template_directory() . '/inc/admin-llms-txt.php';
 require_once get_template_directory() . '/inc/admin-sitemap-xml.php';
+require_once get_template_directory() . '/inc/admin-serati.php';
 
 function afct_body_classes( $classes ) {
 	// Adds a class of hfeed to non-singular pages.

@@ -61,11 +61,16 @@ function afct_about_serati_image_meta_box_callback($post) {
 
 function afct_youtube_embed_meta_box_callback($post) {
     wp_nonce_field('afct_save_youtube_embed_meta_box_data', 'afct_youtube_embed_meta_box_nonce');
-    $youtube_embed = get_post_meta($post->ID, '_afct_youtube_embed', true);
+    $youtube_embed  = get_post_meta($post->ID, '_afct_youtube_embed', true);
+    $video_duration = get_post_meta($post->ID, '_afct_video_duration', true);
     ?>
     <label for="youtube_embed">YouTube Video URL:</label>
     <input type="text" id="youtube_embed" name="youtube_embed" value="<?php echo esc_url($youtube_embed); ?>" style="width:100%;" />
     <p>Enter the full YouTube video URL (e.g., https://www.youtube.com/watch?v=VIDEO_ID).</p>
+
+    <label for="video_duration" style="margin-top:10px;display:block;">Video Duration (ISO 8601):</label>
+    <input type="text" id="video_duration" name="video_duration" value="<?php echo esc_attr($video_duration); ?>" style="width:100%;" placeholder="e.g. PT15M or PT1H30M" />
+    <p>Used for VideoObject schema markup. Format: PT15M (15 min), PT1H30M (1 h 30 min).</p>
     <?php
 }
 
@@ -225,6 +230,18 @@ function afct_save_custom_meta_box_data($post_id) {
             update_post_meta($post_id, '_afct_about_serati_image', $image_data);
         } else {
             delete_post_meta($post_id, '_afct_about_serati_image');
+        }
+    }
+
+    // Save video duration (shares the youtube_embed meta box nonce)
+    if (isset($_POST['afct_youtube_embed_meta_box_nonce']) &&
+        wp_verify_nonce($_POST['afct_youtube_embed_meta_box_nonce'], 'afct_save_youtube_embed_meta_box_data') &&
+        isset($_POST['video_duration'])) {
+        $duration = sanitize_text_field($_POST['video_duration']);
+        if ($duration) {
+            update_post_meta($post_id, '_afct_video_duration', $duration);
+        } else {
+            delete_post_meta($post_id, '_afct_video_duration');
         }
     }
 

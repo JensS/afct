@@ -107,12 +107,18 @@ function afct_get_person_schema($author_id) {
     $author_linkedin = get_the_author_meta('linkedin', $author_id);
     $author_instagram = get_the_author_meta('instagram', $author_id);
 
+    $author_tagline = get_the_author_meta('tagline', $author_id);
+
     $schema = array(
         '@context' => 'https://schema.org',
         '@type' => 'Person',
         'name' => $author_name,
         'url' => $author_url,
     );
+
+    if ($author_tagline) {
+        $schema['jobTitle'] = $author_tagline;
+    }
 
     if ($author_bio) {
         $schema['description'] = wp_strip_all_tags($author_bio);
@@ -123,6 +129,13 @@ function afct_get_person_schema($author_id) {
     if ($avatar_url) {
         $schema['image'] = $avatar_url;
     }
+
+    // Link to the organisation this person works for
+    $schema['worksFor'] = array(
+        '@type' => 'NGO',
+        'name'  => get_bloginfo('name'),
+        'url'   => home_url('/'),
+    );
 
     // Add same as (social profiles)
     $same_as = array();
