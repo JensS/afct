@@ -44,9 +44,16 @@ cp -r fonts "${BUILD_DIR}/${THEME_NAME}/"
 cp -r img "${BUILD_DIR}/${THEME_NAME}/"
 cp -r inc "${BUILD_DIR}/${THEME_NAME}/"
 
-# Runtime JSON data files only
+# JS files loaded directly (not webpack-bundled)
 mkdir -p "${BUILD_DIR}/${THEME_NAME}/js"
+# Runtime data
 cp js/countries-110m.json js/history.json \
+   "${BUILD_DIR}/${THEME_NAME}/js/" 2>/dev/null || true
+# Frontend scripts
+cp js/youtube-consent.js \
+   "${BUILD_DIR}/${THEME_NAME}/js/" 2>/dev/null || true
+# Admin scripts
+cp js/admin-history.js js/admin-history-json-upload.js js/admin-prospect-carousel.js \
    "${BUILD_DIR}/${THEME_NAME}/js/" 2>/dev/null || true
 
 # Remove any .DS_Store files

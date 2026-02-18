@@ -39,6 +39,13 @@ $video_id = $params['v'] ?? '';
     <!--</div>-->
 </div>
 <?php
-
-if(!defined("IN_ONEPAGER")) 
+// Output Movie schema only when viewed standalone (one-pager already includes it in <head>)
+if ( ! defined('IN_ONEPAGER') ) {
+    $film_schema = afct_get_film_schema();
+    if ( $film_schema ) {
+        echo '<script type="application/ld+json">' . "\n";
+        echo wp_json_encode( $film_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
+        echo "\n</script>\n";
+    }
     get_footer();
+}

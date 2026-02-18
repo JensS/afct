@@ -110,7 +110,13 @@ $credits = afct_get_team_credits();
     </div>
 
 <?php
-
-
-if(!defined("IN_ONEPAGER")) 
+// Output PodcastSeries schema only when viewed standalone (one-pager already includes it in <head>)
+if ( ! defined('IN_ONEPAGER') ) {
+    $podcast_schema = afct_get_podcast_schema();
+    if ( $podcast_schema ) {
+        echo '<script type="application/ld+json">' . "\n";
+        echo wp_json_encode( $podcast_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
+        echo "\n</script>\n";
+    }
     get_footer();
+}

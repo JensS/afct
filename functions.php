@@ -233,6 +233,7 @@ add_action('wp_enqueue_scripts', 'afct_scripts');
 require_once get_template_directory() . '/inc/class-afct-menu-walker.php';
 require_once get_template_directory() . '/inc/admin-menu-experimental.php';
 require_once get_template_directory() . '/inc/admin-awards.php';
+require_once get_template_directory() . '/inc/admin-llms-txt.php';
 
 function afct_body_classes( $classes ) {
 	// Adds a class of hfeed to non-singular pages.
@@ -399,8 +400,8 @@ function afct_enqueue_admin_scripts() {
     $template_file = $post ? get_post_meta($post->ID, '_wp_page_template', true) : '';
     if ($post && $template_file === 'template-history.php') {
                                                      
-        wp_enqueue_script('d3', get_template_directory_uri() . '/js/d3.min.js', array(), '7.9', true);
-        wp_enqueue_script('topojson', get_template_directory_uri() . '/js/topojson.min.js', array('d3'), '3.0', true);
+        wp_enqueue_script('d3', 'https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js', array(), '7.9.0', true);
+        wp_enqueue_script('topojson', 'https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js', array('d3'), '3.0.2', true);
 
             // Enqueue History Admin CSS                                                                                                                                                      
             wp_enqueue_style(                                                                                                                                                                 

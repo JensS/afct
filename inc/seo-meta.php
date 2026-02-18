@@ -106,6 +106,7 @@ function afct_output_seo_meta_tags() {
     <meta property="og:image" content="<?php echo esc_url($image); ?>">
     <?php endif; ?>
     <meta property="og:site_name" content="<?php echo esc_attr($site_name); ?>">
+    <meta property="og:locale" content="en_US">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
@@ -129,16 +130,134 @@ function afct_get_organization_schema() {
 
     $schema = array(
         '@context' => 'https://schema.org',
-        '@type' => 'Organization',
+        '@type' => 'NGO',
         'name' => get_bloginfo('name'),
         'url' => home_url('/'),
         'logo' => $logo,
         'description' => get_bloginfo('description'),
-        'sameAs' => array()
+        'sameAs' => array(
+            'https://open.spotify.com/show/7pZEwW27Xjr7Iqk1iIX7M7',
+            'https://podcasts.apple.com/us/podcast/african-face-colonial-tongue-the-podcast/id1771495874',
+        ),
+        'knowsAbout' => array(
+            'Post-Apartheid South Africa',
+            'Language and cultural identity',
+            'Documentary film',
+            'African languages',
+        ),
     );
 
-    // Add social media profiles if available
-    // You can add custom fields for these in the future
+    return $schema;
+}
+
+/**
+ * Find a menu page by template name
+ */
+function afct_get_menu_page_by_template( $template_slug ) {
+    $menu_locations = get_nav_menu_locations();
+    $menu_id        = $menu_locations['menu-1'] ?? 0;
+    if ( ! $menu_id ) {
+        return null;
+    }
+    $menu_items = wp_get_nav_menu_items( $menu_id );
+    if ( ! $menu_items ) {
+        return null;
+    }
+    foreach ( $menu_items as $item ) {
+        $tpl = get_post_meta( $item->object_id, '_wp_page_template', true );
+        if ( $tpl === $template_slug ) {
+            return get_post( $item->object_id );
+        }
+    }
+    return null;
+}
+
+/**
+ * Generate Movie schema for the documentary film
+ */
+function afct_get_film_schema() {
+    $page = afct_get_menu_page_by_template( 'template-film.php' );
+    if ( ! $page ) {
+        return null;
+    }
+
+    $title       = $page->post_title;
+    $description = wp_strip_all_tags( get_the_excerpt( $page->ID ) ) ?: get_bloginfo( 'description' );
+    $image       = get_the_post_thumbnail_url( $page->ID, 'large' ) ?: afct_get_seo_image();
+
+    return array(
+        '@context'    => 'https://schema.org',
+        '@type'       => 'Movie',
+        'name'        => $title,
+        'description' => $description,
+        'image'       => $image,
+        'url'         => home_url( '/' ) . '#section-' . $page->post_name,
+        'genre'       => 'Documentary',
+        'inLanguage'  => 'en',
+        'about'       => array(
+            '@type' => 'Thing',
+            'name'  => 'Post-Apartheid South Africa — Language and Identity',
+        ),
+    );
+}
+
+/**
+ * Generate PodcastSeries schema
+ */
+function afct_get_podcast_schema() {
+    $page = afct_get_menu_page_by_template( 'template-podcast.php' );
+    if ( ! $page ) {
+        return null;
+    }
+
+    $title       = $page->post_title;
+    $description = wp_strip_all_tags( get_the_excerpt( $page->ID ) ) ?: get_bloginfo( 'description' );
+    $image       = get_the_post_thumbnail_url( $page->ID, 'large' ) ?: afct_get_seo_image();
+
+    return array(
+        '@context'    => 'https://schema.org',
+        '@type'       => 'PodcastSeries',
+        'name'        => $title,
+        'description' => $description,
+        'image'       => $image,
+        'url'         => home_url( '/' ) . '#section-' . $page->post_name,
+        'sameAs'      => array(
+            'https://open.spotify.com/show/7pZEwW27Xjr7Iqk1iIX7M7',
+            'https://podcasts.apple.com/us/podcast/african-face-colonial-tongue-the-podcast/id1771495874',
+        ),
+        'inLanguage'  => 'en',
+        'author'      => afct_get_organization_schema(),
+    );
+}
+
+/**
+ * Generate Person schema for Serati Maseko
+ */
+function afct_get_serati_schema() {
+    $page = afct_get_menu_page_by_template( 'template-aboutserati.php' );
+    if ( ! $page ) {
+        return null;
+    }
+
+    $bio        = wp_strip_all_tags( get_post_meta( $page->ID, '_afct_about_serati', true ) );
+    $image_data = get_post_meta( $page->ID, '_afct_about_serati_image', true );
+    $image_url  = is_array( $image_data ) && ! empty( $image_data['url'] ) ? $image_data['url'] : afct_get_seo_image();
+
+    $schema = array(
+        '@context'    => 'https://schema.org',
+        '@type'       => 'Person',
+        'name'        => 'Serati Maseko',
+        'nationality' => array(
+            '@type' => 'Country',
+            'name'  => 'South Africa',
+        ),
+        'image'       => $image_url,
+        'url'         => home_url( '/' ) . '#section-' . $page->post_name,
+    );
+
+    if ( $bio ) {
+        $schema['description'] = wp_trim_words( $bio, 55 );
+    }
 
     return $schema;
 }
@@ -172,6 +291,17 @@ function afct_output_structured_data() {
     // Add WebPage schema
     $schemas[] = afct_get_webpage_schema();
 
+    // On the front page (one-pager) include all content-type schemas
+    if ( is_front_page() ) {
+        $film    = afct_get_film_schema();
+        $podcast = afct_get_podcast_schema();
+        $person  = afct_get_serati_schema();
+
+        if ( $film )    $schemas[] = $film;
+        if ( $podcast ) $schemas[] = $podcast;
+        if ( $person )  $schemas[] = $person;
+    }
+
     // Output as JSON-LD
     echo '<script type="application/ld+json">' . "\n";
     echo wp_json_encode($schemas, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
@@ -204,6 +334,96 @@ add_filter('wp_sitemaps_posts_entry', function($entry, $post) {
     $entry['priority'] = afct_sitemap_priority($entry['priority'], 'post', $post);
     return $entry;
 }, 10, 2);
+
+/**
+ * Auto-generate llms.txt content from WordPress data.
+ * Called as a fallback when no custom content has been saved.
+ */
+function afct_auto_generate_llms_txt() {
+    $site_name = get_bloginfo( 'name' );
+    $site_desc = get_bloginfo( 'description' );
+    $home_url  = home_url( '/' );
+
+    // Homepage description
+    $homepage_id = get_option( 'page_on_front' );
+    $intro = $homepage_id
+        ? wp_strip_all_tags( get_the_excerpt( $homepage_id ) )
+        : $site_desc;
+
+    $lines = array();
+    $lines[] = '# ' . $site_name;
+    $lines[] = '';
+    if ( $intro ) {
+        $lines[] = '> ' . $intro;
+        $lines[] = '';
+    }
+
+    // Build sections from primary menu
+    $menu_locations = get_nav_menu_locations();
+    $menu_id        = $menu_locations['menu-1'] ?? 0;
+    $menu_items     = $menu_id ? wp_get_nav_menu_items( $menu_id ) : array();
+
+    if ( $menu_items ) {
+        $lines[] = '## Sections';
+        $lines[] = '';
+        foreach ( $menu_items as $item ) {
+            $page    = get_post( $item->object_id );
+            if ( ! $page ) continue;
+            $excerpt = wp_strip_all_tags( get_the_excerpt( $page->ID ) );
+            $url     = $home_url . '#section-' . $page->post_name;
+            $label   = $item->title ?: $page->post_title;
+            $line    = '- [' . $label . '](' . $url . ')';
+            if ( $excerpt ) {
+                $line .= ': ' . $excerpt;
+            }
+            $lines[] = $line;
+        }
+        $lines[] = '';
+    }
+
+    // Podcast external links
+    $lines[] = '## The Podcast';
+    $lines[] = '';
+    $lines[] = '- [Listen on Spotify](https://open.spotify.com/show/7pZEwW27Xjr7Iqk1iIX7M7): African Face, Colonial Tongue podcast series on Spotify';
+    $lines[] = '- [Listen on Apple Podcasts](https://podcasts.apple.com/us/podcast/african-face-colonial-tongue-the-podcast/id1771495874): African Face, Colonial Tongue podcast series on Apple Podcasts';
+    $lines[] = '';
+
+    // Sitemap reference
+    $lines[] = '## Sitemap';
+    $lines[] = '';
+    $lines[] = '- [XML Sitemap](' . home_url( '/wp-sitemap.xml' ) . ')';
+    $lines[] = '';
+
+    return implode( "\n", $lines );
+}
+
+/**
+ * Get llms.txt content: returns saved custom content if set, otherwise auto-generates.
+ */
+function afct_get_llms_txt_content() {
+    $saved = get_option( 'afct_llms_txt_content', '' );
+    return $saved !== '' ? $saved : afct_auto_generate_llms_txt();
+}
+
+/**
+ * Serve /llms.txt for AI/LLM crawlers
+ */
+add_action( 'template_redirect', function () {
+    if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
+        return;
+    }
+    $path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+    $home = parse_url( home_url( '/' ), PHP_URL_PATH );
+    $file = ltrim( str_replace( rtrim( $home, '/' ), '', $path ), '/' );
+    if ( $file !== 'llms.txt' ) {
+        return;
+    }
+    status_header( 200 );
+    header( 'Content-Type: text/plain; charset=utf-8' );
+    header( 'Cache-Control: public, max-age=86400' );
+    echo afct_get_llms_txt_content();
+    exit;
+} );
 
 /**
  * Exclude certain pages from sitemap
