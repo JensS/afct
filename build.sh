@@ -52,7 +52,7 @@ cp -r inc "${BUILD_DIR}/${THEME_NAME}/"
 # JS files loaded directly (not webpack-bundled)
 mkdir -p "${BUILD_DIR}/${THEME_NAME}/js"
 # Runtime data
-cp js/countries-110m.json js/history.json \
+cp js/countries-50m.json js/countries-110m.json js/history.json \
    "${BUILD_DIR}/${THEME_NAME}/js/" 2>/dev/null || true
 # Frontend scripts
 cp js/youtube-consent.js \
