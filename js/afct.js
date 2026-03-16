@@ -23,10 +23,10 @@ jQuery(document).ready(function($) {
         normalizeScroll: true,
     });
 
-    // Section snap using GSAP's native snap functionality
-    const snapSections = gsap.utils.toArray('section');
+    // Section snap using GSAP's native snap functionality (homepage only)
+    const snapSections = gsap.utils.toArray('section:not(.footer)');
 
-    if (snapSections.length > 0) {
+    if (snapSections.length > 1) {
         // Calculate section positions as normalized progress values (0-1)
         const getSnapPositions = () => {
             const maxScroll = ScrollTrigger.maxScroll(window);
