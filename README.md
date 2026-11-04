@@ -2,7 +2,28 @@
 
 Theme for [africanface.org](https://africanface.org). One-page architecture assembling WordPress pages into a continuous scroll experience via the primary menu.
 
-See `CLAUDE.md` for full architecture documentation.
+See [AGENTS.md](AGENTS.md) for contributor and architecture guidance and
+[DEPLOYMENT.md](DEPLOYMENT.md) for deployment, privacy and rollback instructions.
+
+## Build and checks
+
+Use Node 24 (`.nvmrc`), then run `npm ci`, `npm run lint:js`, `npm test`,
+`php tests/regression.php --empty-menu`, and `npm run dist`.
+The production package is `build/afct/`; the installable ZIP is `build/afct-VERSION.zip`.
+`composer run lint:php` checks PHP syntax. No Composer packages are needed on the server.
+
+## SEO
+
+Set descriptive page titles, excerpts and featured images in ClassicPress.
+Submit `/wp-sitemap.xml` in Search Console. `/sitemap.xml` now redirects to the
+CMS sitemap; the old hand-edited fragment sitemap is retired. Standalone public
+pages keep their own canonical URLs. The historical timeline is readable in the
+initial HTML, and the one-page homepage uses a clear heading hierarchy.
+
+The Search Console overview alone does not establish why URLs disappeared.
+Review the Pages report's exclusion reasons and inspect important page URLs after
+deployment. Google may consolidate overlapping sections with the homepage;
+a separate rich video result also requires an eligible video watch page.
 
 ---
 

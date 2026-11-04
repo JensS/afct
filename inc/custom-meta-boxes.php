@@ -149,6 +149,7 @@ function afct_save_custom_meta_box_data($post_id) {
         }
     }
 
+    if ( isset( $_POST['afct_podcast_guests_meta_box_nonce'] ) && wp_verify_nonce( $_POST['afct_podcast_guests_meta_box_nonce'], 'afct_save_podcast_guests_meta_box_data' ) ) {
     // Save podcast guests (new: guest_image_id[] stores attachment IDs)
     if (isset($_POST['guest_image_id'])) {
         $podcast_guests = [];
@@ -169,19 +170,20 @@ function afct_save_custom_meta_box_data($post_id) {
             }
         }
         update_post_meta($post_id, '_afct_podcast_guests', $podcast_guests);
-    } elseif (!isset($_POST['afct_podcast_guests_meta_box_nonce'])) {
-        // No nonce means this save isn't from the podcast edit screen — leave meta alone
     } else {
         delete_post_meta($post_id, '_afct_podcast_guests');
     }
 
+    }
+
+    if ( isset( $_POST['afct_podcast_chapters_meta_box_nonce'] ) && wp_verify_nonce( $_POST['afct_podcast_chapters_meta_box_nonce'], 'afct_save_podcast_chapters_meta_box_data' ) ) {
     // Save podcast chapters
     if (isset($_POST['chapter_time'], $_POST['chapter_title'])) {
         $chapters = [];
-        $times = $_POST['chapter_time'];
-        $titles = $_POST['chapter_title'];
+        $times = (array) $_POST['chapter_time'];
+        $titles = (array) $_POST['chapter_title'];
         for ($i = 0; $i < count($times); $i++) {
-            if (!empty($times[$i]) && !empty($titles[$i])) {
+            if (isset($times[$i], $titles[$i]) && trim((string) $times[$i]) !== '' && trim((string) $titles[$i]) !== '') {
                 $chapters[] = [
                     'time' => sanitize_text_field($times[$i]),
                     'title' => sanitize_text_field($titles[$i]),
@@ -191,6 +193,8 @@ function afct_save_custom_meta_box_data($post_id) {
         update_post_meta($post_id, '_afct_podcast_chapters', $chapters);
     } else {
         delete_post_meta($post_id, '_afct_podcast_chapters');
+    }
+
     }
 
     // Save other meta box data

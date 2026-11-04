@@ -14,7 +14,6 @@ jQuery(document).ready(function($) {
     if (d3Available && topoJsonAvailable) {
         $('.map-preview-container').each(function() {
             const container = $(this);
-            const entryIndex = container.data('entry-index');
             const visualizations = container.data('visualizations');
             initMapPreview(container[0], visualizations);
         });

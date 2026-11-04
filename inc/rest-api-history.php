@@ -22,22 +22,18 @@ add_action('rest_api_init', 'afct_register_history_rest_route');
  * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
  */
 function afct_get_history_data($request) {
-    $pages = get_posts([
-		'post_type'        => 'page',
-        'meta_key' => '_afct_history_entries',
-        'meta_query' =>  ['key' => '_afct_history_entries', 'compare' => 'EXISTS'],
-    ]);
-
-    if (!isset($pages[0])) {
+    $page = afct_get_menu_page_by_template( 'template-history.php' );
+    if ( ! $page ) {
         return new WP_REST_Response([], 200);
     }
     
-    $history_entries = get_post_meta($pages[0]->ID, '_afct_history_entries', true);
+    $history_entries = get_post_meta($page->ID, '_afct_history_entries', true);
+    $history_entries = is_array( $history_entries ) ? array_filter( $history_entries, 'is_array' ) : array();
     
     // Ensure each entry has the required fields in the standardized format
     $standardized_entries = array_map(function($entry) {
         // Make sure year_start is used as the ID
-        $entry['id'] = intval($entry['year_start']);
+        $entry['id'] = intval($entry['year_start'] ?? 0);
 
         // Ensure required fields exist - normalize to both formats for backwards compatibility
         if (!isset($entry['title'])) $entry['title'] = '';
@@ -117,7 +113,7 @@ function afct_get_history_data($request) {
         }
         
         return $entry;
-    }, $history_entries);
+    }, array_values( $history_entries ));
     
     return new WP_REST_Response($standardized_entries, 200);
 }

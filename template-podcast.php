@@ -16,15 +16,7 @@ $podcast_chapters = get_post_meta(get_the_ID(), '_afct_podcast_chapters', true);
 $credits = afct_get_team_credits();
 ?>
     <div id="podcast" class="slide">
-        <?php
-        $headline_parts = afct_split_headline(get_the_title());
-        ?>
-        <div class="text-upper-left">
-            <h1><?php echo esc_html($headline_parts['upper']); ?></h1>
-        </div>
-        <div class="text-lower-right">
-            <h1><?php echo esc_html($headline_parts['lower']); ?></h1>
-        </div>
+        <?php afct_render_section_headline( get_the_title() ); ?>
 
         <div class="global-container">
             <div class="content-frame">
@@ -117,7 +109,7 @@ if ( ! defined('IN_ONEPAGER') ) {
     $podcast_schema = afct_get_podcast_schema();
     if ( $podcast_schema ) {
         echo '<script type="application/ld+json">' . "\n";
-        echo wp_json_encode( $podcast_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
+        echo wp_json_encode( $podcast_schema, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
         echo "\n</script>\n";
     }
     get_footer();

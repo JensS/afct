@@ -1,6 +1,12 @@
-/vendor
-/node_modules
-composer.lock
-package-lock.json
-.aider*
+/vendor/
+/node_modules/
+/.claude/
+/.aider*
+/build/
+/dist/
+/afct-*.zip
+.env
+.env.*
+*.pem
+*.key
 .DS_Store

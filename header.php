@@ -18,46 +18,34 @@
 	<link rel="profile" href="https://gmpg.org/xfn/11">
 
 	<?php
-	// Output SEO meta tags
-	afct_output_seo_meta_tags();
-
-	// Output structured data (JSON-LD)
-	afct_output_structured_data();
-
 	wp_head();
 	?>
 </head>
 
 <body id="afct-body" <?php body_class('body-main'); ?>>
-<?php wp_body_open(); ?>
-<header id="masthead" class="site-header">
-	<nav id="site-navigation" class="menu">
-		<?php
-			wp_nav_menu(
+	<?php wp_body_open(); ?>
+	<header id="masthead" class="site-header">
+		<nav id="site-navigation" class="menu">
+			<button
+				class="menu-toggle"
+				type="button"
+				aria-controls="primary-menu"
+				aria-expanded="false"
+			>
+				<span class="screen-reader-text"><?php esc_html_e( 'Toggle navigation', 'afct' ); ?></span>
+			</button>
+			<?php
+				wp_nav_menu(
 				array(
 					'theme_location' => 'menu-1',
 					'menu_id'        => 'primary-menu',
 					'walker'         => new AFCT_Menu_Walker(),
+					'fallback_cb'    => false,
 				)
 			);
 		?>
 	</nav>
 </header>
-
-<div class="menu theme-toggler">
-	<ul>
-		<li>
-			<div class="theme-toggle">
-				<div class="embed-menu-line w-embed" style="position:relative;">
-					<svg width="24" height="1" viewBox="0 0 24 1" fill="none" xmlns="http://www.w3.org/2000/svg">
-						<rect width="24" height="1" transform="matrix(1 0 0 -1 0 1)" fill="currentColor"></rect>
-					</svg>
-				</div>
-				<div class="theme-toggle-text">Toggle dark/light</div>
-			</div>
-		</li>
-	</ul>
-</div>
 
 <div id="smooth-wrapper">
 <div id="smooth-content">

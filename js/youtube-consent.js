@@ -1,65 +1,57 @@
 /**
- * YouTube Privacy Consent
- * Handles privacy-friendly loading of YouTube embeds
+ * Load YouTube embeds only after the visitor has granted video consent.
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Check for YouTube placeholders
+document.addEventListener('DOMContentLoaded', function () {
     const youtubePlaceholders = document.querySelectorAll('.youtube-placeholder');
-    
-    // If no placeholders found, exit early
-    if (!youtubePlaceholders.length) return;
-    
-    // Function to load YouTube iframe
+
+    if (youtubePlaceholders.length === 0) {
+        return;
+    }
+
     function loadYouTubeContent(placeholder) {
-        const videoId = placeholder.getAttribute('data-video-id');
-        if (!videoId) return;
-        
-        const embedUrl = 'https://www.youtube.com/embed/' + videoId + '?autoplay=0';
+        const videoId = placeholder.dataset.videoId;
+
+        if (!videoId || !placeholder.isConnected || !placeholder.parentNode) {
+            return;
+        }
+
         const iframe = document.createElement('iframe');
-        iframe.style.width = '100%';
-        iframe.style.aspectRatio = '16/9';
-        iframe.style.border = '0';
-        iframe.src = embedUrl;
+        iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=0`;
+        iframe.title = 'African Face, Colonial Tongue film';
+        iframe.loading = 'lazy';
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
         iframe.allowFullscreen = true;
-        
-        // Replace placeholder with iframe
-        const parent = placeholder.parentNode;
-        parent.replaceChild(iframe, placeholder);
+
+        placeholder.parentNode.replaceChild(iframe, placeholder);
     }
-    
-    // Function to enable all YouTube embeds
+
     function enableAllYouTubeEmbeds() {
-        youtubePlaceholders.forEach(placeholder => {
-            loadYouTubeContent(placeholder);
-        });
-        
-        // Save consent in localStorage
-        localStorage.setItem('youtubeConsent', 'true');
+        youtubePlaceholders.forEach(loadYouTubeContent);
+        try {
+            localStorage.setItem('youtubeConsent', 'true');
+        } catch {
+            // Explicit consent still works when storage is unavailable.
+        }
     }
-    
-    // Check if user has already given consent
-    if (localStorage.getItem('youtubeConsent') === 'true') {
+
+    let hasConsent = false;
+    try {
+        hasConsent = localStorage.getItem('youtubeConsent') === 'true';
+    } catch {
+        // Ask for consent again when it cannot be remembered.
+    }
+    if (hasConsent) {
         enableAllYouTubeEmbeds();
-    } else {
-        // Add click event to all placeholders
-        youtubePlaceholders.forEach(placeholder => {
-            const consentButton = placeholder.querySelector('.youtube-consent-button');
-            if (consentButton) {
-                consentButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    enableAllYouTubeEmbeds();
-                });
-            }
-        });
+        return;
     }
-    
-    // Connect with cookie consent system
-    const cookieConsentButton = document.querySelector('#accept-cookies');
-    if (cookieConsentButton) {
-        cookieConsentButton.addEventListener('click', function() {
-            // When cookies are accepted, also enable YouTube
+
+    youtubePlaceholders.forEach(placeholder => {
+        const consentButton = placeholder.querySelector('.youtube-consent-button');
+
+        consentButton?.addEventListener('click', event => {
+            event.preventDefault();
             enableAllYouTubeEmbeds();
         });
-    }
+    });
 });

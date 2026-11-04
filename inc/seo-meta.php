@@ -22,34 +22,24 @@ function afct_get_seo_title() {
  * Get the SEO meta description
  */
 function afct_get_seo_description() {
-    if (is_front_page()) {
-        $homepage_id = get_option('page_on_front');
-        if ($homepage_id) {
-            $excerpt = get_the_excerpt($homepage_id);
-            if ($excerpt) {
-                return wp_strip_all_tags($excerpt);
+    $description = '';
+    if ( is_author() ) {
+        $description = get_the_author_meta( 'description', get_queried_object_id() );
+    }
+    if ( is_singular() && ! post_password_required( get_queried_object_id() ) ) {
+        $page = get_post( get_queried_object_id() );
+        if ( $page ) {
+            $description = $page->post_excerpt;
+            if ( ! $description ) {
+                $description = strip_shortcodes( $page->post_content );
             }
         }
-        // Fallback to site description
-        return get_bloginfo('description');
+    }
+    if ( ! $description ) {
+        $description = get_bloginfo( 'description' );
     }
 
-    if (is_author()) {
-        $author_id = get_queried_object_id();
-        $bio = get_the_author_meta('description', $author_id);
-        if ($bio) {
-            return wp_strip_all_tags($bio);
-        }
-    }
-
-    if (is_singular()) {
-        $excerpt = get_the_excerpt();
-        if ($excerpt) {
-            return wp_strip_all_tags($excerpt);
-        }
-    }
-
-    return get_bloginfo('description');
+    return wp_trim_words( trim( preg_replace( '/\s+/u', ' ', wp_strip_all_tags( $description ) ) ), 35, '' );
 }
 
 /**
@@ -107,7 +97,7 @@ function afct_output_seo_meta_tags() {
     $title = afct_get_seo_title();
     $description = afct_get_seo_description();
     $image = afct_get_seo_image();
-    $url = home_url($_SERVER['REQUEST_URI']);
+    $url = afct_get_canonical_url();
     $site_name = get_bloginfo('name');
 
     ?>
@@ -132,7 +122,7 @@ function afct_output_seo_meta_tags() {
     <meta property="og:image" content="<?php echo esc_url($image); ?>">
     <?php endif; ?>
     <meta property="og:site_name" content="<?php echo esc_attr($site_name); ?>">
-    <meta property="og:locale" content="en_US">
+    <meta property="og:locale" content="<?php echo esc_attr( get_locale() ); ?>">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
@@ -144,7 +134,9 @@ function afct_output_seo_meta_tags() {
     <?php endif; ?>
 
     <!-- Canonical URL -->
+    <?php if ( $url ) : ?>
     <link rel="canonical" href="<?php echo esc_url($url); ?>">
+    <?php endif; ?>
     <?php
 }
 
@@ -152,11 +144,12 @@ function afct_output_seo_meta_tags() {
  * Generate Organization schema
  */
 function afct_get_organization_schema() {
-    $logo = afct_get_seo_image();
+    $logo_id = get_theme_mod( 'custom_logo' );
+    $logo = $logo_id ? wp_get_attachment_image_url( $logo_id, 'full' ) : '';
 
     $schema = array(
         '@context' => 'https://schema.org',
-        '@type' => 'NGO',
+        '@type' => 'Organization',
         'name' => get_bloginfo('name'),
         'url' => home_url('/'),
         'logo' => $logo,
@@ -173,6 +166,10 @@ function afct_get_organization_schema() {
         ),
     );
 
+    if ( ! $logo ) {
+        unset( $schema['logo'] );
+    }
+
     return $schema;
 }
 
@@ -180,15 +177,7 @@ function afct_get_organization_schema() {
  * Find a menu page by template name
  */
 function afct_get_menu_page_by_template( $template_slug ) {
-    $menu_locations = get_nav_menu_locations();
-    $menu_id        = $menu_locations['menu-1'] ?? 0;
-    if ( ! $menu_id ) {
-        return null;
-    }
-    $menu_items = wp_get_nav_menu_items( $menu_id );
-    if ( ! $menu_items ) {
-        return null;
-    }
+    $menu_items = afct_get_homepage_sections();
     foreach ( $menu_items as $item ) {
         $tpl = get_post_meta( $item->object_id, '_wp_page_template', true );
         if ( $tpl === $template_slug ) {
@@ -241,17 +230,7 @@ function afct_get_video_schema() {
         return null;
     }
 
-    // Extract YouTube video ID
-    $video_id = '';
-    $parsed   = parse_url( $youtube_url );
-    if ( ! empty( $parsed['query'] ) ) {
-        parse_str( $parsed['query'], $params );
-        $video_id = $params['v'] ?? '';
-    }
-    // Handle youtu.be short URLs
-    if ( ! $video_id && ! empty( $parsed['host'] ) && strpos( $parsed['host'], 'youtu.be' ) !== false ) {
-        $video_id = ltrim( $parsed['path'] ?? '', '/' );
-    }
+    $video_id = afct_get_youtube_id( $youtube_url );
     if ( ! $video_id ) {
         return null;
     }
@@ -263,7 +242,7 @@ function afct_get_video_schema() {
         $thumb_url = 'https://img.youtube.com/vi/' . $video_id . '/maxresdefault.jpg';
     }
     $upload_date = get_the_date( 'c', $page->ID );
-    $duration    = get_post_meta( $page->ID, '_afct_video_duration', true ) ?: 'PT15M';
+    $duration = get_post_meta( $page->ID, '_afct_video_duration', true );
 
     // Publisher
     $org       = afct_get_organization_schema();
@@ -300,16 +279,15 @@ function afct_get_video_schema() {
         }
     }
 
-    return array(
+    $schema = array(
         '@context'     => 'https://schema.org',
         '@type'        => 'VideoObject',
         'name'         => $title,
         'description'  => $description,
         'thumbnailUrl' => array( $thumb_url ),
         'uploadDate'   => $upload_date,
-        'duration'     => $duration,
-        'contentUrl'   => home_url( '/' ) . '#section-' . $page->post_name,
-        'embedUrl'     => 'https://www.youtube.com/embed/' . $video_id,
+        'url'          => get_permalink( $page ),
+        'embedUrl'     => 'https://www.youtube-nocookie.com/embed/' . $video_id,
         'publisher'    => $publisher,
         'creator'      => $creator,
         'director'     => $director,
@@ -321,6 +299,11 @@ function afct_get_video_schema() {
         ),
         'inLanguage'   => 'en',
     );
+    if ( is_string( $duration ) && preg_match( '/^PT(?=\d)(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?$/', $duration ) ) {
+        $schema['duration'] = $duration;
+    }
+
+    return $schema;
 }
 
 /**
@@ -413,7 +396,7 @@ function afct_get_webpage_schema() {
         '@type' => 'WebPage',
         'name' => afct_get_seo_title(),
         'description' => afct_get_seo_description(),
-        'url' => home_url($_SERVER['REQUEST_URI']),
+        'url' => afct_get_canonical_url(),
         'image' => afct_get_seo_image(),
         'publisher' => afct_get_organization_schema()
     );
@@ -434,50 +417,24 @@ function afct_output_structured_data() {
     $schemas[] = afct_get_webpage_schema();
 
     // On the front page (one-pager) include all content-type schemas
-    if ( is_front_page() ) {
+    if ( is_front_page() || is_page_template( 'template-film.php' ) ) {
         $film    = afct_get_film_schema();
         $video   = afct_get_video_schema();
-        $podcast = afct_get_podcast_schema();
-        $person  = afct_get_serati_schema();
+        $podcast = is_front_page() ? afct_get_podcast_schema() : null;
+        $person = is_front_page() ? afct_get_serati_schema() : null;
 
-        if ( $film )    $schemas[] = $film;
-        if ( $video )   $schemas[] = $video;
-        if ( $podcast ) $schemas[] = $podcast;
-        if ( $person )  $schemas[] = $person;
-    }
-
-    // Output as JSON-LD
-    echo '<script type="application/ld+json">' . "\n";
-    echo wp_json_encode($schemas, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-    echo "\n" . '</script>' . "\n";
-}
-
-/**
- * Customize WordPress sitemap priorities
- */
-function afct_sitemap_priority($priority, $type, $post) {
-    // Homepage gets highest priority
-    if ($post->ID == get_option('page_on_front')) {
-        return 1.0;
-    }
-
-    // Pages in the primary menu get high priority
-    $menu_items = wp_get_nav_menu_items(get_nav_menu_locations()['menu-1']);
-    if ($menu_items) {
-        foreach ($menu_items as $item) {
-            if ($item->object_id == $post->ID) {
-                return 0.8; // High priority for menu pages
+        foreach ( array( $film, $video, $podcast, $person ) as $schema ) {
+            if ( $schema ) {
+                $schemas[] = $schema;
             }
         }
     }
 
-    // Other pages get default priority
-    return 0.5;
+    // Output as JSON-LD
+    echo '<script type="application/ld+json">' . "\n";
+    echo wp_json_encode($schemas, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    echo "\n" . '</script>' . "\n";
 }
-add_filter('wp_sitemaps_posts_entry', function($entry, $post) {
-    $entry['priority'] = afct_sitemap_priority($entry['priority'], 'post', $post);
-    return $entry;
-}, 10, 2);
 
 /**
  * Auto-generate llms.txt content from WordPress data.
@@ -507,9 +464,7 @@ function afct_auto_generate_llms_txt() {
     $lines[] = '';
 
     // ── Sections ─────────────────────────────────────────────────────────
-    $menu_locations = get_nav_menu_locations();
-    $menu_id        = $menu_locations['menu-1'] ?? 0;
-    $menu_items     = $menu_id ? wp_get_nav_menu_items( $menu_id ) : array();
+    $menu_items = afct_get_homepage_sections();
 
     // Categorise menu items by template for grouped sections
     $film_items      = array();
@@ -683,102 +638,34 @@ add_action( 'init', function () {
     exit;
 } );
 
-/**
- * Auto-generate sitemap XML from WordPress data.
- * Includes the homepage and each primary-menu section as an anchor URL.
- */
-function afct_auto_generate_sitemap_xml() {
-    $home_url    = rtrim( home_url( '/' ), '/' );
-    $homepage_id = get_option( 'page_on_front' );
-    $home_mod    = $homepage_id
-        ? get_post_modified_time( 'Y-m-d', true, $homepage_id )
-        : gmdate( 'Y-m-d' );
-
-    $lines   = array();
-    $lines[] = '<?xml version="1.0" encoding="UTF-8"?>';
-    $lines[] = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-
-    // Homepage
-    $lines[] = '  <url>';
-    $lines[] = '    <loc>' . esc_url( $home_url . '/' ) . '</loc>';
-    $lines[] = '    <lastmod>' . $home_mod . '</lastmod>';
-    $lines[] = '    <changefreq>weekly</changefreq>';
-    $lines[] = '    <priority>1.0</priority>';
-    $lines[] = '  </url>';
-
-    // Primary-menu sections
-    $menu_locations = get_nav_menu_locations();
-    $menu_id        = $menu_locations['menu-1'] ?? 0;
-    $menu_items     = $menu_id ? wp_get_nav_menu_items( $menu_id ) : array();
-
-    foreach ( $menu_items as $item ) {
-        $page = get_post( $item->object_id );
-        if ( ! $page ) {
-            continue;
-        }
-        $modified = get_post_modified_time( 'Y-m-d', true, $page->ID );
-        $url      = $home_url . '/#section-' . $page->post_name;
-
-        $lines[] = '  <url>';
-        $lines[] = '    <loc>' . esc_url( $url ) . '</loc>';
-        $lines[] = '    <lastmod>' . $modified . '</lastmod>';
-        $lines[] = '    <changefreq>monthly</changefreq>';
-        $lines[] = '    <priority>0.8</priority>';
-        $lines[] = '  </url>';
-    }
-
-    $lines[] = '</urlset>';
-
-    return implode( "\n", $lines );
-}
-
-/**
- * Get sitemap XML: returns saved custom content if set, otherwise auto-generates.
- */
-function afct_get_sitemap_xml_content() {
-    $saved = get_option( 'afct_sitemap_xml_content', '' );
-    return $saved !== '' ? $saved : afct_auto_generate_sitemap_xml();
-}
-
-/**
- * Serve /sitemap.xml
- * Hooks into 'init' (before wp_loaded / parse_request) to intercept the
- * request before WordPress's own sitemap feature redirects it to wp-sitemap.xml.
- */
-add_action( 'init', function () {
-    if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
+/** Redirect the legacy sitemap to the CMS's paginated canonical sitemap. */
+add_action( 'template_redirect', function () {
+    $path = wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH );
+    if ( $path !== wp_parse_url( home_url( '/sitemap.xml' ), PHP_URL_PATH ) ) {
         return;
     }
-    $path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
-    $home = parse_url( home_url( '/' ), PHP_URL_PATH );
-    $file = ltrim( str_replace( rtrim( $home, '/' ), '', $path ), '/' );
-    if ( $file !== 'sitemap.xml' ) {
-        return;
-    }
-    status_header( 200 );
-    header( 'Content-Type: application/xml; charset=utf-8' );
-    header( 'Cache-Control: public, max-age=86400' );
-    echo afct_get_sitemap_xml_content();
+    wp_safe_redirect( home_url( '/wp-sitemap.xml' ), 301 );
     exit;
 } );
 
-/**
- * Exclude certain pages from sitemap
- */
-function afct_sitemap_exclude_posts($args, $post_type) {
-    if ($post_type !== 'page') {
-        return $args;
+function afct_get_canonical_url() {
+    if ( is_404() || is_search() ) {
+        return '';
+    }
+    if ( is_singular() ) {
+        return wp_get_canonical_url( get_queried_object_id() ) ?: get_permalink( get_queried_object_id() );
     }
 
-    // Exclude pages with Generic Page template
-    $args['meta_query'] = array(
-        array(
-            'key' => '_wp_page_template',
-            'value' => 'page-generic.php',
-            'compare' => '!='
-        )
-    );
-
-    return $args;
+    return preg_replace( '/[?#].*$/', '', get_pagenum_link( max( 1, (int) get_query_var( 'paged' ) ), false ) );
 }
-add_filter('wp_sitemaps_posts_query_args', 'afct_sitemap_exclude_posts', 10, 2);
+
+add_action( 'wp', function () {
+    foreach ( array( 'WPSEO_VERSION', 'RANK_MATH_VERSION', 'AIOSEO_VERSION', 'SEOPRESS_VERSION' ) as $plugin ) {
+        if ( defined( $plugin ) ) {
+            return;
+        }
+    }
+    remove_action( 'wp_head', 'rel_canonical' );
+    add_action( 'wp_head', 'afct_output_seo_meta_tags', 5 );
+    add_action( 'wp_head', 'afct_output_structured_data', 6 );
+} );

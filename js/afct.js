@@ -1,141 +1,109 @@
 import { gsap } from 'gsap';
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ScrollSmoother } from "gsap/ScrollSmoother";
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import initProspectCarousel from './prospect-carousel';
 // history-timeline is loaded dynamically (it pulls in D3 + topojson)
-
-window.locomotiveScroll = null;
 
 jQuery(document).ready(function($) {
 "use strict";
 
-    gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
-
-    // Enable normalizeScroll for better snap behavior
-    ScrollTrigger.normalizeScroll(true);
-
-    const smoother = ScrollSmoother.create({
-        wrapper: "#smooth-wrapper",
-        content: "#smooth-content",
-        smooth: 2,
-        speed: 3,
-        effects: true,
-        normalizeScroll: true,
-    });
-
-    // Section snap using GSAP's native snap functionality (homepage only)
-    const snapSections = gsap.utils.toArray('section:not(.footer)');
-
-    if (snapSections.length > 1) {
-        // Calculate section positions as normalized progress values (0-1)
-        const getSnapPositions = () => {
-            const maxScroll = ScrollTrigger.maxScroll(window);
-            return snapSections.map(section => section.offsetTop / maxScroll);
-        };
-
-        ScrollTrigger.create({
-            snap: {
-                snapTo: (progress) => {
-                    const positions = getSnapPositions();
-                    return gsap.utils.snap(positions, progress);
-                },
-                duration: { min: 0.3, max: 0.6 },
-                delay: 0.02,
-                ease: "power1.inOut"
-            }
-        });
-    }
-
-    
+    gsap.registerPlugin(ScrollTrigger);
 
     const historySection = document.getElementById('the-history');
 
-    if (historySection) {
+    function loadHistoryTimeline() {
         // D3 + topojson are only loaded when the history section is present
         import(/* webpackChunkName: "history-timeline" */ './history-timeline')
             .then(({ default: initHistoryTimeline }) => {
-                initHistoryTimeline($);
+                window.historyTimeline = initHistoryTimeline($);
+                ScrollTrigger.refresh();
+            })
+            .catch(error => {
+                console.error('Unable to initialize the history viewer.', error);
             });
     }
 
+    if (historySection && 'IntersectionObserver' in window) {
+        const historyObserver = new IntersectionObserver(entries => {
+            if (entries.some(entry => entry.isIntersecting)) {
+                historyObserver.disconnect();
+                loadHistoryTimeline();
+            }
+        }, { rootMargin: '600px' });
+        historyObserver.observe(historySection);
+    } else if (historySection) {
+        loadHistoryTimeline();
+    }
+
     initProspectCarousel($);
-    //initHeaders();
     
-    // Initialize Serati image scaling effect
+    // Serati portrait grows from its compact state nested in the headline
+    // (Figma: 467px → 682px as the section scrolls into view)
     const seratiImage = document.getElementById('serati-image');
     if (seratiImage) {
-        ScrollTrigger.create({
-            trigger: "#about-serati",
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 1,
-            onUpdate: (self) => {
-                // Scale from 1 to 0.3 as user scrolls through the section
-                const scale = 1 - (self.progress * 0.7);
-                gsap.set(seratiImage, { scale: Math.max(scale, 0.3) });
+        gsap.fromTo(seratiImage,
+            { scale: 0.68, y: "-14%" },
+            {
+                scale: 1,
+                y: "0%",
+                ease: "none",
+                scrollTrigger: {
+                    trigger: "#about-serati",
+                    start: "top 80%",
+                    end: "top 15%",
+                    scrub: 1
+                }
             }
-        });
+        );
     }
 
     // Refresh ScrollTrigger after all initialization
     ScrollTrigger.refresh();
 
-    // Only initialize YouTube embeds if cookie consent is already given
-    if (localStorage.getItem('cookiesAccepted')) {
-        initYoutubeEmbed($);
-    }
+    // v2 design is light-only
+    document.body.classList.remove('dark-theme');
+    document.body.classList.add('light-theme');
 
-    const themeToggleBtn = $('.theme-toggle');
-    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-
-    // Update podcast embed theme to match site theme
-    function updatePodcastEmbed(isDark) {
-        const podcastEmbed = document.getElementById('podcast-embed');
-        if (podcastEmbed && podcastEmbed.dataset.embedBase) {
-            const theme = isDark ? 'dark' : 'light';
-            podcastEmbed.src = podcastEmbed.dataset.embedBase + theme;
+    // The 7minus2 podcast embed always uses its light skin
+    const podcastEmbed = document.getElementById('podcast-embed');
+    if (podcastEmbed && podcastEmbed.dataset.embedBase) {
+        const lightSrc = podcastEmbed.dataset.embedBase + 'light';
+        if (podcastEmbed.src !== lightSrc) {
+            podcastEmbed.src = lightSrc;
         }
     }
 
-    // Get saved theme or use system preference
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        document.body.classList.add(savedTheme + '-theme');
-        updateToggleButton(savedTheme === 'dark');
-        updatePodcastEmbed(savedTheme === 'dark');
-    } else {
-        const isDark = prefersDarkScheme.matches;
-        document.body.classList.add(isDark ? 'dark-theme' : 'light-theme');
-        updateToggleButton(isDark);
-        updatePodcastEmbed(isDark);
+    // Film placeholder: first click reveals the YouTube consent card
+    const filmPlaceholder = document.getElementById('youtube-placeholder');
+    if (filmPlaceholder) {
+        filmPlaceholder.addEventListener('click', function (e) {
+            if (e.target.closest('.youtube-consent-button')) return;
+            filmPlaceholder.classList.add('show-consent');
+        });
     }
-
-    // Theme toggle click handler
-    themeToggleBtn.on('click', function() {
-        const isDark = document.body.classList.contains('dark-theme');
-        document.body.classList.remove(isDark ? 'dark-theme' : 'light-theme');
-        document.body.classList.add(isDark ? 'light-theme' : 'dark-theme');
-        localStorage.setItem('theme', isDark ? 'light' : 'dark');
-        updateToggleButton(!isDark);
-        updatePodcastEmbed(!isDark);
-    });
-
-    function updateToggleButton(isDark) {
-        themeToggleBtn.find('.theme-toggle-text').text(isDark ? 'Switch to light theme' : 'Switch to dark theme');
-    }
-
-    // System theme change handler
-    prefersDarkScheme.addListener((e) => {
-        if (!localStorage.getItem('theme')) {
-            const isDark = e.matches;
-            document.body.classList.remove(isDark ? 'light-theme' : 'dark-theme');
-            document.body.classList.add(isDark ? 'dark-theme' : 'light-theme');
-            updateToggleButton(isDark);
-            updatePodcastEmbed(isDark);
-        }
-    });
 
     const sections = document.querySelectorAll('section');
+    const siteNavigation = document.getElementById('site-navigation');
+    const menuToggle = siteNavigation?.querySelector('.menu-toggle');
+
+    function closeMobileNavigation() {
+        siteNavigation?.classList.remove('menu-open');
+        menuToggle?.setAttribute('aria-expanded', 'false');
+    }
+
+    if (siteNavigation && menuToggle) {
+        menuToggle.addEventListener('click', event => {
+            event.stopPropagation();
+
+            const isOpen = siteNavigation.classList.toggle('menu-open');
+            menuToggle.setAttribute('aria-expanded', String(isOpen));
+        });
+
+        document.addEventListener('click', event => {
+            if (!siteNavigation.contains(event.target)) {
+                closeMobileNavigation();
+            }
+        });
+    }
     
     // Create an Intersection Observer instance
     const observerOptions = {
@@ -160,14 +128,15 @@ jQuery(document).ready(function($) {
     });
 
     $('.scroll-link, .nav-link').click(function(e) {
-        e.preventDefault();
         const target = $(this).attr('href');
-        if (target) {
-            const targetElement = document.querySelector(target);
+        if (target?.startsWith('#') && target.length > 1) {
+            const targetElement = document.getElementById(target.slice(1));
             if (targetElement) {
-                smoother.scrollTo(target, {smooth: true});
+                e.preventDefault();
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 $('.sidebar').removeClass('shown');
                 $('.sidebar_toggler').removeClass('active');
+                closeMobileNavigation();
             }
         }
     });
@@ -176,7 +145,13 @@ jQuery(document).ready(function($) {
     const cookieConsent = document.querySelector('.cookie-consent');
     const acceptButton = cookieConsent?.querySelector('.button-primary');
     if (cookieConsent && acceptButton) {
-        if (localStorage.getItem('cookiesAccepted')) {
+        let cookiesAccepted = false;
+        try {
+            cookiesAccepted = localStorage.getItem('cookiesAccepted') === 'true';
+        } catch {
+            // The page remains usable when browser storage is disabled.
+        }
+        if (cookiesAccepted) {
             cookieConsent.style.display = 'none';
         } else {
             cookieConsent.style.display = 'block';
@@ -184,9 +159,11 @@ jQuery(document).ready(function($) {
         
         acceptButton.addEventListener('click', function() {
             cookieConsent.style.display = 'none';
-            localStorage.setItem('cookiesAccepted', 'true');
-            // Initialize YouTube embeds after cookie consent is given
-            initYoutubeEmbed($);
+            try {
+                localStorage.setItem('cookiesAccepted', 'true');
+            } catch {
+                // Consent applies to this page even when it cannot be saved.
+            }
         });
     }
 
@@ -298,82 +275,3 @@ jQuery(document).ready(function($) {
         });
     }
 });
-// Youtube embed functionality
-window.player;
-let video_id = null;
-
-window.onYouTubeIframeAPIReady= function() {
-    console.log('YouTube API is ready');
-    window.player = new YT.Player('youtube-placeholder', {
-        height: '390',
-        width: '640',
-        videoId: video_id,
-        playerVars: {
-          'playsinline': 1
-        },
-        events: {
-          'onReady': onPlayerReady,
-          'onStateChange': onPlayerStateChange
-        }
-      });
-    };
-
-// 4. The API will call this function when the video player is ready.
-function onPlayerReady(event) {
-    event.target.playVideo();
-}
-
-var done = false;
-function onPlayerStateChange(event) {
-    if (event.data == YT.PlayerState.PLAYING && !done) {
-        setTimeout(stopVideo, 6000);
-        done = true;
-    }
-}
-
-function stopVideo() {
-    player.stopVideo();
-}
-
-export  function initYoutubeEmbed($) {
-
-    let youtubePlaceholders = $('.youtube-placeholder');
-
-    if (!youtubePlaceholders.length) 
-        return; // no youtube id given
-
-    video_id = youtubePlaceholders[0].dataset.videoId;
-
-}
-
-
-export  function initHeaders() {
-    const sections = document.querySelectorAll('section');
-    
-    // For each section, create ScrollTriggers for both elements
-    sections.forEach(section => {
-        const upperLeft = section.querySelector('.slide .text-upper-left');
-        const lowerRight = section.querySelector('.slide .text-lower-right');
-
-        if (upperLeft) {
-            ScrollTrigger.create({
-                trigger: section,      
-                start: 'top top',       
-                end:  'bottom 50%',
-                pin: upperLeft,     
-                pinSpacing: true,
-                refreshPriority: -1
-            });
-        }
-        
-        if (lowerRight) {
-            ScrollTrigger.create({
-                trigger: section,
-                start: 'top center',
-	            end: 'bottom bottom',
-                pin: lowerRight,
-                pinSpacing: true
-            });
-        }
-    });
-}
