@@ -168,7 +168,7 @@ function afct_output_author_schema() {
         $schema = afct_get_person_schema($author_id);
 
         echo '<script type="application/ld+json">' . "\n";
-        echo wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        echo wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
         echo "\n" . '</script>' . "\n";
     }
 }

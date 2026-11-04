@@ -1,0 +1,84 @@
+name: Check and deploy theme
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    container: php:${{ matrix.php }}-cli
+    strategy:
+      matrix:
+        php: ['7.4', '8.4', '8.5']
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - run: bash scripts/lint-php.sh
+      - run: php tests/regression.php
+      - run: php tests/regression.php --empty-menu
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint:js
+      - run: npm run dist
+      - name: Verify production package
+        run: bash scripts/check-package.sh
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: production-theme
+          path: build/
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    needs: [php, build]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: production-theme
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: production-theme
+          path: build/
+      - name: Publish tested production files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/publish-deploy.sh
+      - name: Trigger Plesk deployment
+        env:
+          PLESK_WEBHOOK_URL: ${{ secrets.PLESK_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          if [[ "$PLESK_WEBHOOK_URL" != https://* ]]; then
+            echo 'Configure the production environment secret PLESK_WEBHOOK_URL with its HTTPS trigger URL.' >&2
+            exit 1
+          fi
+          curl --fail --silent --show-error --retry 3 --max-time 120 \
+            --output /dev/null "$PLESK_WEBHOOK_URL"
+      - name: Verify public site
+        run: python3 scripts/check-live.py https://www.africanface.org/

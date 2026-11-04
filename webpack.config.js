@@ -11,7 +11,10 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist/'),
     filename: '[name].min.js',
-    chunkFilename: '[name].chunk.min.js',
+    // contenthash busts the 1-year browser cache when a lazy chunk changes
+    // (the WP version query only covers the entry file)
+    chunkFilename: '[name].[contenthash:8].chunk.min.js',
+    clean: true,
     publicPath: 'auto'
   },
   module: {

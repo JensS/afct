@@ -1,6 +1,6 @@
 {
   "name": "afct",
-  "version": "1.0.8",
+  "version": "2.0.3",
   "description": "A comprehensive theme that provides rich content management and display functionality for the African Face project. Developed and hosted on classicpress.  ",
   "author": "Jens Sage",
   "keywords": [
@@ -8,49 +8,34 @@
     "Theme"
   ],
   "devDependencies": {
-    "@babel/core": "^7.26.10",
-    "@babel/preset-env": "^7.26.9",
-    "@wordpress/scripts": "^19.2.2",
-    "babel-loader": "^10.0.0",
-    "css-loader": "^7.1.2",
-    "dir-archiver": "^2.1.0",
-    "rtlcss": "^4.3.0",
-    "sass": "^1.96.0",
-    "style-loader": "^4.0.0",
-    "terser-webpack-plugin": "^5.3.14",
-    "webpack": "^5.99.5",
-    "webpack-cli": "^6.0.1"
-  },
-  "rtlcssConfig": {
-    "options": {
-      "autoRename": false,
-      "autoRenameStrict": false,
-      "blacklist": {},
-      "clean": true,
-      "greedy": false,
-      "processUrls": false,
-      "stringMap": []
-    },
-    "plugins": [],
-    "map": false
+    "@babel/core": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "babel-loader": "^10.1.1",
+    "css-loader": "^7.1.4",
+    "terser-webpack-plugin": "^5.6.1",
+    "webpack": "^5.109.2",
+    "webpack-cli": "^7.2.2",
+    "mini-css-extract-plugin": "^2.10.2",
+    "css-minimizer-webpack-plugin": "^8.0.0",
+    "eslint": "^10.14.0",
+    "@eslint/js": "^10.0.1",
+    "globals": "^17.14.0"
   },
   "scripts": {
-    "watch": "sass sass/:. --source-map --style=expanded --watch",
-    "compile:css": "sass sass/:. --source-map --style=expanded && stylelint '*.css' --fix || true && stylelint '*.css' --fix",
-    "compile:rtl": "rtlcss style.css style-rtl.css",
-    "lint:scss": "wp-scripts lint-style 'sass/**/*.scss'",
-    "lint:js": "wp-scripts lint-js 'js/*.js'",
-    "bundle": "dir-archiver --src . --dest ../_s.zip --exclude .DS_Store .stylelintrc.json .eslintrc .git .gitattributes .github .gitignore README.md composer.json composer.lock node_modules vendor package-lock.json package.json .travis.yml phpcs.xml.dist sass style.css.map yarn.lock",
     "build": "webpack --mode=production",
     "dev": "webpack --mode=development --watch",
+    "lint:js": "eslint js webpack.config.js eslint.config.mjs",
+    "test": "php tests/regression.php",
+    "bundle": "bash build.sh",
     "dist": "bash build.sh"
   },
   "dependencies": {
-    "@studio-freight/lenis": "^1.0.42",
     "d3": "^7.9.0",
-    "gsap": "^3.12.7",
-    "locomotive-scroll": "^5.0.1",
+    "gsap": "^3.15.0",
     "topojson-client": "^3.1.0"
   },
-  "main": "webpack.config.js"
+  "main": "webpack.config.js",
+  "engines": {
+    "node": ">=24"
+  }
 }

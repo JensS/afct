@@ -9,24 +9,13 @@ if(!defined("IN_ONEPAGER"))
 ?>
 
 <div id="the-stills" class="slide">
-    <?php
-    $headline_parts = afct_split_headline(get_the_title());
-    ?>
-    <div class="text-upper-left">
-        <h1><?php echo esc_html($headline_parts['upper']); ?></h1>
-    </div>
-    <div class="text-lower-right">
-        <h1><?php echo esc_html($headline_parts['lower']); ?></h1>
-    </div>
-    
+    <?php afct_render_section_headline( get_the_title() ); ?>
+
+    <p class="gallery-sub">Explore the photography stills captured by Steve Marais.</p>
+
     <div class="img-sections-wrap">
         <div class="global-container" >
             <div class="gallery-grid" >
-                <div class="gallery-row gallery-intro-row">
-                    <div class="gallery-column" style="width: 100%">
-                        <h2 class="align-center">Explore the photography stills captured by Steve Marais.</h2>
-                    </div>
-                </div>
                 <?php
                 $gallery_data = get_post_meta(get_the_ID(), '_afct_gallery_layout', true);
 

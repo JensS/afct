@@ -10,18 +10,28 @@
  * Reads ?exp= query param and sets/clears a session cookie accordingly.
  */
 function afct_is_experimental_mode() {
-    if ( isset( $_GET['exp'] ) ) {
-        if ( $_GET['exp'] === '0' ) {
-            setcookie( 'afct_exp', '', time() - 3600, '/' );
-            return false;
-        }
-        if ( $_GET['exp'] === '1' ) {
-            setcookie( 'afct_exp', '1', 0, '/' );
-            return true;
-        }
+    if ( isset( $_GET['exp'] ) && in_array( $_GET['exp'], array( '0', '1' ), true ) ) {
+        return $_GET['exp'] === '1';
     }
     return isset( $_COOKIE['afct_exp'] ) && $_COOKIE['afct_exp'] === '1';
 }
+
+// Set cookies before templates send output; previews must not enter shared caches.
+add_action( 'template_redirect', function () {
+    if ( isset( $_GET['exp'] ) && in_array( $_GET['exp'], array( '0', '1' ), true ) ) {
+        setcookie( 'afct_exp', $_GET['exp'] === '1' ? '1' : '', array(
+            'expires' => $_GET['exp'] === '1' ? 0 : time() - HOUR_IN_SECONDS,
+            'path' => '/',
+            'secure' => is_ssl(),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ) );
+    }
+    if ( afct_is_experimental_mode() || isset( $_GET['exp'] ) ) {
+        nocache_headers();
+        header( 'X-Robots-Tag: noindex, follow', true );
+    }
+}, 0 );
 
 if ( ! is_admin() ) {
     return;

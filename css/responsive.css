@@ -1,318 +1,233 @@
-
-/* Mobile landscape (more than 767px) */
-@media (min-width: 768px) {
-
-	h1.headline-a,
-	h1.headline-b {
-		font-size: 56px;
-	}
-
-	h2{
-		font-size: 24px;
-	}
-}
-
-/* Desktop base (more than 1024px) */
-@media (min-width: 1025px) {
-
-	h1.headline-a,
-	h1.headline-b {
-		font-size: 64px;
-	}
-
-}
-
-/* Desktop L and tablet (more than 1280px) */
-@media (min-width: 1281px) {
-
-	h1.headline-a,
-	h1.headline-b {
-		font-size: 80px;
-	}
-}
-
-/* Desktop XL (more than 1440px) */
-@media (min-width: 1441px) {
-
-	h1.headline-a,
-	h1.headline-b {
-		font-size: 96px;
-	}
-}
-
-/* Desktop XXL (more than 1920px) */
-@media (min-width: 1921px) {
-
-	h1.headline-a,
-	h1.headline-b {
-		font-size: 128px;
-	}
-
-	h2,
-	.p-large {
-		font-size: 32px;
-	}
-}
-
-
 /*--------------------------------------------------------------
-# Responsive Adjustments
+# Responsive adjustments — v2 redesign
+# Desktop is the reference (1728 Figma artboard, vw-proportional).
+# Overrides below adapt the layout down to tablet and mobile.
 --------------------------------------------------------------*/
 
-/* Smaller Desktop / Larger Tablet */
-@media screen and (max-width: 1280px) {
-    .carousel-arrow.prev {
-        left: 3%;
-    }
-    .carousel-arrow.next {
-        right: 3%;
-    }
+/* Larger tablets / small desktop */
+@media screen and (max-width: 1024px) {
+
+	.prospect-carousel-container .carousel-arrow.prev { left: 2%; }
+	.prospect-carousel-container .carousel-arrow.next { right: 2%; }
 }
 
-
-/* Tablet Portrait */
+/* Tablet portrait */
 @media screen and (max-width: 991px) {
-	.global-container, .global-container.hero-container {
+
+	.global-container,
+	.global-container.hero-container {
 		padding: 1rem;
 	}
 
-	/* Tablet headline font size - 96px */
-	h1 {
-		font-size: 96px;
+	.text,
+	.content-col,
+	#essay-block,
+	.podcast-wrap,
+	.about-text {
+		width: min(88vw, 685px);
 	}
 
-	.text {
-		width: 90vw;
+	.about-figure {
+		width: min(72vw, 682px);
 	}
 
-	.hero-wrapper {
-		flex-direction: column;
-		justify-content: flex-start;
-		align-items: flex-start;
-		margin-bottom: -40px;
+	.youtube-placeholder,
+	.video iframe {
+		width: 92vw;
 	}
 
-	.hero-split {
-		max-width: 100%;
-		margin-bottom: 40px;
+	.team {
+		grid-template-columns: repeat(2, 1fr);
 	}
-
-	.text-wrap {
-		justify-content: space-between;
-	}
-
-	.podcast-authors {
-		grid-column-gap: 2rem;
-		grid-row-gap: 2rem;
-		width: 80%;
-	}
-
 }
 
-
+/* Mobile */
 @media screen and (max-width: 767px) {
-	.hero-without-image, .hero-heading-center {
-		padding: 60px 15px;
+
+	:root {
+		--page-margin: 16px;
 	}
 
-	/* Mobile headline font size - 64px */
-	h1.headline-a,
-	h1.headline-b {
-		font-size: 64px;
+	.menu-toggle {
+		position: absolute;
+		z-index: 2;
+		top: -8px;
+		right: -7px;
+		display: block;
+		width: 44px;
+		height: 120px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		cursor: pointer;
 	}
 
-	.p-large {
-		font-size: 1.25rem;
-	}
-	.align-center {
-		font-size: 1.25rem;
+	nav.menu:not(.menu-open):hover .menu-item a.nav-link {
+		opacity: 0;
 	}
 
-	/* Mobile credits layout - stack job titles above names */
-	.credit-div {
-		grid-template-columns: 1fr;
-		grid-template-rows: auto auto;
-		gap: 0.5rem;
+	nav.menu:not(.menu-open) .menu-item a.nav-link {
+		pointer-events: none;
 	}
 
-	.credit-description {
-		text-align: left;
-		order: 1;
+	nav.menu.menu-open .menu-item a.nav-link {
+		opacity: 0.6;
+		pointer-events: auto;
 	}
 
-	.meta-description {
-		order: 2;
+	nav.menu.menu-open .menu-item a.nav-link:hover,
+	nav.menu.menu-open .menu-item a.nav-link.active {
+		opacity: 1;
 	}
 
-	.podcast-authors {
-		grid-column-gap: 1.5rem;
-		grid-row-gap: 1.5rem;
-		width: 100%;
-	}
-
-	.html-audio-player {
-		width: 100%;
-	}
-
-	.podcast-description, .audio-wrap, ._50, .youtube-wrap, .img-01 {
-		width: 100%;
-	}
-
-	.img-02 {
-		width: 48%;
-		right: 0%;
-	}
-
-	.img-03 {
-		width: 48%;
-		left: 0%;
-	}
-
-	.img-04 {
-		width: 48%;
-	}
-
-	.img-05 {
-		width: 72%;
-	}
-
-	.img-06 {
-		width: 100%;
-	}
-
-	.img-07 {
-		width: 48%;
-		left: 0%;
-	}
-
-	.img-08 {
-		width: 48%;
-		right: 0%;
-	}
-
-    /* Adjust carousel arrows for smaller screens */
-    .carousel-arrow {
-        width: 60px;
-        height: 60px;
-        font-size: 30px;
-        line-height: 60px;
-    }
-    .carousel-arrow.prev {
-        left: 2%;
-    }
-    .carousel-arrow.next {
-        right: 2%;
-    }
-
-    /* History arrows might need specific adjustments */
-    #the-history .carousel-arrow.prev {
-        left: 5%; /* Readjust if needed */
-    }
-    #the-history .carousel-arrow.next {
-        right: 5%; /* Readjust if needed */
-    }
-
-    /* Prospect carousel adjustments */
-    .prospect-carousel-container {
-        width: 90%; /* Wider on smaller screens */
-    }
-
-}
-
-/* Mobile Landscape & Portrait */
-@media screen and (max-width: 479px) {
-
-	.global-container.hero-container {
-		padding: .75rem;
-	}
-
-
-	.centered-heading {
-		margin-bottom: 24px;
-	}
-
-	/* Smaller headlines for very small screens */
-	h1 {
-		font-size: 48px;
-	}
-
-
-	.align-center {
-		font-size: 1.125rem;
-	}
-
-	#about-the-project .text-upper-left,
-	#about-the-project .text-lower-right {
-		position: relative;
-		width: 100%;
-		text-align:left;
-		left:0;
-		right:0;
-		top:0;
-		bottom:0;
-	}
-
-	#about-the-project .p-large {
-		width: 100vw;
-		padding: 10px;
-	}
-	/* Better spacing for credits on very small screens */
-	.credit-div {
-		gap: 0.25rem;
+	.menu:not(.menu-open):hover .menu-item {
 		margin-bottom: 0;
 	}
-	.credit-div p {
-		text-align:center;
-	}
-	.credit-description {
-		font-size: 0.9rem;
+
+	.menu:not(.menu-open):hover ul {
+		gap: 8px;
 	}
 
-	.meta-description {
-		font-size: 0.9rem;
+	.menu.menu-open .menu-item {
+		height: auto;
+		min-height: 1.25rem;
+		margin-bottom: 0;
 	}
 
-	.podcast-authors {
-		grid-column-gap: 1rem;
-		grid-row-gap: 1rem;
-		width: 100%;
+	.menu.menu-open ul {
+		gap: 14px;
 	}
 
-	.podcast-description, .audio-wrap, ._50 {
-		width: 100%;
+	.section-headline :is(h1, h2) {
+		font-size: clamp(40px, 13vw, 64px);
 	}
 
-	.footer {
-		justify-content: flex-end;
-		align-items: flex-end;
-		display: flex;
+	.text-upper-left :is(h1, .hero-title-line),
+	.text-lower-right :is(h1, .hero-title-line) {
+		font-size: clamp(34px, 10.5vw, 48px);
 	}
 
-	.utility-links {
-		padding-top: 8rem;
-		padding-bottom: 2rem;
-	}
+	.text-upper-left { width: 85%; }
+	.text-lower-right { width: 85%; }
 
-	.button-secondary {
-		width: 100%;
-		padding-left: 0;
-	}
-
-	.button-wrap-copy {
-		width: 100%;
-	}
-
-	/* Improve text readability on small screens */
-	.p-large {
-		font-size: 1.125rem;
-		line-height: 150%;
+	.statement-block p {
+		font-size: clamp(17px, 4.9vw, 22px);
+		text-indent: 20%;
+		text-align: left;
 	}
 
 	p {
 		font-size: 16px;
-		line-height: 150%;
+		line-height: 1.5;
+	}
+
+	.p-large {
+		font-size: 1.125rem;
+		line-height: 1.5;
+	}
+
+	.align-center { font-size: 1.125rem; }
+
+	/* About */
+	.about-figure { width: 82vw; }
+	.about-text p { font-size: 16px; }
+
+	/* Podcast: keep the overlapping row, scale down */
+	.podcast-author img {
+		width: 20vw;
+		height: 20vw;
+		border-width: 3px;
+	}
+
+	.podcast-author + .podcast-author { margin-left: -3vw; }
+
+	.podcast-buttons {
+		flex-direction: row;
+		gap: 8px;
+	}
+
+	/* Gallery: stack image columns full-width, alternate a slight offset;
+	   space columns collapse */
+	.gallery-grid .gallery-row {
+		flex-wrap: wrap;
+		gap: 40px;
+		margin-bottom: 56px;
+	}
+
+	.gallery-grid .gallery-row .gallery-column.image {
+		width: 86% !important;
+	}
+
+	.gallery-grid .gallery-row .gallery-column.space {
+		display: none;
+	}
+
+	.gallery-grid .gallery-row .gallery-column.image:nth-child(even) {
+		margin-left: 14%;
+	}
+
+	/* Team: stacked single column, roles above names */
+	.team {
+		grid-template-columns: repeat(2, 1fr);
+		column-gap: 16px;
+	}
+
+	.credit-description { font-size: 12px; }
+	.meta-description { font-size: 16px; }
+
+	/* Support carousel */
+	.prospect-carousel-container {
+		height: clamp(320px, 96vw, 480px);
+	}
+
+	.prospect-slide-item img {
+		max-width: 62vw;
+	}
+
+	.prospect-slide-item.prev-slide { transform: translateX(-78%); }
+	.prospect-slide-item.next-slide { transform: translateX(78%); }
+
+	.carousel-arrow {
+		width: 38px;
+		height: 38px;
+	}
+
+	.prospect-carousel-container .carousel-arrow.prev { left: 2px; }
+	.prospect-carousel-container .carousel-arrow.next { right: 2px; }
+
+	/* Footer */
+	.footer-wordmark {
+		font-size: clamp(40px, 12.5vw, 64px);
 	}
 }
 
+/* Small mobile */
+@media screen and (max-width: 479px) {
 
+	.global-container.hero-container {
+		padding: 0.75rem;
+	}
 
+	.centered-heading { margin-bottom: 24px; }
+
+	#about-the-project .p-large {
+		width: 100%;
+		padding: 0;
+	}
+
+	.team {
+		grid-template-columns: 1fr;
+		row-gap: 14px;
+	}
+
+	.credit-div p { text-align: left; }
+
+	.utility-links {
+		padding-top: 1.5rem;
+		padding-bottom: 0.5rem;
+	}
+
+	.podcast-buttons .button-primary {
+		width: 100%;
+	}
+}

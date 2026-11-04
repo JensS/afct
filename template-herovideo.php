@@ -4,21 +4,29 @@
  * Template Post Type: page
  */
 
- 
-if(!defined("IN_ONEPAGER")) 
+
+if(!defined("IN_ONEPAGER"))
     get_header();
 
     ?>
 
 <div id="intro" class="slide">
     <?php
+    if ( ! defined( 'IN_ONEPAGER' ) ) {
+        echo '<h1 class="screen-reader-text">' . esc_html( get_the_title() ) . '</h1>';
+    }
     $headline_parts = afct_split_headline(get_the_title());
+    // The brand mark keeps its comma: "African Face," / "Colonial Tongue"
+    $upper = $headline_parts['upper'];
+    if (strpos(get_the_title(), ',') !== false) {
+        $upper .= ',';
+    }
     ?>
     <div class="text-upper-left">
-        <h1><?php echo esc_html($headline_parts['upper']); ?></h1>
+        <p class="hero-title-line"><?php echo esc_html($upper); ?></p>
     </div>
     <div class="text-lower-right">
-        <h1><?php echo esc_html($headline_parts['lower']); ?></h1>
+        <p class="hero-title-line"><?php echo esc_html($headline_parts['lower']); ?></p>
     </div>
     <?php
     $background_video = get_post_meta(get_the_ID(), '_afct_background_video', true);
@@ -38,5 +46,5 @@ if(!defined("IN_ONEPAGER"))
 </div>
     <?php
 
-if(!defined("IN_ONEPAGER")) 
+if(!defined("IN_ONEPAGER"))
     get_footer();

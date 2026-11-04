@@ -15,18 +15,17 @@
         <div class="global-container">
             <div class="utility-links">
                 <p>©<?php echo date('Y'); ?></p>
-                <p><a href="<?php echo esc_url(home_url('/imprint')); ?>">Imprint & Privacy Policy</a></p>
-                <p>A project by <a href="https://www.jenssage.com">Jens Sage</a></p>
+                <p><a href="mailto:contact@jenssage.com">Contact</a></p>
+                <p><a href="<?php echo esc_url(home_url('/imprint')); ?>">Impressum</a></p>
             </div>
-            <div class="footer-logo">
-            <?php
-            echo file_get_contents(get_template_directory() . "/img/footer.svg");
-            ?>
-        </div>
+            <h2 class="footer-wordmark" aria-label="African Face, Colonial Tongue">
+                <span class="wm-line wm-serif">African</span>
+                <span class="wm-line"><span class="wm-serif">Face, </span><span class="wm-sans">Colonial</span></span>
+                <span class="wm-line wm-line--indent wm-sans">Tongue</span>
+            </h2>
     </div>
 </section>
 
-</div><!-- #page -->
 
 
 <div id="cookie-consent" class="cookie-consent">
@@ -37,7 +36,6 @@
 </div>
 </div><!-- #smooth-content -->
 </div><!-- #smooth-wrapper -->
-<script type="text/javascript" src="https://www.youtube.com/iframe_api"></script>
 <?php wp_footer(); ?>
 </body>
 </html>

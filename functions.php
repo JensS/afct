@@ -93,41 +93,6 @@ function afct_get_version_string($file_path) {
 }
 
 /**
- * Add cache headers for static assets
- */
-function afct_add_cache_headers() {
-    // Only add cache headers for static assets
-    if (is_admin() || is_user_logged_in()) {
-        return;
-    }
-    
-    // Set cache headers for static assets
-    $cache_time = 31536000; // 1 year in seconds
-    
-    // Add cache headers for CSS and JS files
-    add_action('wp_loaded', function() use ($cache_time) {
-        if (strpos($_SERVER['REQUEST_URI'], '.css') !== false || 
-            strpos($_SERVER['REQUEST_URI'], '.js') !== false ||
-            strpos($_SERVER['REQUEST_URI'], '.woff') !== false ||
-            strpos($_SERVER['REQUEST_URI'], '.woff2') !== false ||
-            strpos($_SERVER['REQUEST_URI'], '.ttf') !== false ||
-            strpos($_SERVER['REQUEST_URI'], '.eot') !== false ||
-            strpos($_SERVER['REQUEST_URI'], '.svg') !== false ||
-            strpos($_SERVER['REQUEST_URI'], '.png') !== false ||
-            strpos($_SERVER['REQUEST_URI'], '.jpg') !== false ||
-            strpos($_SERVER['REQUEST_URI'], '.jpeg') !== false ||
-            strpos($_SERVER['REQUEST_URI'], '.gif') !== false ||
-            strpos($_SERVER['REQUEST_URI'], '.webp') !== false) {
-            
-            header('Cache-Control: public, max-age=' . $cache_time);
-            header('Expires: ' . gmdate('D, d M Y H:i:s', time() + $cache_time) . ' GMT');
-            header('Pragma: cache');
-        }
-    });
-}
-add_action('init', 'afct_add_cache_headers');
-
-/**
  * Add defer attribute to scripts for better performance
  */
 function afct_defer_scripts($tag, $handle, $src) {
@@ -143,82 +108,18 @@ function afct_defer_scripts($tag, $handle, $src) {
 add_filter('script_loader_tag', 'afct_defer_scripts', 10, 3);
 
 /**
- * Optimize jQuery loading to reduce forced reflow
- */
-function afct_optimize_jquery() {
-    if (!is_admin()) {
-        // Deregister default jQuery and register optimized version
-        wp_deregister_script('jquery');
-        wp_deregister_script('jquery-migrate');
-        
-        // Register jQuery from CDN with defer attribute for better performance
-        wp_register_script('jquery', 'https://code.jquery.com/jquery-3.6.3.min.js', array(), '3.6.3', true);
-        wp_enqueue_script('jquery');
-    }
-}
-add_action('wp_enqueue_scripts', 'afct_optimize_jquery', 1);
-
-/**
- * Inline critical CSS to reduce render blocking
- */
-function afct_inline_critical_css() {
-    // Only inline on front-end
-    if (is_admin()) {
-        return;
-    }
-    
-    // Critical CSS for above-the-fold content
-    $critical_css = '
-    <style id="critical-css">
-    /* Critical CSS for above-the-fold content */
-    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .global-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-    h1.headline-a, h1.headline-b { font-size: 48px; line-height: 1.2; margin: 0 0 1rem 0; }
-    .hero-wrapper { min-height: 50vh; display: flex; align-items: center; }
-    @media (min-width: 768px) {
-        h1.headline-a, h1.headline-b { font-size: 64px; }
-    }
-    @media (min-width: 992px) {
-        h1.headline-a, h1.headline-b { font-size: 96px; }
-    }
-    </style>
-    ';
-    
-    echo $critical_css;
-}
-add_action('wp_head', 'afct_inline_critical_css', 1);
-
-/**
- * Load non-critical CSS asynchronously
- */
-function afct_async_css($tag, $handle, $href, $media) {
-    // List of stylesheets to load asynchronously
-    $async_styles = array('afct-style', 'afct-bundle');
-    
-    if (in_array($handle, $async_styles)) {
-        // Load CSS asynchronously with fallback
-        return '<link rel="preload" href="' . $href . '" as="style" onload="this.onload=null;this.rel=\'stylesheet\'" id="' . $handle . '-css">' . 
-               '<noscript><link rel="stylesheet" href="' . $href . '" id="' . $handle . '-css-noscript"></noscript>';
-    }
-    
-    return $tag;
-}
-add_filter('style_loader_tag', 'afct_async_css', 10, 4);
-
-/**
  * Enqueue scripts and styles.
  */
 function afct_scripts() {
-    // Enqueue styles (will be loaded asynchronously via filter)
+    // Keep layout styles render-blocking to avoid flashes and layout shifts.
     wp_enqueue_style('afct-style', get_stylesheet_uri(), array(), afct_get_version_string("/style.css"));
-    wp_enqueue_style('afct-bundle', get_template_directory_uri() . "/dist/bundle.min.css", array(), afct_get_version_string("/dist/bundle.min.css"));
+    wp_enqueue_style('afct-bundle', get_template_directory_uri() . "/dist/bundle.min.css", array('afct-style'), afct_get_version_string("/dist/bundle.min.css"));
 
     // Use original bundled JS with GSAP libraries included and performance optimizations applied
     wp_enqueue_script('afct', get_template_directory_uri() . '/dist/afct.min.js', array('jquery'), afct_get_version_string('/dist/afct.min.js'), true);
 	wp_localize_script('afct', 'afctSettings', array(
 		'templateUrl' => get_template_directory_uri(),
-		"historyDataUrl" => rest_url('afct/v1/history'),
-		"historyNonce" => wp_create_nonce('wp_rest')
+		"historyDataUrl" => rest_url('afct/v1/history')
 	));
 	
 	// Enqueue YouTube consent script in footer
@@ -372,7 +273,6 @@ require_once get_template_directory() . '/inc/admin-menu-experimental.php';
 require_once get_template_directory() . '/inc/admin-webp-convert.php';
 require_once get_template_directory() . '/inc/admin-awards.php';
 require_once get_template_directory() . '/inc/admin-llms-txt.php';
-require_once get_template_directory() . '/inc/admin-sitemap-xml.php';
 require_once get_template_directory() . '/inc/admin-serati.php';
 
 function afct_body_classes( $classes ) {
@@ -407,7 +307,9 @@ add_action( 'wp_head', 'afct_pingback_header' );
 function afct_customize_register( $wp_customize ) {
 	$wp_customize->get_setting( 'blogname' )->transport         = 'postMessage';
 	$wp_customize->get_setting( 'blogdescription' )->transport  = 'postMessage';
-	$wp_customize->get_setting( 'header_textcolor' )->transport = 'postMessage';
+	if ( $wp_customize->get_setting( 'header_textcolor' ) ) {
+		$wp_customize->get_setting( 'header_textcolor' )->transport = 'postMessage';
+	}
 
 	if ( isset( $wp_customize->selective_refresh ) ) {
 		$wp_customize->selective_refresh->add_partial(
@@ -512,6 +414,11 @@ require_once get_template_directory() . '/inc/admin-homepage.php';
 
 
 function afct_enqueue_admin_scripts() {
+    $screen = get_current_screen();
+    if ( ! $screen || $screen->base !== 'post' || $screen->post_type !== 'page' ) {
+        return;
+    }
+
     global $typenow;
     global $post;
     
@@ -618,7 +525,7 @@ require_once get_template_directory() . '/inc/user-profile-fields.php';
  * @param string $title The page title to split
  * @return array Array with 'upper' and 'lower' parts of the headline
  */
-function afct_split_headline($title) {
+function afct_split_headline($title, $article_break = 'lower') {
     // Remove any HTML and decode entities
     $clean_title = wp_strip_all_tags(html_entity_decode($title));
     
@@ -643,13 +550,19 @@ function afct_split_headline($title) {
         );
     }
     
-    // Handle multiple words
-    // For two words, split them
-    // For more than two words, split at midpoint
-    $midpoint = ceil($word_count / 2);
+    // Three words with an article/connector in the middle: the article joins
+    // the lower line by default ("Watch | the Film", "Meet | the Team") or the
+    // upper line when $article_break is 'upper' ("Read the | Essay").
+    // Otherwise split at the midpoint ("South African | History").
+    $words = array_values($words);
+    if ($word_count === 3 && preg_match('/^(the|to|a|an|of|and|in|on)$/i', $words[1])) {
+        $midpoint = ('upper' === $article_break) ? 2 : 1;
+    } else {
+        $midpoint = ceil($word_count / 2);
+    }
     $upper_words = array_slice($words, 0, $midpoint);
     $lower_words = array_slice($words, $midpoint);
-    
+
     return array(
         'upper' => implode(' ', $upper_words),
         'lower' => implode(' ', $lower_words)
