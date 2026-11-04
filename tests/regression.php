@@ -116,4 +116,27 @@ check(is_array(json_decode($matches[1], true)), 'Structured data remains valid J
 
 $metadata[1]['_afct_history_entries'] = 'bad legacy metadata';
 check(afct_get_history_data(null)->data === array(), 'Malformed history metadata must return an empty response.');
+$legacy = afct_normalize_history_entries(array(array(
+    'year_start' => 1652, 'title' => 'Migration', 'paragraph' => 'Historical context',
+    'animation_type' => 'migration', 'origin_points' => array(array(1, 2)),
+    'destination_points' => array(array(3, 4)),
+)));
+check($legacy[0]['visualizations'][0]['destination'] === array(3, 4), 'Legacy migration overlays survive the embedded-data path.');
+$legacy = afct_normalize_history_entries(array(array(
+    'year_start' => 1800, 'animation_type' => 'language_development',
+    'center_lng' => 25, 'center_lat' => -28, 'languages' => 'isiZulu, isiXhosa',
+)));
+check($legacy[0]['visualizations'][0]['languages'] === array('isiZulu', 'isiXhosa'), 'Legacy language map overlays retain their language labels.');
+
+function get_the_title() { return 'Meet the Team'; }
+function get_the_ID() { return 1; }
+function esc_html($value) { return htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); }
+function esc_attr($value) { return esc_html($value); }
+function afct_split_headline($title, $variant = '') { return array('upper' => $title, 'lower' => ''); }
+define('IN_ONEPAGER', true);
+ob_start();
+include dirname(__DIR__) . '/template-credits.php';
+include dirname(__DIR__) . '/template-credits.php';
+$credits_html = ob_get_clean();
+check(substr_count($credits_html, 'Film Team') === 2, 'Different pages using the credits template can render in the same request.');
 echo "Passed {$checks} regression checks.\n";

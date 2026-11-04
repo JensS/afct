@@ -9,7 +9,7 @@ if ( ! defined( 'IN_ONEPAGER' ) ) {
 }
 
 $history_entries = get_post_meta( get_the_ID(), '_afct_history_entries', true );
-$history_entries = is_array( $history_entries ) ? $history_entries : array();
+$history_entries = afct_normalize_history_entries( $history_entries );
 ?>
 
 <div id="the-history" class="slide">

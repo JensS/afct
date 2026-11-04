@@ -78,6 +78,7 @@ jQuery(document).ready(function($) {
         filmPlaceholder.addEventListener('click', function (e) {
             if (e.target.closest('.youtube-consent-button')) return;
             filmPlaceholder.classList.add('show-consent');
+            filmPlaceholder.querySelector('.youtube-consent-button')?.focus();
         });
     }
 

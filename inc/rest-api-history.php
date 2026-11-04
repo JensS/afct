@@ -27,7 +27,11 @@ function afct_get_history_data($request) {
         return new WP_REST_Response([], 200);
     }
     
-    $history_entries = get_post_meta($page->ID, '_afct_history_entries', true);
+    return new WP_REST_Response( afct_normalize_history_entries( get_post_meta( $page->ID, '_afct_history_entries', true ) ), 200 );
+}
+
+/** Normalize both embedded and REST data, including legacy map animations. */
+function afct_normalize_history_entries( $history_entries ): array {
     $history_entries = is_array( $history_entries ) ? array_filter( $history_entries, 'is_array' ) : array();
     
     // Ensure each entry has the required fields in the standardized format
@@ -115,5 +119,5 @@ function afct_get_history_data($request) {
         return $entry;
     }, array_values( $history_entries ));
     
-    return new WP_REST_Response($standardized_entries, 200);
+    return $standardized_entries;
 }
