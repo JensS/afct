@@ -1,0 +1,233 @@
+/*--------------------------------------------------------------
+# Responsive adjustments — v2 redesign
+# Desktop is the reference (1728 Figma artboard, vw-proportional).
+# Overrides below adapt the layout down to tablet and mobile.
+--------------------------------------------------------------*/
+
+/* Larger tablets / small desktop */
+@media screen and (max-width: 1024px) {
+
+	.prospect-carousel-container .carousel-arrow.prev { left: 2%; }
+	.prospect-carousel-container .carousel-arrow.next { right: 2%; }
+}
+
+/* Tablet portrait */
+@media screen and (max-width: 991px) {
+
+	.global-container,
+	.global-container.hero-container {
+		padding: 1rem;
+	}
+
+	.text,
+	.content-col,
+	#essay-block,
+	.podcast-wrap,
+	.about-text {
+		width: min(88vw, 685px);
+	}
+
+	.about-figure {
+		width: min(72vw, 682px);
+	}
+
+	.youtube-placeholder,
+	.video iframe {
+		width: 92vw;
+	}
+
+	.team {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+/* Mobile */
+@media screen and (max-width: 767px) {
+
+	:root {
+		--page-margin: 16px;
+	}
+
+	.menu-toggle {
+		position: absolute;
+		z-index: 2;
+		top: -8px;
+		right: -7px;
+		display: block;
+		width: 44px;
+		height: 120px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		cursor: pointer;
+	}
+
+	nav.menu:not(.menu-open):hover .menu-item a.nav-link {
+		opacity: 0;
+	}
+
+	nav.menu:not(.menu-open) .menu-item a.nav-link {
+		pointer-events: none;
+	}
+
+	nav.menu.menu-open .menu-item a.nav-link {
+		opacity: 0.6;
+		pointer-events: auto;
+	}
+
+	nav.menu.menu-open .menu-item a.nav-link:hover,
+	nav.menu.menu-open .menu-item a.nav-link.active {
+		opacity: 1;
+	}
+
+	.menu:not(.menu-open):hover .menu-item {
+		margin-bottom: 0;
+	}
+
+	.menu:not(.menu-open):hover ul {
+		gap: 8px;
+	}
+
+	.menu.menu-open .menu-item {
+		height: auto;
+		min-height: 1.25rem;
+		margin-bottom: 0;
+	}
+
+	.menu.menu-open ul {
+		gap: 14px;
+	}
+
+	.section-headline :is(h1, h2) {
+		font-size: clamp(40px, 13vw, 64px);
+	}
+
+	.text-upper-left :is(h1, .hero-title-line),
+	.text-lower-right :is(h1, .hero-title-line) {
+		font-size: clamp(34px, 10.5vw, 48px);
+	}
+
+	.text-upper-left { width: 85%; }
+	.text-lower-right { width: 85%; }
+
+	.statement-block p {
+		font-size: clamp(17px, 4.9vw, 22px);
+		text-indent: 20%;
+		text-align: left;
+	}
+
+	p {
+		font-size: 16px;
+		line-height: 1.5;
+	}
+
+	.p-large {
+		font-size: 1.125rem;
+		line-height: 1.5;
+	}
+
+	.align-center { font-size: 1.125rem; }
+
+	/* About */
+	.about-figure { width: 82vw; }
+	.about-text p { font-size: 16px; }
+
+	/* Podcast: keep the overlapping row, scale down */
+	.podcast-author img {
+		width: 20vw;
+		height: 20vw;
+		border-width: 3px;
+	}
+
+	.podcast-author + .podcast-author { margin-left: -3vw; }
+
+	.podcast-buttons {
+		flex-direction: row;
+		gap: 8px;
+	}
+
+	/* Gallery: stack image columns full-width, alternate a slight offset;
+	   space columns collapse */
+	.gallery-grid .gallery-row {
+		flex-wrap: wrap;
+		gap: 40px;
+		margin-bottom: 56px;
+	}
+
+	.gallery-grid .gallery-row .gallery-column.image {
+		width: 86% !important;
+	}
+
+	.gallery-grid .gallery-row .gallery-column.space {
+		display: none;
+	}
+
+	.gallery-grid .gallery-row .gallery-column.image:nth-child(even) {
+		margin-left: 14%;
+	}
+
+	/* Team: stacked single column, roles above names */
+	.team {
+		grid-template-columns: repeat(2, 1fr);
+		column-gap: 16px;
+	}
+
+	.credit-description { font-size: 12px; }
+	.meta-description { font-size: 16px; }
+
+	/* Support carousel */
+	.prospect-carousel-container {
+		height: clamp(320px, 96vw, 480px);
+	}
+
+	.prospect-slide-item img {
+		max-width: 62vw;
+	}
+
+	.prospect-slide-item.prev-slide { transform: translateX(-78%); }
+	.prospect-slide-item.next-slide { transform: translateX(78%); }
+
+	.carousel-arrow {
+		width: 38px;
+		height: 38px;
+	}
+
+	.prospect-carousel-container .carousel-arrow.prev { left: 2px; }
+	.prospect-carousel-container .carousel-arrow.next { right: 2px; }
+
+	/* Footer */
+	.footer-wordmark {
+		font-size: clamp(40px, 12.5vw, 64px);
+	}
+}
+
+/* Small mobile */
+@media screen and (max-width: 479px) {
+
+	.global-container.hero-container {
+		padding: 0.75rem;
+	}
+
+	.centered-heading { margin-bottom: 24px; }
+
+	#about-the-project .p-large {
+		width: 100%;
+		padding: 0;
+	}
+
+	.team {
+		grid-template-columns: 1fr;
+		row-gap: 14px;
+	}
+
+	.credit-div p { text-align: left; }
+
+	.utility-links {
+		padding-top: 1.5rem;
+		padding-bottom: 0.5rem;
+	}
+
+	.podcast-buttons .button-primary {
+		width: 100%;
+	}
+}
