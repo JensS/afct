@@ -79,6 +79,8 @@ jobs:
             exit 1
           fi
           curl --fail --silent --show-error --retry 3 --max-time 120 \
+            --request POST --header 'Content-Type: application/json' \
+            --header 'X-GitHub-Event: push' --data '{}' \
             --output /dev/null "$PLESK_WEBHOOK_URL"
       - name: Verify public site
         run: python3 scripts/check-live.py https://www.africanface.org/
