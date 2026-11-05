@@ -1,12 +1,14 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import initProspectCarousel from './prospect-carousel';
+import initSectionHeadlines from './section-headlines';
 // history-timeline is loaded dynamically (it pulls in D3 + topojson)
 
 jQuery(document).ready(function($) {
 "use strict";
 
     gsap.registerPlugin(ScrollTrigger);
+    initSectionHeadlines();
 
     const historySection = document.getElementById('the-history');
 
