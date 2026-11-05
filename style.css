@@ -66,28 +66,28 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 
 @font-face {
 	font-family: 'Gambetta Variable';
-	src: url('fonts/gambetta/Gambetta-Variable.ttf') format('truetype');
+	src: url('fonts/gambetta/Gambetta-Variable.woff2') format('woff2');
 	font-weight: 300 700;
 	font-style: normal;
 	font-display: swap;
 }
 @font-face {
 	font-family: 'Gambetta';
-	src: url('fonts/gambetta/Gambetta-Regular.otf') format('opentype');
+	src: url('fonts/gambetta/Gambetta-Regular.woff2') format('woff2');
 	font-weight: 400;
 	font-style: normal;
 	font-display: swap;
 }
 @font-face {
 	font-family: 'Gill Sans';
-	src: url('fonts/gill-sans/Gill-Sans.otf') format('opentype');
+	src: url('fonts/gill-sans/Gill-Sans.woff2') format('woff2');
 	font-weight: 400;
 	font-style: normal;
 	font-display: swap;
 }
 @font-face {
 	font-family: 'Gill Sans';
-	src: url('fonts/gill-sans/Gill-Sans-Medium.otf') format('opentype');
+	src: url('fonts/gill-sans/Gill-Sans-Medium.woff2') format('woff2');
 	font-weight: 500;
 	font-style: normal;
 	font-display: swap;
@@ -1429,6 +1429,11 @@ section {
 	height: auto;
 	display: block;
 	box-shadow: none;
+}
+
+.gallery-column picture,
+.prospect-slide-item picture {
+	display: contents;
 }
 
 .gallery-grid .gallery-intro-row {

@@ -33,13 +33,13 @@ if(!defined("IN_ONEPAGER"))
     $video_cover_image = get_post_meta(get_the_ID(), '_afct_video_cover_image', true);
     if ($background_video) :
     ?>
-    <video id="background-video" playsinline autoplay muted loop poster="<?php echo esc_url($video_cover_image); ?>" width="1920" height="1080">
-        <source src="<?php echo esc_url($background_video); ?>" type="video/mp4">
+    <video id="background-video" playsinline autoplay muted loop poster="<?php echo esc_url(afct_cdn_url($video_cover_image)); ?>" width="1920" height="1080">
+        <source src="<?php echo esc_url(afct_cdn_url($background_video)); ?>" type="video/mp4">
     </video>
     <?php  else :
         if ($video_cover_image):
             ?>
-            <img src="<?php echo esc_url($video_cover_image); ?>" width="1920" height="1080" alt="Video cover image"/>
+            <img src="<?php echo esc_url(afct_cdn_url($video_cover_image)); ?>" width="1920" height="1080" alt="Video cover image"/>
             <?php
             endif;
     endif; ?>

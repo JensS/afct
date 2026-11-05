@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-for file in functions.php header.php footer.php style.css inc/seo-meta.php dist/afct.min.js dist/bundle.min.css js/countries-50m.json js/countries-110m.json js/youtube-consent.js js/admin-history.js; do
+for file in functions.php header.php footer.php style.css inc/seo-meta.php inc/cdn.php fonts/gambetta/Gambetta-Variable.woff2 fonts/gambetta/Gambetta-Regular.woff2 fonts/gill-sans/Gill-Sans.woff2 fonts/gill-sans/Gill-Sans-Medium.woff2 dist/afct.min.js dist/bundle.min.css js/countries-50m.json js/countries-110m.json js/youtube-consent.js js/admin-history.js; do
     test -s "build/afct/$file" || { echo "Missing required theme file: $file" >&2; exit 1; }
 done
 if find build/afct \( -name '.git' -o -name '.claude' -o -name '.env*' -o -name '*.zip' -o -name '*.pem' -o -name '*.key' -o -name 'node_modules' -o -name 'vendor' \) -print | grep -q .; then
