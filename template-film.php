@@ -13,7 +13,7 @@ $youtube_embed = get_post_meta(get_the_ID(), '_afct_youtube_embed', true);
 $video_id = afct_get_youtube_id($youtube_embed);
 
 // Film still shown behind the play button (page featured image)
-$poster_url = get_the_post_thumbnail_url(get_the_ID(), 'full');
+$poster_url = afct_cdn_url( get_the_post_thumbnail_url(get_the_ID(), 'full') );
 ?>
 
 <div id="the-film" class="slide">

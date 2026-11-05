@@ -52,7 +52,8 @@ function get_option($key, $default = false) { return $key === 'page_on_front' ? 
 function get_bloginfo($key) { return $key === 'name' ? 'A </script><script>alert(1)</script> title' : 'A site description'; }
 function wp_get_document_title() { return get_bloginfo('name'); }
 function get_theme_mod($key) { return false; }
-function home_url($path = '/') { return 'https://example.org' . $path; }
+function home_url($path = '/') { return ($GLOBALS['test_home_url'] ?? 'https://example.org') . $path; }
+function is_admin() { return $GLOBALS['test_is_admin'] ?? false; }
 function get_template_directory() { return dirname(__DIR__); }
 function get_template_directory_uri() { return 'https://example.org/theme'; }
 function has_post_thumbnail($id = null) { return false; }
@@ -63,6 +64,7 @@ class WP_REST_Response {
 }
 
 require dirname(__DIR__) . '/inc/template-helpers.php';
+require dirname(__DIR__) . '/inc/cdn.php';
 require dirname(__DIR__) . '/inc/custom-meta-boxes.php';
 require dirname(__DIR__) . '/inc/seo-meta.php';
 require dirname(__DIR__) . '/inc/rest-api-history.php';
@@ -72,6 +74,49 @@ function check($condition, $message) {
     if (!$condition) { throw new RuntimeException($message); }
     $GLOBALS['checks']++;
 }
+
+$asset_path = '/wp-content/themes/afct/dist/afct.min.js?ver=123#asset';
+check(afct_cdn_url('https://example.org' . $asset_path) === 'https://example.org' . $asset_path, 'Development and other sites retain their own assets.');
+$GLOBALS['test_home_url'] = 'https://www.africanface.org';
+$cdn = 'https://africanface.b-cdn.net';
+foreach (array('https://www.africanface.org', 'http://africanface.org', '//www.africanface.org', '') as $origin) {
+    check(afct_cdn_url($origin . $asset_path) === $cdn . $asset_path, 'Production static URLs preserve version queries and fragments on the CDN.');
+}
+foreach (array(
+    'https://third-party.org/wp-content/uploads/photo.jpg',
+    'https://africanface.org.evil.org/wp-content/uploads/photo.jpg',
+    'https://www.africanface.org/film/',
+    'https://www.africanface.org/wp-json/afct/v1/history',
+    'https://www.africanface.org/wp-admin/admin-ajax.php?file=image.jpg',
+    '/wp-content/plugins/plugin/endpoint.php?file=image.jpg',
+    '/wp-content/uploads/../private/image.jpg',
+    '/wp-content/uploads/%2e%2e/private/image.jpg',
+    '/wp-content/uploads/photo.jpg/endpoint.php',
+    'https://user:password@www.africanface.org/wp-content/uploads/photo.jpg',
+    'https://www.africanface.org:8443/wp-content/uploads/photo.jpg',
+    'data:image/png;base64,abcd', '', '#section-film',
+) as $url) {
+    check(afct_cdn_url($url) === $url, 'Navigation, dynamic endpoints, third parties and unsupported URLs stay unchanged.');
+}
+$origin_image = 'https://www.africanface.org/wp-content/uploads/photo.jpg';
+$cdn_image = $cdn . '/wp-content/uploads/photo.jpg';
+$media = '<picture><source srcset="' . $origin_image . ' 640w, /wp-content/uploads/photo-large.webp 1280w"><img src="' . $origin_image . '" width="640" height="480"></picture>';
+$rewritten_media = afct_cdn_media_html($media);
+check(strpos($rewritten_media, 'src="' . $cdn_image . '"') !== false, 'Attachment image sources use the CDN.');
+check(strpos($rewritten_media, 'srcset="' . $cdn_image . ' 640w, ' . $cdn . '/wp-content/uploads/photo-large.webp 1280w"') !== false, 'Responsive and WebP sources use the same CDN.');
+check(strpos($rewritten_media, 'width="640" height="480"') !== false, 'Image dimensions survive CDN rewriting.');
+$link = '<a href="' . $origin_image . '">Download</a><iframe src="https://show.7minus2.com/player"></iframe>';
+check(afct_cdn_media_html($link) === $link, 'Media rewriting leaves links and third-party players alone.');
+check(afct_cdn_url($cdn_image) === $cdn_image, 'CDN URLs are not rewritten twice.');
+$GLOBALS['test_is_admin'] = true;
+check(afct_cdn_url($origin_image) === $origin_image && afct_cdn_media_html($media) === $media, 'The editor and media library retain origin URLs.');
+$GLOBALS['test_is_admin'] = false;
+$GLOBALS['test_home_url'] = 'http://afct.test';
+check(afct_cdn_url($origin_image) === $origin_image, 'Local previews never pull production media through the CDN.');
+$GLOBALS['test_home_url'] = 'https://www.africanface.org';
+define('AFCT_CDN_URL', '');
+check(afct_cdn_url($origin_image) === $origin_image, 'The configuration switch disables CDN delivery immediately.');
+unset($GLOBALS['test_home_url']);
 
 $metadata[102]['_afct_menu_experimental'] = '1';
 $sections = afct_get_homepage_sections();

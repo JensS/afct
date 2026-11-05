@@ -77,3 +77,44 @@ Submit `/wp-sitemap.xml` in Google Search Console. Inspect key standalone page
 URLs and review the Pages report's exclusion reasons. Section anchors are not
 separate pages. Indexing and video eligibility are search-engine decisions;
 correct theme metadata cannot guarantee inclusion or rankings.
+
+## Bunny CDN
+
+The theme routes public static assets on `africanface.org` and
+`www.africanface.org` through `https://africanface.b-cdn.net`. The pull zone origin
+must be the production site root (`https://www.africanface.org`), preserving paths
+such as `/wp-content/themes/afct/style.css` and `/wp-content/uploads/...`.
+Local/staging sites and the admin area retain origin URLs. Navigation, canonical
+URLs, REST requests and third-party embeds also stay on their own domains.
+CMS media metadata is not changed. The history JSON remains same-origin because
+the current pull zone does not send CORS headers for JSON.
+
+Before deploying the CDN integration:
+
+1. In the pull zone's **Caching → Vary Cache**, enable **URL Query String**
+   (`IgnoreQueryStrings: false`). If limiting which parameters vary the cache,
+   include `ver`. The theme and CMS use version queries to invalidate CSS/JS.
+   Public checks on 2026-11-05 found different `ver` values hitting the same
+   existing cache entry; this setting must change before deployment.
+2. Keep CORS enabled for fonts, including `woff2`. Verify the response includes
+   `Access-Control-Allow-Origin: *` or the production origin. CSS references fonts
+   relative to its CDN URL; font preloads use the exact same URLs.
+3. Keep static browser caching enabled. Public responses currently specify
+   `Cache-Control: public, max-age=2592000` (30 days), including video and images.
+   Use Smart Cache/static extension rules; do not apply a long cache lifetime to
+   HTML, login, admin, PHP, or REST endpoints. Enable compression for CSS/JS.
+4. Purge the pull zone once after changing cache settings and deploying, then
+   verify the **actual versioned URLs from the homepage** return the deployed
+   CSS/JS. A second request should be a CDN cache hit. The existing deployment
+   verification compares these bytes with the production package.
+
+Upload replacement media under new filenames, or purge the affected CDN URLs.
+A CDN purge cannot clear a browser's already-cached file. Treat font files the
+same way if their contents change. For immediate origin-only rollback, add
+`define( 'AFCT_CDN_URL', '' );` to production `wp-config.php`, then clear any HTML
+page cache. No Bunny API key or other credentials belong in this theme.
+
+The gallery and support carousel use CMS attachment rendering for dimensions,
+responsive image sources and existing WebP variants. A missing/invalid attachment
+renders no image instead of an empty `src`. The podcast iframe loads lazily;
+its third-party cache policy is controlled by its host.

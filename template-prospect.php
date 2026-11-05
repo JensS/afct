@@ -35,24 +35,16 @@ if ( ! is_array( $slides ) ) {
                 <div class="prospect-slides">
                     <?php foreach ( $slides as $index => $slide ) : ?>
                         <?php
-                        // Get image URL, try 'large' size first, fallback to full
-                        $image_url = '';
-                        if ( ! empty( $slide['image_id'] ) ) {
-                            $image_data = wp_get_attachment_image_src( $slide['image_id'], 'large' ); // Or 'full' or a custom size
-                            if ($image_data) {
-                                $image_url = $image_data[0];
-                            } else {
-                                // Fallback if 'large' size doesn't exist
-                                $image_data_full = wp_get_attachment_image_src( $slide['image_id'], 'full' );
-                                if ($image_data_full) {
-                                    $image_url = $image_data_full[0];
-                                }
-                            }
-                        }
+                        $image_id = ! empty( $slide['image_id'] ) ? (int) $slide['image_id'] : 0;
                         ?>
                         <div class="prospect-slide-item <?php echo $index === 0 ? 'active' : ''; ?>" data-index="<?php echo esc_attr( $index ); ?>">
-                            <?php if ( $image_url ) : ?>
-                                <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $slide['label'] ?? 'Carousel image' ); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>">
+                            <?php if ( $image_id ) : ?>
+                                <?php echo wp_get_attachment_image( $image_id, 'large', false, array(
+                                    'alt' => $slide['label'] ?? 'Carousel image',
+                                    'loading' => 'lazy',
+                                    'decoding' => 'async',
+                                    'sizes' => '(max-width: 768px) 62vw, 24vw',
+                                ) ); ?>
                             <?php endif; ?>
                             <?php if ( ! empty( $slide['label'] ) && ! empty( $slide['url'] ) ) : ?>
                                 <a href="<?php echo esc_url( $slide['url'] ); ?>" class="button button-primary prospect-slide-button" target="_blank" rel="noopener noreferrer">

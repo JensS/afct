@@ -26,7 +26,7 @@ if(!defined("IN_ONEPAGER"))
 
     <?php if ($medium) : ?>
     <figure class="about-figure" data-scroll data-scroll-event-progress="seratiImageScroll">
-        <img id="serati-image" src="<?php echo esc_url($medium[0]); ?>" width="<?php echo intval($medium[1]); ?>" height="<?php echo intval($medium[2]); ?>" alt="A portrait of Serati.">
+        <img id="serati-image" src="<?php echo esc_url(afct_cdn_url($medium[0])); ?>" width="<?php echo intval($medium[1]); ?>" height="<?php echo intval($medium[2]); ?>" loading="lazy" decoding="async" alt="A portrait of Serati.">
     </figure>
     <?php endif; ?>
 

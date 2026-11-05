@@ -36,10 +36,14 @@ if(!defined("IN_ONEPAGER"))
                                                 $_alt = get_the_title($column['image_id']);
                                             }
                                         ?>
-                                        <img src="<?php echo esc_url(wp_get_attachment_image_url($column['image_id'], 'full')); ?>"
-                                             alt="<?php echo esc_attr($_alt); ?>"
-                                             loading="lazy"
-                                             data-scroll data-speed="<?php echo esc_attr($scroll_speed); ?>">
+                                        <?php echo wp_get_attachment_image( $column['image_id'], 'full', false, array(
+                                            'alt' => $_alt,
+                                            'loading' => 'lazy',
+                                            'decoding' => 'async',
+                                            'sizes' => max( 10, min( 100, (float) $column['width'] * 10 ) ) . 'vw',
+                                            'data-scroll' => '',
+                                            'data-speed' => $scroll_speed,
+                                        ) ); ?>
                                     <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>

@@ -36,7 +36,7 @@ $articles = get_post_meta(get_the_ID(), '_afct_awards_articles', true);
                         $h = $src ? $src[2] : 200;
                     ?>
                     <img
-                        src="<?php echo esc_url($laurel['image']); ?>"
+                        src="<?php echo esc_url(afct_cdn_url($laurel['image'])); ?>"
                         alt="<?php echo esc_attr($laurel['title']); ?>"
                         width="<?php echo intval($w); ?>"
                         height="<?php echo intval($h); ?>"
