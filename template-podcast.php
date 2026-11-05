@@ -65,11 +65,11 @@ $credits = afct_get_team_credits();
                     ?>
                         <div class="podcast-author">
                         <img
-                            src="<?php echo esc_url($guest['image']); ?>"
+                            src="<?php echo esc_url(afct_cdn_url($guest['image'])); ?>"
                             loading="lazy"
                             alt="<?php echo esc_attr($alt_text); ?>"
                             <?php if (!empty($title_text)) : ?>title="<?php echo esc_attr($title_text); ?>"<?php endif; ?>
-                            <?php if (!empty($srcset)) : ?>srcset="<?php echo esc_attr($srcset); ?>"<?php endif; ?>
+                            <?php if (!empty($srcset)) : ?>srcset="<?php echo esc_attr(afct_cdn_srcset($srcset)); ?>"<?php endif; ?>
                             <?php if (!empty($sizes)) : ?>sizes="<?php echo esc_attr($sizes); ?>"<?php endif; ?>
                             class="image-2"
                             width="120"
@@ -88,7 +88,7 @@ $credits = afct_get_team_credits();
                     <p>Your language is much more than the words you use to communicate. It defines shapes the culture and every individuals identity. The landscape of post-Apartheid South Africa created many similar but also different living realitites. We hear four stories from people with a similar upbringing but vastly different life and problems and learn about how the language you speak (or don’t speak) defines how you engage in your countries culture.</p>
                 </div>
                 <div class="podcast-player-wrap">
-                    <iframe id="podcast-embed" width="100%" height="112" frameborder="0" scrolling="no" allowtransparency="true" style="width: 100%; height: 112px; overflow: hidden; background: transparent;" data-embed-base="https://show.7minus2.com/@africanface/episodes/finding-a-place-between-two-worlds/embed/" src="https://show.7minus2.com/@africanface/episodes/finding-a-place-between-two-worlds/embed/light" title="African Face Colonial Tongue Podcast Player"></iframe>
+                    <iframe id="podcast-embed" loading="lazy" width="100%" height="112" frameborder="0" scrolling="no" allowtransparency="true" style="width: 100%; height: 112px; overflow: hidden; background: transparent;" data-embed-base="https://show.7minus2.com/@africanface/episodes/finding-a-place-between-two-worlds/embed/" src="https://show.7minus2.com/@africanface/episodes/finding-a-place-between-two-worlds/embed/light" title="African Face Colonial Tongue Podcast Player"></iframe>
                 </div>
                 <div class="podcast-buttons" style="margin-top: 2rem; display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap;">
                     <a href="https://open.spotify.com/show/7pZEwW27Xjr7Iqk1iIX7M7" class="button button-primary" target="_blank" rel="noopener noreferrer">

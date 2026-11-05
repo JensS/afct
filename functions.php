@@ -12,6 +12,8 @@ if ( ! defined( '_S_VERSION' ) ) {
 	define( '_S_VERSION', '4' );
 }
 
+require_once get_template_directory() . '/inc/cdn.php';
+
 
 function afct_setup() {
 	register_nav_menus(
